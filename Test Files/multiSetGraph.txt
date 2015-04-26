@@ -1,0 +1,60 @@
+FileFormatVersion 1.0
+# GraphName Radius 1 m (top) and 0.7 m (bottom)
+# XAxisDescription Mass
+# YaxisDescription Mass(Stopper)R?^2
+# UseCustomAxes false
+# XAxisMin 0.07
+# XAxisMax 0.26
+# YAxisMin 0.6
+# YAxisMax 3.8
+# UsePowersOnAxes true
+# CustomAxesPowers false
+# XAxisPower -1
+# YAxisPower 0
+# PDFPageWidth 8.5
+# PDFPageHeight 8.5
+# XAxisHasTickMarks true
+# XAxisHasTickLabels true
+# XAxisNumberOfTicks 10
+# YAxisHasTickMarks true
+# YAxisHasTickLabels true
+# YAxisNumberOfTicks 10
+# XAxisDecimals 2
+# YAxisDecimals 2
+# DisplayResultsOnGraph true
+# ResultsPositionX 5
+# ResultsPositionY 25
+# ResultsDecimals 4
+# ResultsUseScientificNotation true
+# XErrorsBeforeYErrors false
+
+# DataSet 1 
+~ NumberOfColumns 4
+~ FitType Y Error Fit
+~ WhatIsFixed intercept
+~ FixedValue 1.0
+~ Visible true
+~ Shape rectangle
+~ Color red
+~ DataPoint 0.09165 1.220415 5.0E-5 0.13798 
+~ DataPoint 0.1222 1.512529 5.0E-5 0.177886 
+~ DataPoint 0.15242 1.930083 5.0E-5 0.23818 
+~ DataPoint 0.18319 2.344074 5.0E-5 0.301349 
+~ DataPoint 0.2134 2.659793 5.0E-5 0.351591 
+~ DataPoint 0.24402 3.069778 5.0E-5 0.419311 
+
+# DataSet 2 
+~ NumberOfColumns 4
+~ FitType X&Y Error Fit
+~ WhatIsFixed slope
+~ FixedValue 4.0
+~ Visible true
+~ Shape rectangle
+~ Color black
+~ DataPoint 0.09165 0.992614 5.0E-5 0.123839 
+~ DataPoint 0.1222 1.268604 5.0E-5 0.165439 
+~ DataPoint 0.15242 1.472388 5.0E-5 0.197586 
+~ DataPoint 0.18319 1.690666 5.0E-5 0.233257 
+~ DataPoint 0.2134 2.148845 5.0E-5 0.311936 
+~ DataPoint 0.24402 2.530856 5.0E-5 0.381134 
+

@@ -1,0 +1,104 @@
+# graphname New Graph
+# xaxisdescription New X-Axis Description
+# yaxisdescription New Y-Axis Description
+# customAxes false
+# xmin 1.21
+# xmax 3.15
+# ymin 2.0
+# ymax 122.0
+# powerOnAxes false
+# customAxesPowers false
+# xPower 0
+# yPower 0
+# PDFPageWidth 8.5
+# PDFPageHeight 8.5
+# hasTickMarksX true
+# hasTickLabelsX true
+# ticksX 10
+# hasTickMarksY true
+# hasTickLabelsY true
+# ticksY 10
+# xDecimals 3
+# yDecimals 1
+# resultsOnGraph true
+# customResultPos false
+# resultPosX 156
+# resultPosY 150
+# resultDecimals 4
+# xErrors false
+
+# dataset 0 
+~ colnum 4
+~ fittype 4
+~ visible true
+~ shape rectangle
+~ color black
+~ colname x
+~ coldesc New Column Description
+~ colname y
+~ coldesc New Column Description
+~ colname ?x
+~ coldesc New Column Description
+~ colname ?y
+~ coldesc New Column Description
+~ p 2.996000 55.120000 0.005000 0.100000 
+~ p 2.890000 53.130000 0.006000 0.100000 
+~ p 2.773000 51.860000 0.006000 0.100000 
+~ p 2.639000 47.400000 0.007000 0.100000 
+~ p 2.485000 44.140000 0.008000 0.100000 
+~ p 2.303000 39.610000 0.010000 0.100000 
+~ p 2.079000 33.210000 0.013000 0.100000 
+~ p 1.792000 26.010000 0.016000 0.100000 
+~ p 1.386000 15.880000 0.025000 0.100000 
+~ #
+
+# dataset 1 
+~ colnum 4
+~ fittype 4
+~ visible true
+~ shape rectangle
+~ color blue
+~ colname x
+~ coldesc New Column Description
+~ colname y
+~ coldesc New Column Description
+~ colname ?x
+~ coldesc New Column Description
+~ colname ?y
+~ coldesc New Column Description
+~ p 2.996000 116.430000 0.005000 0.100000 
+~ p 2.890000 111.000000 0.006000 0.100000 
+~ p 2.773000 104.400000 0.006000 0.100000 
+~ p 2.639000 97.300000 0.007000 0.100000 
+~ p 2.485000 92.570000 0.008000 0.100000 
+~ p 2.303000 80.990000 0.010000 0.100000 
+~ p 2.079000 66.080000 0.013000 0.100000 
+~ p 1.792000 55.080000 0.016000 0.100000 
+~ p 1.386000 29.090000 0.025000 0.100000 
+~ #
+
+# dataset 2 
+~ colnum 4
+~ fittype 4
+~ visible true
+~ shape rectangle
+~ color red
+~ colname x
+~ coldesc New Column Description
+~ colname y
+~ coldesc New Column Description
+~ colname ?x
+~ coldesc New Column Description
+~ colname ?y
+~ coldesc New Column Description
+~ p 2.996000 29.210000 0.005000 0.100000 
+~ p 2.890000 26.700000 0.006000 0.100000 
+~ p 2.773000 25.970000 0.006000 0.100000 
+~ p 2.639000 24.530000 0.007000 0.100000 
+~ p 2.485000 22.030000 0.008000 0.100000 
+~ p 2.303000 20.090000 0.010000 0.100000 
+~ p 2.079000 16.650000 0.013000 0.100000 
+~ p 1.792000 13.740000 0.016000 0.100000 
+~ p 1.386000 8.620000 0.025000 0.100000 
+~ #
+

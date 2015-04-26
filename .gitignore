@@ -1,0 +1,18 @@
+LineFit WS/.metadata/
+LineFit WS/.recommenders/
+LineFit WS/LineFit/bin/
+LineFit WS/LineFit/.settings/
+LineFit WS/LineFit/doc/
+LineFit WS/LineFitHelp.pdf
+Test Files/*.pdf
+Test Files/*.jpg
+Test Files/*.gz
+Test Files/*.gz(busy)
+Test Files/*.aux
+Test.jar
+*.aux
+*.out
+*.gz
+*.toc
+0.97.2.jar
+LineFit 0.98.1.zip

@@ -1,0 +1,218 @@
+\ProvidesPackage{linefit}[2015/04/06 v1.0 K. Rice]
+\RequirePackage[mathletters]{ucs}
+\RequirePackage[utf8]{inputenc}
+\RequirePackage{xcolor}
+\RequirePackage{tikz}
+\usetikzlibrary{plotmarks} % needed for triangle, square, diamond
+\usetikzlibrary{calc}
+
+%sets the font size to the given size in pt
+\newcommand{\settextsize}[1]{
+	\fontsize{#1}{#1}
+	\selectfont
+}
+
+%shifts the whole graph over
+\newcommand{\shiftleft}[1]{
+	\hspace*{-#1cm}
+}
+
+%graph settup functions
+\newcommand{\linefitgraphbegin}[2]{ % args: xScale, yScale
+	\begin{tikzpicture}[x = #1cm, y = #2cm] 
+}
+
+\newcommand{\linefitgraphend}{\end{tikzpicture}}
+
+%Axes commands - has to switch spaces to commas
+
+\newcommand{\drawxaxis}[4]{ % args: AxisLabel, label data, yMin, AxisLabelSpacing
+	\extractaxisdata{#2}
+	\draw (\axisStart,#3) --  coordinate (x axis mid) (\axisEnd,#3);
+
+	\foreach \x in \axisLabels{
+		\draw (\x,#3) --  ++(0,6pt)
+          	 	node[anchor = north, below=0.35cm] {$\x$};
+	};
+	\node[below=#4cm] at (x axis mid) {#1};
+}
+
+\newcommand{\drawxaxisforsmallvals}[5]{ % args: AxisLabel, label data, label placement data, yMin, AxisLabelSpacing
+	\extractaxisdata{#3}
+	\draw (\axisStart,#4) --  coordinate (x axis mid) (\axisEnd,#4);
+	\newcounter{xcnt}
+	\setcounter{xcnt}{0}
+	\foreach \x in \axisLabels{
+		\draw (\x,#4) --  ++(0,6pt) coordinate (\arabic{xcnt});
+		\addtocounter{xcnt}{1}
+	};
+	\extractaxisdata{#2}
+	\setcounter{xcnt}{0}
+	\foreach \x in \axisLabels{
+   	\node[anchor = north, below=0.35cm] at (\arabic{xcnt}) {\y};
+		\addtocounter{xcnt}{1}
+	};
+	\node[below=#5cm] at (x axis mid) {#1};
+}
+
+\newcommand{\drawyaxis}[4]{ % args: AxesLabel, label data, yMin, y label spacing
+	\extractaxisdata{#2}
+	\draw (#3, \axisStart) -- coordinate (y axis mid) (#3, \axisEnd);
+    	\foreach \y in \axisLabels{
+      		 \draw (#3, \y) -- ++(6pt, 0pt)
+           	 node[anchor = east, left=0.35cm] {$\y$};;
+	}
+	\node[rotate=90, above=#4cm] at (y axis mid) {#1};
+	%\draw (y axis mid -| {{(#4cm,0)}}) node[rotate=90, anchor = south] {#1};
+}
+
+\newcommand{\drawyaxisforsmallvals}[5]{	% args: AxesLabel, label data, label placement data, yMin, y label spacing
+	\extractaxisdata{#3}
+	\draw (#4,\axisStart) --  coordinate (y axis mid) (#4,\axisEnd);
+	\newcounter{ycnt}
+	\setcounter{ycnt}{0}
+    	\foreach \y in \axisLabels{
+       		\draw (#4,\y) --  ++(6pt,0) coordinate (\arabic{ycnt});
+		\addtocounter{ycnt}{1}
+	};
+	\extractaxisdata{#2}
+	\setcounter{ycnt}{0}
+    	\foreach \y in \axisLabels{
+        	\node[anchor = east, left=0.35cm] at (\arabic{ycnt}) {\y};
+		\addtocounter{ycnt}{1}
+	};
+	\node[rotate=90, above=#5cm] at (y axis mid) {#1};
+	%\draw (y axis mid -| {{(#5cm,0)}}) node[rotate=90]{#1};
+}
+
+%changes it from spaces between numbers to commas in order to be able to use both tikZ and pictex commands
+\def\extractaxisdata#1{ % args: the data seperated by spaces
+    	\begingroup
+    	\xdef\axisLabels{}	%had xdef because it was keeping the data otherwise
+    	\xdef\axisStart{}
+	\xdef\axisEnd{}
+	\edef\withspace{#1\space}
+	\expandafter\endgroup
+	\expandafter\getnumber\withspace\relax
+}
+\def\getnumber#1 #2\relax{ % args: the data seperated by spaces (splits it in two automatically at the space)
+      	\if\relax\axisLabels\relax
+	\xdef\axisLabels{#1}
+	\def\axisStart{#1}
+      		\else
+      			\append{#1}
+		\def\axisEnd{#1}
+      	\fi
+      	\begingroup
+      	\ifx\relax#2\relax 
+		\def\next{\endgroup}
+      	\else
+         	\def\next{\endgroup\getnumber#2\relax}
+	\fi
+    	\next
+}
+\def\append#1{\edef\axisLabels{\axisLabels,#1}}
+\def\axisLabels{}
+\def\axisStart{}
+\def\axisEnd{}
+	
+% Text Placement Functions
+\newcommand{\puttext}[3]{ % args: text, x, y
+	\node[anchor=north west] at (#2, #3) {#1};
+}
+
+\newcommand{\putresults}[5]{ % args: text, x, y
+	\node[anchor=north west, above=#3cm, right=#2cm] at (#4, #5) {#1};
+}
+
+\newcommand{\putypower}[4]{ % args: powerString, x, y, yspacing
+	\node[anchor=south, above=#4cm] at (#2, #3) {#1};	
+}
+
+\newcommand{\putxpower}[4]{ % args: powerString, x, y, xspacing
+	\node[anchor=west, right=#4cm] at (#2, #3) {#1};
+}
+
+% Symbols for data points
+\newcommand{\symFilledSquare}{[mark=square*, mark size=2pt]}
+\newcommand{\symFilledCircle}{[mark=*, mark size=2pt]}
+\newcommand{\symFilledTriangle}{[mark=triangle*, mark size=2pt]}
+
+
+% data point placement functions
+\def\crossbarlength{5pt}
+
+\newcommand{\putpoint}[3]{ % args: symbol, x, y
+	\draw #1 plot coordinates {(#2,#3)};
+}
+
+\newcommand{\putpointxerr}[4]{ % args: symbol, x, y, xerr
+	\draw #1 plot coordinates {(#2,#3)};
+	\draw (#2, #3) -- ++(#4, 0);
+	\draw (#2, #3) -- ++(-#4, 0);
+
+	%draw right bar
+	\draw (#2 + #4, #3) -- ++(0, \crossbarlength / 2);
+	\draw (#2 + #4, #3) -- ++(0, -\crossbarlength / 2);
+
+	%and left
+	\draw (#2 - #4, #3) -- ++(0, \crossbarlength / 2);
+	\draw (#2 - #4, #3) -- ++(0, -\crossbarlength / 2);
+}
+
+\newcommand{\putpointyerr}[4]{ % args: symbol, x, y, xerr
+	\draw #1 plot coordinates {(#2,#3)};
+	\draw (#2, #3) -- ++(0,#4);
+	\draw (#2, #3) -- ++(0,-#4);
+
+	%drawtopbar
+	\draw (#2, #3 + #4) -- ++(\crossbarlength / 2, 0);
+	\draw (#2, #3 + #4) -- ++(-\crossbarlength / 2, 0);
+
+	%and bottom
+	\draw (#2, #3 - #4) -- ++(\crossbarlength / 2, 0);
+	\draw (#2, #3 - #4) -- ++(-\crossbarlength / 2, 0);
+}
+
+\newcommand{\putpointxyerr}[5]{ % args: symbol, x, y, xerr, yerr
+	\draw #1 plot coordinates {(#2,#3)};
+
+	%x part
+	\draw (#2, #3) -- ++(#4, 0);
+	\draw (#2, #3) -- ++(-#4, 0);
+
+	%draw right bar
+	\draw (#2 + #4, #3) -- ++(0, \crossbarlength / 2);
+	\draw (#2 + #4, #3) -- ++(0, -\crossbarlength / 2);
+
+	%and left
+	\draw (#2 - #4, #3) -- ++(0, \crossbarlength / 2);
+	\draw (#2 - #4, #3) -- ++(0, -\crossbarlength / 2);
+
+	%ypart
+	\draw (#2, #3) -- ++(0,#5);
+	\draw (#2, #3) -- ++(0,-#5);
+
+	%drawtopbar
+	\draw (#2, #3 + #5) -- ++(\crossbarlength / 2, 0);
+	\draw (#2, #3 + #5) -- ++(-\crossbarlength / 2, 0);
+
+	%and bottom
+	\draw (#2, #3 - #5) -- ++(\crossbarlength / 2, 0);
+	\draw (#2, #3 - #5) -- ++(-\crossbarlength / 2, 0);
+}
+
+\newcommand{\putpoints}[3]{ % args: symbol, x, y
+	\extractaxisdata{#2}
+	\xdef\xpoints{\axisLabels}
+	\extractaxisdata{#3}
+	\foreach \x\y in \xpoints\axisLabels {
+		\draw #1 plot coordinates {(\x,\y)};
+	};
+}
+
+
+% Draws the line
+\newcommand{\putline}[4]{ % args: x start, y start, x end, y end
+	\draw (#1,#2) -- (#3,#4);
+}	

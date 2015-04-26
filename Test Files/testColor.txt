@@ -1,0 +1,42 @@
+FileFormatVersion 1.0
+# GraphName New Graph
+# XAxisDescription New X-Axis Description
+# YaxisDescription New Y-Axis Description
+# UseCustomAxes false
+# XAxisMin 1.8
+# XAxisMax 4.2
+# YAxisMin -2.0
+# YAxisMax 82.0
+# UsePowersOnAxes true
+# CustomAxesPowers false
+# XAxisPower 0
+# YAxisPower 1
+# PDFPageWidth 8.5
+# PDFPageHeight 8.5
+# XAxisHasTickMarks true
+# XAxisHasTickLabels true
+# XAxisNumberOfTicks 10
+# YAxisHasTickMarks true
+# YAxisHasTickLabels true
+# YAxisNumberOfTicks 10
+# XAxisDecimals 2
+# YAxisDecimals 2
+# DisplayResultsOnGraph true
+# ResultsPositionX 5
+# ResultsPositionY 25
+# ResultsDecimals 4
+# ResultsUseScientificNotation true
+# XErrorsBeforeYErrors false
+
+# DataSet 1 
+~ NumberOfColumns 2
+~ FitType 1
+~ WhatIsFixed none
+~ FixedValue 0.0
+~ Visible true
+~ Shape rectangle
+~ Color 153 0 153
+~ DataPoint 2.0 75.0 
+~ DataPoint 3.0 34.0 
+~ DataPoint 4.0 5.0 
+

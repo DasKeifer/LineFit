@@ -12,4 +12,6 @@ Linear Fits. This project is also open to new features and any bug fixes to help
 the overall quality of this project as an open source academic tool.
 
 The official version of LineFit is hosted on GitHub.com under the account 
-darksideprogramming.
+darksideprogramming. This project is also linked up to SourceForge 
+(https://sourceforge.net/projects/linefit/) to take advantage of their distribution 
+functionality for users.

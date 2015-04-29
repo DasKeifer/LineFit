@@ -260,7 +260,7 @@ class SystemIOHandler
 			if(fileToOpen != null && !fileToOpen.getName().endsWith(".txt"))
 			{
 				int confirm = JOptionPane.showConfirmDialog(lineFit, "File is not a recognized lineFit .txt file. Continue opening?", "Unsupported File Type", JOptionPane.OK_CANCEL_OPTION);
-				if (confirm != JOptionPane.OK_OPTION) 
+				if (confirm == JOptionPane.OK_OPTION) 
 				{ 
 					return fileToOpen;
 				}
@@ -543,7 +543,7 @@ class SystemIOHandler
 	/** Saves the LineFit file */
 	static void saveLineFitFile()
 	{
-		File outputFile = promptUserToSelectFileForSaving(".jpg");
+		File outputFile = promptUserToSelectFileForSaving(".txt");
 		if(outputFile != null)
 		{
 			try 

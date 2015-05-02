@@ -28,7 +28,7 @@ class About {
 	 * The String that is returned when the
 	 */
 	static String about = "LineFit "+ Version.LINEFIT_VERSION + "\n"
-	+"Built with Java 1.6    \n"
+	+"Built with Java 1.7    \n"
 	+"---------------\n"
 	+" Contributors: \n\n"
 	+" Don Petcher \n"

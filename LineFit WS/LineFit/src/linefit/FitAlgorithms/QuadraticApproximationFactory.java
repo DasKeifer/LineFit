@@ -127,7 +127,8 @@ class QuadraticApproximationFactory extends LinearFitFactory
 		private void approximateQuadratically()
 		{
 			//calculate and get our starting point
-			startingPoint.setWhatIsFixed(this.getWhatIsFixed(), this.getFixedValue());
+			//if we ever support fixing for this algorithm - startingPoint.setWhatIsFixed(this.getWhatIsFixed(), this.getFixedValue());
+			startingPoint.setWhatIsFixed(FixedVariable.NONE, 0);
 			startingPoint.calculateLinearFit(FitType.BOTH_ERRORS);
 			double sigmaM = startingPoint.getSlopeError();
 			double sigmaB = startingPoint.getInterceptError();

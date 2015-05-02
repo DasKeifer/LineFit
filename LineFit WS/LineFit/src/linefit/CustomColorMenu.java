@@ -67,10 +67,11 @@ class CustomColorMenu extends JFrame
 		{
 			removeTransparencySlider(customColorChooser);
 		} 
-		catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) 
-		{
-			//we failed to remove the sliders but its no big deal - just keep going
-		}
+		//we failed to remove the sliders but its no big deal - just keep going
+		catch (NoSuchFieldException nsfe) {}
+		catch (SecurityException se) {}
+		catch (IllegalArgumentException iae) {}
+		catch (IllegalAccessException iae) {}
 		add(customColorChooser, BorderLayout.CENTER);
 		
 		JPanel buttonRow = new JPanel();

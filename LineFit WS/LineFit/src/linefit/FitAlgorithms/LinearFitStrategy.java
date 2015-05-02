@@ -88,7 +88,7 @@ public abstract class LinearFitStrategy
 		DataColumn xErrorData = dataForFit.getXErrorData();
 		DataColumn yErrorData = dataForFit.getYErrorData();
 		
-		if(whatIsFixed != FixedVariable.INTERCEPT)
+		if(whatIsFixed != FixedVariable.INTERCEPT || !canFixIntercept)
 		{
 			double sigmaSquared = 0.0, xSum = 0.0, ySum = 0.0, wSum = 0.0;
 			double eX = 0.0, eY = 0.0, x = 0.0, y = 0.0;
@@ -376,13 +376,13 @@ public abstract class LinearFitStrategy
 	
 		double delta = 0;
 
-		if(whatIsFixed == FixedVariable.SLOPE) //check if we have the easy case of a fixed slope
+		if(whatIsFixed == FixedVariable.SLOPE && canFixSlope) //check if we have the easy case of a fixed slope
 		{
 			slope = fixedValue;
 			intercept = (sumY - slope * sumX) / sumW;
 			delta = sumW * sumXX - sumX * sumX; //we can do it this way because the loss of accuracy wont matter once we square root it for finding the errors
 		} 
-		else if(whatIsFixed == FixedVariable.INTERCEPT)  //or the easy case of a fixed intercept
+		else if(whatIsFixed == FixedVariable.INTERCEPT && canFixIntercept)  //or the easy case of a fixed intercept
 		{
 			intercept = fixedValue;
 			slope = (sumXY - (intercept * sumX)) / (sumXX); 
@@ -467,11 +467,11 @@ public abstract class LinearFitStrategy
 			interceptError = slope * interceptError;
 		}
 		
-		if(whatIsFixed == FixedVariable.SLOPE)
+		if(whatIsFixed == FixedVariable.SLOPE && canFixSlope)
 		{
 			slopeError = 0;
 		}		
-		if(whatIsFixed == FixedVariable.INTERCEPT)
+		if(whatIsFixed == FixedVariable.INTERCEPT && canFixIntercept)
 		{
 			interceptError = 0;
 		}
@@ -540,7 +540,7 @@ public abstract class LinearFitStrategy
 		if (dataForFit.getFitType() == FitType.REGULAR)
 		{
 			//we need to make sure that we have enough points so that we do not divide by 0!
-			if(dataForFit.getXData().getData().size() > 2 && this.whatIsFixed != FixedVariable.SLOPE) 
+			if(dataForFit.getXData().getData().size() > 2 && (this.whatIsFixed != FixedVariable.SLOPE || !canFixSlope)) 
 			{
 				return Math.sqrt(calculateChiSquared(this.slope, this.intercept) / (dataForFit.getXData().getData().size() - 2));
 			}

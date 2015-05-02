@@ -308,33 +308,60 @@ class SystemIOHandler
 	/** Creates and displays or just displays the LineFit help PDF file */
 	static void showPDFHelpFile() 
 	{
-		File helpPDF = new File("LineFitHelp.pdf");
+		//copy our help file
+		copyResourceFileToContainingFolder("LineFitHelp.pdf", "");
 		try
 		{
-			//if we havent already created the help file we need to copy it from inside the jar to outside so we can open it
-			if(!helpPDF.exists())
-			{
-				helpPDF.createNewFile();
-				InputStream helpIn = SystemIOHandler.class.getResourceAsStream("/resources/helpFile.pdf");
-				OutputStream helpOut = new FileOutputStream(helpPDF);
-
-				byte[] readBuffer = new byte[1024];
-				int lengthToRead = 0;
-				while ((lengthToRead = helpIn.read(readBuffer)) != -1) 
-				{
-					helpOut.write(readBuffer, 0, lengthToRead);
-				}
-				
-				helpIn.close();
-				helpOut.close();
-			}
-			
 			//open our file
+			File helpPDF = new File("LineFitHelp.pdf");
 	        Desktop.getDesktop().open(helpPDF);
 		} 
 		catch(IOException e2) 
 		{
-			JOptionPane.showMessageDialog(lineFit, "Error creating or opening the help file. Make sure you have a PDF reader and try again",
+			JOptionPane.showMessageDialog(lineFit, "Error opening the help file. Make sure you have a PDF reader and try again",
+				    "IO Error", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+	
+	/** Creates the linefit.sty file for the user to use for LaTex exports 
+	 * @param destinationFolderPath The File path to create the .sty file at. This must contain the ending "\\" to denote a folder
+	 */
+	static void createLineFitStyFile(String destinationFolderPath) 
+	{
+		copyResourceFileToContainingFolder("linefit.sty", destinationFolderPath);
+	}
+	
+	/**
+	 * Creates a copy of the passed file in the resources folder into the given directory
+	 * @param fileName The name of the resource to copy to the folder that the jar is in
+	 * @param destinationFolderPath The path to put the created resource at. This must contain the ending "\\" to denote a folder
+	 */
+	static void copyResourceFileToContainingFolder(String fileName, String destinationFolderPath)
+	{
+		File file = new File(destinationFolderPath + fileName);
+		try
+		{
+			//if we havent already created the help file we need to copy it from inside the jar to outside so we can open it
+			if(!file.exists())
+			{
+				file.createNewFile();
+				InputStream fileIn = SystemIOHandler.class.getResourceAsStream("/resources/" + fileName);
+				OutputStream fileOut = new FileOutputStream(file);
+
+				byte[] readBuffer = new byte[1024];
+				int lengthToRead = 0;
+				while ((lengthToRead = fileIn.read(readBuffer)) != -1) 
+				{
+					fileOut.write(readBuffer, 0, lengthToRead);
+				}
+				
+				fileIn.close();
+				fileOut.close();
+			}
+		} 
+		catch(IOException e2) 
+		{
+			JOptionPane.showMessageDialog(lineFit, "Error creating the " + fileName + " file",
 				    "IO Error", JOptionPane.ERROR_MESSAGE);
 		}
 	}
@@ -681,6 +708,10 @@ class SystemIOHandler
 				JOptionPane.showMessageDialog(lineFit, "Exception occured while saving as a LaTex file : Process aborted",
 					    "IO Error", JOptionPane.ERROR_MESSAGE);
 			}
+			
+			//create the .sty file
+			String pathToFolder = outputFile.getParent();
+			createLineFitStyFile(pathToFolder + "\\\\");
 		}
 	}
 	

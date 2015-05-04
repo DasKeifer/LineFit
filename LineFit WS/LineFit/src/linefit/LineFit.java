@@ -145,7 +145,6 @@ class LineFit extends JFrame
 	private boolean setLock = false;
 
 	/** The default FitAlgorithm to use when creating linear fits for the DataSets */
-	//TODO: change to quadratic as default once implemented
 	static LinearFitFactory currentFitAlgorithmFactory = LinearFitFactory.fitAlgorithmFactories[0];
 	
 	/** The default constructor for LineFit that creates a new instance with no data in it */

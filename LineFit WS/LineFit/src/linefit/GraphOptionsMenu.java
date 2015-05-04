@@ -942,7 +942,7 @@ class GraphOptionsMenu extends JFrame
 			
 		SystemIOHandler.LaTexGraphWidthInCm = Double.parseDouble(LaTexWidthField.getText());
 		SystemIOHandler.LaTexGraphHeightInCm = Double.parseDouble(LaTexHeightField.getText());	
-		SystemIOHandler.exportFontSize = (Float) exportFontSize.getValue();
+		SystemIOHandler.exportFontSize = ((Double) exportFontSize.getValue()).floatValue();
 		
 		graphingArea.resultsAreDisplayedOnGraph = displayResultsOnGraphCheckBox.isSelected();
 

@@ -1011,6 +1011,15 @@ public class DataSet extends JScrollPane
 	}
 
 	//getters and setters
+	/** 
+	 * Returns the Chi squared value for this dataset's current fit
+	 * @return The Chi squared as a double
+	 */
+	public double getChiSquared()
+	{
+		return this.linearFitStrategy.calculateChiSquared(this.linearFitStrategy.getSlope(), this.linearFitStrategy.getIntercept());
+	}
+	
     /**
      * Gets the shape this DataSet as a String is using when being draw to the GraphArea 
      * @return A String representing the shape of the points in this DataSet 

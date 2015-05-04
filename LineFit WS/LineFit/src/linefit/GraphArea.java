@@ -720,7 +720,8 @@ class GraphArea extends JPanel
 						if (c == dataSetSelector.getSelectedIndex())
 						{
 							fitResultsString = "y = mx + b\nm = " + slopeDisplay
-							+ /*slopeErrorDisplay +*/ "\nb = " + interceptDisplay;
+									+ /*slopeErrorDisplay +*/ "\nb = " + interceptDisplay
+									+ "\n\u03c7\u00B2 = " + current.getChiSquared();
 	
 							fitResultsArea.setText(fitResultsString);
 						}	

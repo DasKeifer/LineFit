@@ -124,7 +124,7 @@ public abstract class LinearFitStrategy
 	 * @param inIntercept The intercept to calculate the Chi Squared value for
 	 * @return The Chi Squared value of the fit using the passed slope and intercept
 	 */
-	double calculateChiSquared(double inSlope, double inIntercept) 
+	public double calculateChiSquared(double inSlope, double inIntercept) 
 	{
 		double eX = 0.0, eY = 0.0, x = 0.0, y = 0.0;
 		DataColumn xData = dataForFit.getXData();
@@ -261,7 +261,7 @@ public abstract class LinearFitStrategy
 		} 
 		else 
 		{
-			if(returnAsLaTexString)
+			if(!returnAsLaTexString)
 			{
 				return ScientificNotation.withError(getSlope(), getSlopeError(), 0, resultDecPlaces);
 			}

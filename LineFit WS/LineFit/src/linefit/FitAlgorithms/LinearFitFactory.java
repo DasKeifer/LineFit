@@ -13,8 +13,8 @@ public abstract class LinearFitFactory
 	/** The array of all the linear fit factories that will be included in LineFit. In order for a fit algorithm to show up, 
 	 * it must be in this array. The factory at index 0 in this array is the default fit algorithm for LineFit */
 	public final static LinearFitFactory[] fitAlgorithmFactories = {
-			QuadraticApproximationFactory.getInstance(),
-			PartialDerivativeMinimizationFactory.getInstance()
+			PartialDerivativeMinimizationFactory.getInstance(),
+			QuadraticApproximationFactory.getInstance()
 		};
 	
 	/** Finds and returns the LinearFtFactory with the given name in the list of algorithm factories in LineFit. if it doesn't

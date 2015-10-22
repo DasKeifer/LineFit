@@ -542,7 +542,7 @@ public abstract class LinearFitStrategy
 			//we need to make sure that we have enough points so that we do not divide by 0!
 			if(dataForFit.getXData().getData().size() > 2 && (this.whatIsFixed != FixedVariable.SLOPE || !canFixSlope)) 
 			{
-				return Math.sqrt(calculateChiSquared(this.slope, this.intercept) / (dataForFit.getXData().getData().size() - 2));
+				return Math.sqrt(Math.abs(calculateChiSquared(this.slope, this.intercept)) / (dataForFit.getXData().getData().size() - 2));
 			}
 			else
 			{
@@ -552,7 +552,7 @@ public abstract class LinearFitStrategy
 		//otherwise just use what we already put in there
 		else 
 		{
-			return slopeError;
+			return Math.abs(slopeError);
 		}
 	}
 	
@@ -564,7 +564,7 @@ public abstract class LinearFitStrategy
 		{
 			return 0;
 		}
-		return interceptError;
+		return Math.abs(interceptError);
 	}
 	
 	/** 

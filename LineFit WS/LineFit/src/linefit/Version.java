@@ -26,7 +26,7 @@ package linefit;
 class Version 
 {
 	/** The current LineFit Version number&#46; It must be updated manually */
-	static final String LINEFIT_VERSION = "0.98.3";
+	static final String LINEFIT_VERSION = "0.98.4";
 
 	/** The current LineFit file version used&#46; It must be updated manually */
 	static final double LINEFIT_FILE_FORMAT_VERSION = 1.0;

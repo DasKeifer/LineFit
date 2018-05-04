@@ -493,9 +493,4 @@ public class GeneralIO
 			System.err.println("Error creating Icon. Program continuing");
 		}
 	}
-
-	public static void openLineFitFileAtPath(String filePathOfFileToLoad, boolean b) {
-		// TODO Auto-generated method stub
-		
-	}
 }

@@ -1,6 +1,8 @@
 package linefit.IO;
 
+import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -32,10 +34,7 @@ import linefit.IO.CloseDialogException;
  * @since 	1.0
  */
 public class ExportIO 
-{
-	/** The LineFit instance that this IOHandler is linked to */
-	private static LineFit lineFit;
-	
+{	
 	//PDF display and exporting variables
 	/** The default width in inches when exporting to a PDF image */
 	private final static double DEFAULT_PDF_WIDTH = 8.5;
@@ -68,7 +67,7 @@ public class ExportIO
 	}
 
 	/** Saves/exports the current graph area as a PDF image */
-	public static void exportPDF()
+	public static void exportPDF(LineFit lineFit)
 	{
 		File outputFile = promptUserToSelectFileForSaving(".pdf");
 		if(outputFile != null)
@@ -81,8 +80,11 @@ public class ExportIO
 			    document.open();
 			    
 			    Graphics2D g2 = new PdfGraphics2D(writer.getDirectContent(), pdfDim.width, pdfDim.height);
+
+				Font fontBase = new Font(g2.getFont().getName(), Font.PLAIN, 12);//12 just because we have to give it some height
+				Font exportFont = fontBase.deriveFont(exportFontSize);
 				
-			    lineFit.drawGraphForExport(g2, pdfDim);
+			    lineFit.drawGraphWithGraphics(g2, pdfDim, true, exportFont);
 				
 			    g2.dispose(); 
 				JOptionPane.showMessageDialog(lineFit, "File Successfully Exported as a PDF Image", "File Exported", JOptionPane.INFORMATION_MESSAGE);
@@ -102,7 +104,7 @@ public class ExportIO
 	}
 
 	/** Saves/exports the LineFit graph as a JPG image */
-	public static void exportJPG()
+	public static void exportJPG(LineFit lineFit)
 	{
 		File outputFile = promptUserToSelectFileForSaving(".jpg");
 		if(outputFile != null)
@@ -121,7 +123,10 @@ public class ExportIO
 			//g2d.setColor(Color.BLACK);
 
 			// Draw graphics
-			lineFit.drawGraphForExport(g2d, d);
+			Font fontBase = new Font(g2d.getFont().getName(), Font.PLAIN, 12);//12 just because we have to give it some height
+			Font exportFont = fontBase.deriveFont(exportFontSize);
+			
+		    lineFit.drawGraphWithGraphics(g2d, d, true, exportFont);
 			
 			// Graphics context no longer needed so dispose it
 			g2d.dispose();
@@ -140,7 +145,7 @@ public class ExportIO
 	}
 
 	/** Saves/Exports the current graph area as a LaTex linefit graph */
-	public static void exportLaTex()
+	public static void exportLaTex(LineFit lineFit)
 	{
 		File outputFile = promptUserToSelectFileForSaving(".tex");
 		if(outputFile != null)
@@ -187,7 +192,7 @@ public class ExportIO
 		}
 		catch (NullPointerException npe) 
 		{
-			JOptionPane.showMessageDialog(lineFit, "An invalid null value occured : Process aborted", "Null Error", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(null, "An invalid null value occured : Process aborted", "Null Error", JOptionPane.ERROR_MESSAGE);
 		} 
 		catch (CloseDialogException e) {} //the error we throw if we selected cancel
 		return null;
@@ -208,12 +213,5 @@ public class ExportIO
 	public static int cmToPixels(double centimetersToConvert)
 	{
 		return inchesToPixels(centimetersToConvert / 2.54);
-	}
-	
-	/** Sets the LineFit object that this IO Handler is attached to 
-	 * @param associatedWith The instance of LineFit to associate the static IOHandler class with */
-	static void assocaiteWithLineFit(LineFit associatedWith)
-	{
-		lineFit = associatedWith;
 	}
 }

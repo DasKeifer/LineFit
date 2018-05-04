@@ -265,43 +265,8 @@ class GraphArea extends JPanel
 		if(size.height != GRAPH_AREA_TOP_BAR_HEIGHT || size.width != 500)
 		{ 
 			graphAreaDimensions = getSize();
-			//fitData = new FitData();
-			currentFontMeasurements = graphAreaGraphics2D.getFontMetrics();
-			makeGraph(graphAreaGraphics2D, graphAreaDimensions, false);
+			makeGraph(graphAreaGraphics2D, graphAreaDimensions, false, null);
 		}
-		
-		//now we need to update the cursor location bar
-		Rectangle2D.Double background = new Rectangle2D.Double(0, 0, this.getWidth(), 25);
-		graphAreaGraphics2D.setColor(Color.white);
-		graphAreaGraphics2D.fill(background);
-			
-		// Create cursor position display string
-		graphAreaGraphics2D.setColor(Color.gray);
-			
-		//Prevents rounding errors so that mouse_over coordinates don't display "-0.0"
-		double mouseX;
-		double mouseY;
-		if(Math.abs((cursorPositionX - positionOfOriginX) / tickMarkRelativeValueX) < 0.09999999) 
-		{
-			mouseX = 0;
-		} 
-		else 
-		{ 
-			mouseX = (cursorPositionX - positionOfOriginX) / tickMarkRelativeValueX;
-		}
-		
-		if(Math.abs((cursorPositionY - positionOfOriginY) / tickMarkRelativeValueY * -1) < 0.09999999)
-		{
-			mouseY = 0;
-		} 
-		else
-		{
-			mouseY = (cursorPositionY - positionOfOriginY) / tickMarkRelativeValueY * -1;
-		}
-		
-		String cursorPosition = "(" + ScientificNotation.withNoError(mouseX, xAxisPower, xAxisDecimalPlaces) + "," + 
-									ScientificNotation.withNoError(mouseY, yAxisPower, yAxisDecimalPlaces) + ")";
-		graphAreaGraphics2D.drawString(cursorPosition, 5, 15);
 	}
 	
 	/** 
@@ -544,23 +509,21 @@ class GraphArea extends JPanel
 	 * @param graphMaximumDimensions The dimensions of the Graph area to which we are drawing
 	 * @param areExporting Whether or not this graph is being drawn to be exported to a file. This changes the top spacing proportions slightly and changes the font size and the spacing to account for the size differnce
 	 */
-	void makeGraph(Graphics2D graphGraphics, Dimension graphMaximumDimensions, boolean areExporting)
+	void makeGraph(Graphics2D graphGraphics, Dimension graphMaximumDimensions, boolean paintCursorLocation, Font fontToUse)
 	{
 		refreshAxesPower();
 		calculateAxesMinimumAndMaximumValues();
 		
-		if(areExporting)
+		if(fontToUse != null)
 		{
-			Font fontBase = new Font(graphGraphics.getFont().getName(), Font.PLAIN, 12);//12 just because we have to give it some height
-			Font newFont = fontBase.deriveFont(ExportIO.exportFontSize);
-			graphGraphics.setFont(newFont);
-			currentFontMeasurements = graphGraphics.getFontMetrics();
+			graphGraphics.setFont(fontToUse);
 		}
+		currentFontMeasurements = graphGraphics.getFontMetrics();
 
 		//populate the padding variables with the correct sizes
 		//have to do this so that we dont draw the Jpanel with different sized font when we change the export Font size
 		double fontSize = graphGraphics.getFont().getSize();
-		calculatePaddingForGraphArea(fontSize, !areExporting);
+		calculatePaddingForGraphArea(fontSize, paintCursorLocation);
 
 		
 		double gWidth = xAxisMaximumValue - xAxisMinimumValue;
@@ -815,8 +778,50 @@ class GraphArea extends JPanel
 			}	
 			graphGraphics.drawString(ScientificNotation.onlyTimesTen(yAxisPower), graphAreaLeftSpacing - 10, graphAreaTopSpacing - yAxisPowerSpacing);
 		}
+		
+		if(paintCursorLocation)
+		{
+			addCursorLocationToGraph(graphGraphics);
+		}
 	}
 
+	private void addCursorLocationToGraph(Graphics2D graphGraphics)
+	{
+		
+		//now we need to update the cursor location bar
+		Rectangle2D.Double background = new Rectangle2D.Double(0, 0, this.getWidth(), 25);
+		graphGraphics.setColor(Color.white);
+		graphGraphics.fill(background);
+			
+		// Create cursor position display string
+		graphGraphics.setColor(Color.gray);
+			
+		//Prevents rounding errors so that mouse_over coordinates don't display "-0.0"
+		double mouseX;
+		double mouseY;
+		if(Math.abs((cursorPositionX - positionOfOriginX) / tickMarkRelativeValueX) < 0.09999999) 
+		{
+			mouseX = 0;
+		} 
+		else 
+		{ 
+			mouseX = (cursorPositionX - positionOfOriginX) / tickMarkRelativeValueX;
+		}
+		
+		if(Math.abs((cursorPositionY - positionOfOriginY) / tickMarkRelativeValueY * -1) < 0.09999999)
+		{
+			mouseY = 0;
+		} 
+		else
+		{
+			mouseY = (cursorPositionY - positionOfOriginY) / tickMarkRelativeValueY * -1;
+		}
+		
+		String cursorPosition = "(" + ScientificNotation.withNoError(mouseX, xAxisPower, xAxisDecimalPlaces) + "," + 
+									ScientificNotation.withNoError(mouseY, yAxisPower, yAxisDecimalPlaces) + ")";
+		graphGraphics.drawString(cursorPosition, 5, 15);
+	}
+	
     /**
      * Converts an integer into a string containing subscript numbers
      * 

@@ -587,9 +587,9 @@ public class LineFit extends JFrame
 	 * @param exportGraphics The graphics to draw the graph for exporting with
 	 * @param exportDimensions The dimensions to draw the graph with
 	 */
-	public void drawGraphForExport(Graphics2D exportGraphics, Dimension exportDimensions)
+	public void drawGraphWithGraphics(Graphics2D graphics, Dimension dimensions, boolean paintCursorLocation, Font fontToUse)
 	{
-		graphingArea.makeGraph(exportGraphics, exportDimensions, true);
+		graphingArea.makeGraph(graphics, dimensions, paintCursorLocation, fontToUse);
 	}
 	
 	/** Saves the LineFit graph as a LaTex file to be used with the linefit.sty file 

@@ -18,6 +18,8 @@ package linefit;
 
 import java.util.ArrayList;
 
+import linefit.IO.DirtyBit;
+
 /**
  * This class provides the columns for the GraphSet that are used to input and store data
  * 

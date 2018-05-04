@@ -14,7 +14,7 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see http://www.gnu.org/licenses/.
 */
-package linefit;
+package linefit.IO;
 
 /**
  * a class that keeps track of whether or not the current graph information has been saved
@@ -24,7 +24,7 @@ package linefit;
  * @version	1.0
  * @since 	&lt;0.98.0
  */
-class DirtyBit 
+public class DirtyBit 
 {	
 	/**The boolean that keeps track of whether or not all the changes have been saved&#46; 
 	 * Dirty means that there are unsaved changes */
@@ -33,7 +33,7 @@ class DirtyBit
 	/**
 	 * Sets the dirty bit to dirty, meaning that there are unsaved changes
 	 */
-	static void setDirty() 
+	public static void setDirty() 
 	{
 		isDirty = true;
 	}

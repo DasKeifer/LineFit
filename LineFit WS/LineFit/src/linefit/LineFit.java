@@ -30,6 +30,7 @@ import javax.swing.event.ChangeListener;
 
 import linefit.FitAlgorithms.FitType;
 import linefit.FitAlgorithms.LinearFitFactory;
+import linefit.IO.*;
 
 /**
  * The main operating class in LineFit that is called on start up and sets up the base and layout and 
@@ -39,7 +40,7 @@ import linefit.FitAlgorithms.LinearFitFactory;
  * @version	1.1.0
  * @since 	&lt;0.98.0
  */
-class LineFit extends JFrame 
+public class LineFit extends JFrame 
 {
 	/** Main - This is the method that starts up the instance of LineFit. If a File path is inputed in the args,
 	 * it will try to load the file at the specified location on startup
@@ -154,9 +155,9 @@ class LineFit extends JFrame
 		super("LineFit");
 		setSize(1000, 750);
 		
-		SystemIOHandler.assocaiteWithLineFit(this);
+		GeneralIO.assocaiteWithLineFit(this);
 		
-		this.setIconImage(SystemIOHandler.getLineFitIcon());
+		this.setIconImage(GeneralIO.getLineFitIcon());
 		
 		//make the results area that looks like a label so it doesnt look out of place
 		fitResultsArea = new JTextArea();
@@ -189,7 +190,7 @@ class LineFit extends JFrame
 		{
 			public void windowClosing(WindowEvent e) 
 			{
-				SystemIOHandler.closeApplication();
+				GeneralIO.closeApplication();
 			}
 		});
 		
@@ -203,7 +204,7 @@ class LineFit extends JFrame
 	private LineFit(String filePathOfFileToLoad)
 	{
 		this(); //first create a blank one using the default constructor and then populate it
-		SystemIOHandler.openLineFitFileAtPath(filePathOfFileToLoad, false);
+		GeneralIO.openLineFitFileAtPath(filePathOfFileToLoad, false);
 	}
 	
 	/** Creates and initializes the right side bar for the LineFit display where the current DataSet and its linear fit results are displayed */
@@ -586,7 +587,7 @@ class LineFit extends JFrame
 	 * @param exportGraphics The graphics to draw the graph for exporting with
 	 * @param exportDimensions The dimensions to draw the graph with
 	 */
-	void drawGraphForExport(Graphics2D exportGraphics, Dimension exportDimensions)
+	public void drawGraphForExport(Graphics2D exportGraphics, Dimension exportDimensions)
 	{
 		graphingArea.makeGraph(exportGraphics, exportDimensions, true);
 	}
@@ -594,7 +595,7 @@ class LineFit extends JFrame
 	/** Saves the LineFit graph as a LaTex file to be used with the linefit.sty file 
 	 * @param outputStringBuilder The StringBuilder that is being used to store and generate the LaTex graph file
 	 */
-	void initiateLaTexExportStringGeneration(StringBuilder outputStringBuilder) 
+	public void initiateLaTexExportStringGeneration(StringBuilder outputStringBuilder) 
 	{
 		graphingArea.recursivelyGenerateLaTexExportString(outputStringBuilder);
 	}	
@@ -611,7 +612,7 @@ class LineFit extends JFrame
 	 * @param importSettings Whether or not to read in the graph settings/options along with the DataSets from the passed BufferedReader containing the input file's data
 	 * @throws IOException throws any IO exceptions to be dealt with at a higher level
 	 */
-	void initiateRecursiveOpen(BufferedReader inputFileReader, boolean importSettings) throws IOException
+	public void initiateRecursiveOpen(BufferedReader inputFileReader, boolean importSettings) throws IOException
 	{
 		graphingArea.recursivelyOpenLineFitFile(inputFileReader, importSettings);
 
@@ -623,7 +624,7 @@ class LineFit extends JFrame
 	/** Recursively saves the LineFit file to a text document by calling GraphArea's recursivelySave function which calls the DataSets' recursivelySave function 
 	 * @param outputFormatter The Formatter that is being used to save the LineFit file
 	 */
-	void intitiateRecursiveSave(Formatter outputFormatter)
+	public void intitiateRecursiveSave(Formatter outputFormatter)
 	{
 		//do a recursive save so we dont have to access grapharea - it can take care of itself
 		graphingArea.continueRecursiveSave(outputFormatter);
@@ -672,15 +673,15 @@ class LineFit extends JFrame
 			//file drop down
 			switch(e.getActionCommand())
 			{
-				case menuTitles_NewWindow: SystemIOHandler.newLineFitFile(); break;
-				case menuTitles_OpenFileNewWindow: SystemIOHandler.openLineFitFileInNewInstance(); break;
-				case menuTitles_OpenFile: SystemIOHandler.chooseAndOpenLineFitFile(true); break;
-				case menuTitles_SaveFile: SystemIOHandler.saveLineFitFile(); break;
-				case menuTitles_ExportJPG: SystemIOHandler.exportJPG(); break;
-				case menuTitles_ExportPDF: SystemIOHandler.exportPDF(); break;
-				case menuTitles_ExportTex: SystemIOHandler.exportLaTex(); break;
-				case menuTitles_Exit: SystemIOHandler.closeApplication(); break;
-				case menuTitles_LineFitHelp: SystemIOHandler.showPDFHelpFile();	break;	
+				case menuTitles_NewWindow: GeneralIO.newLineFitInstance(); break;
+				case menuTitles_OpenFileNewWindow: GeneralIO.openLineFitFileInNewInstance(); break;
+				case menuTitles_OpenFile: GeneralIO.chooseAndOpenLineFitFile(true); break;
+				case menuTitles_SaveFile: DataFileIO.saveLineFitFile(); break;
+				case menuTitles_ExportJPG: ExportIO.exportJPG(); break;
+				case menuTitles_ExportPDF: ExportIO.exportPDF(); break;
+				case menuTitles_ExportTex: ExportIO.exportLaTex(); break;
+				case menuTitles_Exit: GeneralIO.closeApplication(); break;
+				case menuTitles_LineFitHelp: GeneralIO.showPDFHelpFile();	break;	
 				case menuTitles_AboutLineFit: case "About linefit.LineFit": case "About LineFit": showAboutBox(); break;
 			}
 		}
@@ -844,27 +845,27 @@ class LineFit extends JFrame
 				{
 					switch(e.getKeyCode())
 					{
-						case KeyEvent.VK_S:	SystemIOHandler.saveLineFitFile(); break;
+						case KeyEvent.VK_S:	DataFileIO.saveLineFitFile(); break;
 						case KeyEvent.VK_G:
 								DataSet current = (DataSet) dataSetSelector.getSelectedItem();
 								new GraphOptionsMenu(graphingArea, current);
 								break; 
 						case KeyEvent.VK_D: createNewDataSet(); break; 
-						case KeyEvent.VK_N: SystemIOHandler.newLineFitFile(); break;
+						case KeyEvent.VK_N: GeneralIO.newLineFitInstance(); break;
 						case KeyEvent.VK_O: 
 						{
 							if(e.isShiftDown())
 							{
-								SystemIOHandler.openLineFitFileInNewInstance();								
+								GeneralIO.openLineFitFileInNewInstance();								
 							}
 							else
 							{
-								SystemIOHandler.chooseAndOpenLineFitFile(true);
+								GeneralIO.chooseAndOpenLineFitFile(true);
 							}
 						} break;
-						case KeyEvent.VK_L: SystemIOHandler.exportLaTex(); break;
-						case KeyEvent.VK_J: SystemIOHandler.exportJPG(); break;
-						case KeyEvent.VK_P: SystemIOHandler.exportPDF(); break; 
+						case KeyEvent.VK_L: ExportIO.exportLaTex(); break;
+						case KeyEvent.VK_J: ExportIO.exportJPG(); break;
+						case KeyEvent.VK_P: ExportIO.exportPDF(); break; 
 						default: return false; //return false if we didnt do anything with it
 					}
 				}
@@ -873,7 +874,7 @@ class LineFit extends JFrame
 					//this is for the f1-12 keys
 					switch(e.getKeyCode())
 					{
-						case KeyEvent.VK_F1: SystemIOHandler.showPDFHelpFile(); break;
+						case KeyEvent.VK_F1: GeneralIO.showPDFHelpFile(); break;
 						case KeyEvent.VK_F2: showAboutBox(); break;
 						default: return false; // return false if we didnt do anything
 					}  

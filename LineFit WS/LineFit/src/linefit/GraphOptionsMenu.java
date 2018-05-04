@@ -26,6 +26,9 @@ import javax.swing.*;
 import linefit.FitAlgorithms.FitType;
 import linefit.FitAlgorithms.FixedVariable;
 import linefit.FitAlgorithms.LinearFitFactory;
+import linefit.IO.DirtyBit;
+import linefit.IO.GeneralIO;
+import linefit.IO.ExportIO;
 
 /**
  * This class handles the creation and the display of the graph options menu
@@ -278,7 +281,7 @@ class GraphOptionsMenu extends JFrame
 		super("Graph Settings");
 
 		//set our icon
-		this.setIconImage(SystemIOHandler.getLineFitIcon());
+		this.setIconImage(GeneralIO.getLineFitIcon());
 		
 		setResizable(false);
 		graphingArea = graphAreaToEditOptionsOf;
@@ -369,7 +372,7 @@ class GraphOptionsMenu extends JFrame
 		getContentPane().add(pdfSizeLabel);
 
 		pdfWidthField = new JTextField("");
-		pdfWidthField.setText("" + SystemIOHandler.PDFPageWidth);
+		pdfWidthField.setText("" + ExportIO.PDFPageWidth);
 		//PDFWidthField.setHorizontalAlignment(JTextField.CENTER);
 		getContentPane().add(pdfWidthField);
 		pdfWidthField.addFocusListener(onlyNumbers);
@@ -380,7 +383,7 @@ class GraphOptionsMenu extends JFrame
 		//getContentPane().add(new JLabel());
 
 		pdfHeightField = new JTextField("");
-		pdfHeightField.setText("" + SystemIOHandler.PDFPageHeight);
+		pdfHeightField.setText("" + ExportIO.PDFPageHeight);
 		//PDFHeightField.setHorizontalAlignment(JTextField.CENTER);
 		getContentPane().add(pdfHeightField);
 		pdfHeightField.addFocusListener(onlyNumbers);
@@ -503,19 +506,19 @@ class GraphOptionsMenu extends JFrame
 	    LaTexSizeLabel.setFont(new Font("Verdana", Font.BOLD, 12));
 	    getContentPane().add(LaTexSizeLabel);
 	    LaTexWidthField = new JTextField();
-	    LaTexWidthField.setText("" + SystemIOHandler.LaTexGraphWidthInCm);
+	    LaTexWidthField.setText("" + ExportIO.LaTexGraphWidthInCm);
 	    getContentPane().add(LaTexWidthField);
 	    LaTexWidthField.addFocusListener(onlyNumbers);
 		LaTexTimesSymbol = new JLabel("x");
 		LaTexTimesSymbol.setFont(new Font("Verdana", Font.BOLD, 12));
 		getContentPane().add(LaTexTimesSymbol);
 		LaTexHeightField = new JTextField();
-	    LaTexHeightField.setText("" + SystemIOHandler.LaTexGraphHeightInCm);
+	    LaTexHeightField.setText("" + ExportIO.LaTexGraphHeightInCm);
 		getContentPane().add(LaTexHeightField);
 		LaTexHeightField.addFocusListener(onlyNumbers);
 		exportFontSizeLabel = new JLabel("Exporting Font Size");		
 		getContentPane().add(exportFontSizeLabel);
-		SpinnerNumberModel laTexSpinnerModel = new SpinnerNumberModel(SystemIOHandler.exportFontSize, 4.0, 32.0, 0.5);
+		SpinnerNumberModel laTexSpinnerModel = new SpinnerNumberModel(ExportIO.exportFontSize, 4.0, 32.0, 0.5);
 		exportFontSize = new JSpinner(laTexSpinnerModel);
 		JSpinner.NumberEditor numberEditor = new JSpinner.NumberEditor(exportFontSize, "0.0");
 		exportFontSize.setEditor(numberEditor);
@@ -940,9 +943,9 @@ class GraphOptionsMenu extends JFrame
 			yPowerField.setText("0");
 		}
 			
-		SystemIOHandler.LaTexGraphWidthInCm = Double.parseDouble(LaTexWidthField.getText());
-		SystemIOHandler.LaTexGraphHeightInCm = Double.parseDouble(LaTexHeightField.getText());	
-		SystemIOHandler.exportFontSize = ((Double) exportFontSize.getValue()).floatValue();
+		ExportIO.LaTexGraphWidthInCm = Double.parseDouble(LaTexWidthField.getText());
+		ExportIO.LaTexGraphHeightInCm = Double.parseDouble(LaTexHeightField.getText());	
+		ExportIO.exportFontSize = ((Double) exportFontSize.getValue()).floatValue();
 		
 		graphingArea.resultsAreDisplayedOnGraph = displayResultsOnGraphCheckBox.isSelected();
 
@@ -1006,10 +1009,10 @@ class GraphOptionsMenu extends JFrame
      * @param height The desire height of the PDF export image size */
 	private void changePDFSize(double width, double height) 
 	{
-		SystemIOHandler.PDFPageWidth = width;
-		SystemIOHandler.PDFPageHeight = height;
-		pdfWidthField.setText("" + SystemIOHandler.PDFPageWidth);
-		pdfHeightField.setText("" + SystemIOHandler.PDFPageHeight);
+		ExportIO.PDFPageWidth = width;
+		ExportIO.PDFPageHeight = height;
+		pdfWidthField.setText("" + ExportIO.PDFPageWidth);
+		pdfHeightField.setText("" + ExportIO.PDFPageHeight);
 	}
 	
 	//check the fitalgorithm switching

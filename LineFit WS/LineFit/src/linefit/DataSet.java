@@ -31,6 +31,7 @@ import javax.swing.event.*;
 
 import linefit.FitAlgorithms.FixedVariable;
 import linefit.FitAlgorithms.LinearFitStrategy;
+import linefit.IO.DirtyBit;
 import linefit.FitAlgorithms.FitType;
 
 /**

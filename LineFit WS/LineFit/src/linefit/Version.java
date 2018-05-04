@@ -23,11 +23,34 @@ package linefit;
  * @version	1.0
  * @since 	&lt;0.98.0
  */
-class Version 
+public class Version 
 {
-	/** The current LineFit Version number&#46; It must be updated manually */
-	static final String LINEFIT_VERSION = "0.98.4";
-
-	/** The current LineFit file version used&#46; It must be updated manually */
-	static final double LINEFIT_FILE_FORMAT_VERSION = 1.0;
+	/** The current LineFit's major version number that should only be updated when 
+	 * very significant changes are made&#46; It should be expected that a new major
+	 * version can break backwards compatibility&#46; It must be updated manually */
+	public static final int LINEFIT_MAJOR_VERSION = 0;
+	/** The current LineFit's minor version number that should only be updated when 
+	 * new features or important bug fixes are made&#46; These changes should rarely 
+	 * if ever break backwards compatibility&#46; It must be updated manually */
+	public static final int LINEFIT_MINOR_VERSION = 98;
+	/** The current LineFit's increment version number that should be updated between 
+	 * minor versions when bugfixes or smaller features are added&#46; Mainly used for 
+	 * development and testing reasons&#46; These changes should never break backwards
+	 * compatibility&#46; It must be updated manually */
+	public static final int LINEFIT_INCREMENT_VERSION = 4;
+	/** The current LineFit version number */
+	public static final String LINEFIT_VERSION = LINEFIT_MAJOR_VERSION + "." + LINEFIT_MINOR_VERSION + 
+			"." + LINEFIT_INCREMENT_VERSION;
+	
+	/** The current LineFit file format's major version number that should only be  
+	 * updated when very significant changes are made or backwards compatibility is
+	 *  broken &#46; It must be updated manually */
+	public static final int LINEFIT_FILE_FORMAT_MAJOR_VERSION = 1;
+	/** The current LineFit file format's minor version number that should only be  
+	 * updated when new features are added that do not break backwards compatibility&#46;
+	 * It must be updated manually */
+	public static final int LINEFIT_FILE_FORMAT_MINOR_VERSION = 0;
+	/** The current LineFit file version */
+	public static final String LINEFIT_FILE_FORMAT_VERSION = LINEFIT_FILE_FORMAT_MAJOR_VERSION + "." + 
+			LINEFIT_FILE_FORMAT_MINOR_VERSION;
 }

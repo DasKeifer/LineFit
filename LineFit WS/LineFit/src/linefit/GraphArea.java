@@ -5,6 +5,7 @@ import java.awt.event.*;
 import java.awt.geom.*;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Formatter;
 
 import javax.swing.*;
@@ -1056,55 +1057,87 @@ class GraphArea extends JPanel
 	/** Continues the recursive save of the LineFit File. This function saves the GraphArea and down's data.
 	 * Note: Not to be used independently of LineFit.RecursivelySaveLineFitFile()!
 	 * @param output The Formatter being used to write the file */
-	void continueRecursiveSave(Formatter output)
+	void retrieveAllSettingsVariables(ArrayList<String> variableNames, ArrayList<String> variableValues)
 	{
-		output.format("%s", "# GraphName " + getGraphName() + System.getProperty("line.separator"));
-		output.format("%s", "# XAxisDescription " + getXAxisDescription() + System.getProperty("line.separator"));
-		output.format("%s", "# YaxisDescription " + getYAxisDescription() + System.getProperty("line.separator"));
-		output.format("%s", "# UseCustomAxes " + userDefinedAxes + System.getProperty("line.separator"));
-		output.format("%s", "# XAxisMin " + xAxisMinimumValue + System.getProperty("line.separator"));
-		output.format("%s", "# XAxisMax " + xAxisMaximumValue + System.getProperty("line.separator"));
-		output.format("%s", "# YAxisMin " + yAxisMinimumValue + System.getProperty("line.separator"));
-		output.format("%s", "# YAxisMax " + yAxisMaximumValue + System.getProperty("line.separator"));
-		output.format("%s", "# UsePowersOnAxes " + useAxesPowers + System.getProperty("line.separator"));
-		output.format("%s", "# CustomAxesPowers " + userDefinedAxesPowers + System.getProperty("line.separator"));
-		output.format("%s", "# XAxisPower " + xAxisPower + System.getProperty("line.separator"));
-		output.format("%s", "# YAxisPower " + yAxisPower + System.getProperty("line.separator"));
+		variableNames.add("GraphName");
+		variableValues.add(getGraphName());
+		variableNames.add("XAxisDescription");
+		variableValues.add(getXAxisDescription());
+		variableNames.add("YaxisDescription");
+		variableValues.add(getYAxisDescription());
+		
+		variableNames.add("UseCustomAxes");
+		variableValues.add(Boolean.toString(userDefinedAxes));
+		variableNames.add("XAxisMin");
+		variableValues.add(Double.toString(xAxisMinimumValue));
+		variableNames.add("XAxisMax");
+		variableValues.add(Double.toString(xAxisMaximumValue));
+		variableNames.add("YAxisMin");
+		variableValues.add(Double.toString(yAxisMinimumValue));
+		variableNames.add("YAxisMax");
+		variableValues.add(Double.toString(yAxisMaximumValue));
+
+		variableNames.add("UsePowersOnAxes");
+		variableValues.add(Boolean.toString(useAxesPowers));
+		variableNames.add("CustomAxesPowers");
+		variableValues.add(Boolean.toString(userDefinedAxesPowers));
+		variableNames.add("XAxisPower");
+		variableValues.add(Double.toString(yAxisPower));
+		variableNames.add("YAxisPower");
+		variableValues.add(Double.toString(yAxisPower));
 		
 		//For tick marks and PDF dimensions
-		output.format("%s", "# PDFPageWidth " + ExportIO.PDFPageWidth + System.getProperty("line.separator"));
-		output.format("%s", "# PDFPageHeight " + ExportIO.PDFPageHeight + System.getProperty("line.separator"));
-		output.format("%s", "# ExportFontSize " + ExportIO.exportFontSize + System.getProperty("line.separator"));
-		output.format("%s", "# XAxisHasTickMarks " + xAxisHasTickMarks + System.getProperty("line.separator"));
-		output.format("%s", "# XAxisHasTickLabels " + xAxisHasTickMarkLabels + System.getProperty("line.separator"));
-		output.format("%s", "# XAxisNumberOfTicks " + xAxisNumberOfTickMarks + System.getProperty("line.separator"));
-		output.format("%s", "# YAxisHasTickMarks " + yAxisHasTickMarks + System.getProperty("line.separator"));
-		output.format("%s", "# YAxisHasTickLabels " + yAxisHasTickMarkLabels + System.getProperty("line.separator"));
-		output.format("%s", "# YAxisNumberOfTicks " + yAxisNumberOfTickMarks + System.getProperty("line.separator"));
-		
-		output.format("%s", "# XAxisDecimals " + xAxisDecimalPlaces + System.getProperty("line.separator"));
-		output.format("%s", "# YAxisDecimals " + yAxisDecimalPlaces + System.getProperty("line.separator"));
-		output.format("%s", "# DisplayResultsOnGraph " + resultsAreDisplayedOnGraph + System.getProperty("line.separator"));
-		//output.format("%s", "# customResultPos " + draw.customResultLoc
-		//		+ System.getProperty("line.separator"));
-		output.format("%s", "# ResultsPositionX " + resultsPositionX + System.getProperty("line.separator"));
-		output.format("%s", "# ResultsPositionY " + resultsPositionY + System.getProperty("line.separator"));
-		output.format("%s", "# ResultsDecimals " + resultsDecimalPlaces + System.getProperty("line.separator"));
-		output.format("%s", "# ResultsUseScientificNotation " + resultsUseScientificNotation + System.getProperty("line.separator"));
+		//output.format("%s", "# PDFPageWidth " + ExportIO.PDFPageWidth + System.getProperty("line.separator"));
+		//output.format("%s", "# PDFPageHeight " + ExportIO.PDFPageHeight + System.getProperty("line.separator"));
+		//output.format("%s", "# ExportFontSize " + ExportIO.exportFontSize + System.getProperty("line.separator"));
 
-		output.format("%s", "# XErrorsBeforeYErrors " + xErrorsOnly + System.getProperty("line.separator"));		
-
-		output.format("%s", "# FitAlgorithm " + LineFit.currentFitAlgorithmFactory + System.getProperty("line.separator"));
-				// Spacer
-		output.format("%s", System.getProperty("line.separator"));
+		variableNames.add("XAxisHasTickMarks");
+		variableValues.add(Boolean.toString(xAxisHasTickMarks));
+		variableNames.add("XAxisHasTickLabels");
+		variableValues.add(Boolean.toString(xAxisHasTickMarkLabels));
+		variableNames.add("XAxisNumberOfTicks");
+		variableValues.add(Double.toString(xAxisNumberOfTickMarks));
 		
-		//now pass it on to our datasets
+		variableNames.add("YAxisHasTickMarks");
+		variableValues.add(Boolean.toString(yAxisHasTickMarks));
+		variableNames.add("YAxisHasTickLabels");
+		variableValues.add(Boolean.toString(yAxisHasTickMarkLabels));
+		variableNames.add("YAxisNumberOfTicks");
+		variableValues.add(Double.toString(yAxisNumberOfTickMarks));
+		
+		variableNames.add("XAxisDecimals");
+		variableValues.add(Double.toString(xAxisDecimalPlaces));
+		variableNames.add("YAxisDecimals");
+		variableValues.add(Double.toString(yAxisDecimalPlaces));
+		
+		variableNames.add("DisplayResultsOnGraph");
+		variableValues.add(Boolean.toString(resultsAreDisplayedOnGraph));
+		variableNames.add("ResultsPositionX");
+		variableValues.add(Double.toString(resultsPositionX));
+		variableNames.add("ResultsPositionY");
+		variableValues.add(Double.toString(resultsPositionY));
+		variableNames.add("ResultsDecimals");
+		variableValues.add(Integer.toString(resultsDecimalPlaces));
+		variableNames.add("ResultsUseScientificNotation");
+		variableValues.add(Boolean.toString(resultsUseScientificNotation));
+		
+		variableNames.add("XErrorsBeforeYErrors");
+		variableValues.add(Boolean.toString(xErrorsOnly));
+
+		variableNames.add("FitAlgorithm");
+		variableValues.add(LineFit.currentFitAlgorithmFactory.toString());
+	}
+	
+
+	void retrieveAllDataSetVariables(ArrayList<String> variableNames, ArrayList<String> variableValues)
+	{
+		//pass it on to our datasets
 		for(int i = 0; i < dataSetSelector.getItemCount(); i++)
 		{
 			//if we arent just the new set option
 			if(!dataSetSelector.getItemAt(i).getName().equals("New DataSet")) 
 			{
-				dataSetSelector.getItemAt(i).continueRecursiveSave(output);
+				dataSetSelector.getItemAt(i).retrieveAllDataSetVariables(variableNames, variableValues);
 			}
 		}
 	}

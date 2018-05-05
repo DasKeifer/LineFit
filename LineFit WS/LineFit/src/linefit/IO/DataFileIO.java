@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Formatter;
 
 import javax.swing.JFileChooser;
@@ -378,9 +379,33 @@ public class DataFileIO
 				Formatter output = new Formatter(outputFile);
 
 				//save the current linefit file version number
-				output.format("%s", "FileFormatVersion " + Version.LINEFIT_FILE_FORMAT_VERSION + System.getProperty("line.separator"));
+				output.format("%s %s%s", "FileFormatVersion", Version.LINEFIT_FILE_FORMAT_VERSION , System.getProperty("line.separator"));
 				
-				lineFit.intitiateRecursiveSave(output);
+				//get and save all the settings data
+				ArrayList<String> settingVarNames = new ArrayList<String>();
+				ArrayList<String> settingVarValues = new ArrayList<String>();
+				lineFit.retrieveAllSettingsVariables(settingVarNames, settingVarValues);
+				for(int i = 0; i < settingVarNames.size(); i++)
+				{
+					output.format("# %s %s%s", settingVarNames.get(i), settingVarValues.get(i), System.getProperty("line.separator"));
+				}
+				
+				//get and save all the datasets variables
+				ArrayList<String> dataSetsVarNames = new ArrayList<String>();
+				ArrayList<String> dataSetsVarValues = new ArrayList<String>();
+				lineFit.retrieveAllDataSetVariables(dataSetsVarNames, dataSetsVarValues);
+				for(int i = 0; i < dataSetsVarNames.size(); i++)
+				{
+					if(dataSetsVarValues.get(i).equals("newDataSetDefinition"))
+					{
+						output.format("# %s%s", dataSetsVarNames.get(i), dataSetsVarValues.get(i), System.getProperty("line.separator"));
+					}
+					else
+					{
+						output.format("~ %s %s%s", dataSetsVarNames.get(i), dataSetsVarValues.get(i), System.getProperty("line.separator"));
+					}
+				}
+				
 				
 				//close our formatter
 				output.close();

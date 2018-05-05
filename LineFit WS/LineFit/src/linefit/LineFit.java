@@ -624,10 +624,16 @@ public class LineFit extends JFrame
 	/** Recursively saves the LineFit file to a text document by calling GraphArea's recursivelySave function which calls the DataSets' recursivelySave function 
 	 * @param outputFormatter The Formatter that is being used to save the LineFit file
 	 */
-	public void intitiateRecursiveSave(Formatter outputFormatter)
+	public void retrieveAllSettingsVariables(ArrayList<String> variableNames, ArrayList<String> variableValues)
 	{
 		//do a recursive save so we dont have to access grapharea - it can take care of itself
-		graphingArea.continueRecursiveSave(outputFormatter);
+		graphingArea.retrieveAllSettingsVariables(variableNames, variableValues);
+	}
+	
+	public void retrieveAllDataSetVariables(ArrayList<String> variableNames, ArrayList<String> variableValues)
+	{
+		//do a recursive save so we dont have to access grapharea - it can take care of itself
+		graphingArea.retrieveAllDataSetVariables(variableNames, variableValues);
 	}
 
 	/**

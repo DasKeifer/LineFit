@@ -951,57 +951,65 @@ public class DataSet extends JScrollPane
 	/** Recursively saves this DataSet's data into the Formatter file. 
 	 * Note: This should not be used independently of the other recursive save functions! 
 	 * @param output The formatter that is being used to write the file */
-	void continueRecursiveSave(Formatter output)
+	void retrieveAllDataSetVariables(ArrayList<String> variableNames, ArrayList<String> variableValues)
 	{
 		if(dataTableModel.hasData())
 		{
-			// Information for each dataset
-			output.format("%s", "# " + dataSetName + " " + System.getProperty("line.separator"));
-			
-			output.format("%s","~ NumberOfColumns "+ (visibleDataColumns.size() + invisibleDataColumns.size())+ System.getProperty("line.separator"));
-			output.format("%s", "~ FitType " + currentFitType + System.getProperty("line.separator"));
-			
+		
+			variableNames.add(dataSetName);
+			variableValues.add("newDataSetDefinition");
+			variableNames.add("NumberOfColumns");
+			variableValues.add(Integer.toString((visibleDataColumns.size() + invisibleDataColumns.size())));
+			variableNames.add("FitType");
+			variableValues.add(currentFitType.toString());
+			variableNames.add("WhatIsFixed");
 			if(linearFitStrategy.getWhatIsFixed() == FixedVariable.SLOPE) 
 			{
-				output.format("%s", "~ WhatIsFixed slope" + System.getProperty("line.separator"));
+				variableValues.add("slope");
 			}
 			else if(linearFitStrategy.getWhatIsFixed() == FixedVariable.INTERCEPT) 
 			{ 
-				output.format("%s", "~ WhatIsFixed intercept" + System.getProperty("line.separator"));
+				variableValues.add("intercept");
 			} 
 			else 
 			{ 
-				output.format("%s", "~ WhatIsFixed none" + System.getProperty("line.separator"));
+				variableValues.add("none");
 			}
 			
-			output.format("%s", "~ FixedValue " + linearFitStrategy.getFixedValue() + System.getProperty("line.separator"));
-			output.format("%s", "~ Visible " + visibleGraph + System.getProperty("line.separator"));
-			output.format("%s", "~ Shape " + getShapeString() + System.getProperty("line.separator"));
-			output.format("%s", "~ Color " + getColorString() + System.getProperty("line.separator"));
+			variableNames.add("FixedValue");
+			variableValues.add(Double.toString(linearFitStrategy.getFixedValue()));
+			variableNames.add("Visible");
+			variableValues.add(Boolean.toString(visibleGraph));
+			variableNames.add("Shape");
+			variableValues.add(getShapeString());
+			variableNames.add("Color");
+			variableValues.add(getColorString());
 	
 			if (visibleDataColumns.size() > 0) 
 			{
+				String datapoint;
 				for (int i = 0; i < visibleDataColumns.get(0).getData().size(); i++) 
 				{
-					output.format("%s", "~ DataPoint ");
+					datapoint = "";
+					variableNames.add("DataPoint");
 					for (int j = 0; j < visibleDataColumns.size() ; j++) 
 					{
-						output.format("%s", visibleDataColumns.get(j).getData().get(i));
-						output.format("%s", " ");
+						if (j > 0)
+						{
+							datapoint += " ";
+						}
+						datapoint += visibleDataColumns.get(j).getData().get(i);
 					}
 					if (invisibleDataColumns.size() > 0 )
 					{
 						for (int k = 0; k < invisibleDataColumns.size() ; k++)
 						{
-							output.format("%s", invisibleDataColumns.get(k).getData().get(i));
-							output.format("%s", " ");
-	
+							datapoint += " " + invisibleDataColumns.get(k).getData().get(i);
 						}
 					}
-					output.format("%s", System.getProperty("line.separator"));
+					variableValues.add(datapoint);
 				}
 			}
-			output.format("%s", System.getProperty("line.separator"));
 		}
 	}
 	

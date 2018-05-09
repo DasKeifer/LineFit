@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Formatter;
 
@@ -14,7 +13,6 @@ import javax.swing.JOptionPane;
 
 import linefit.LineFit;
 import linefit.Version;
-import linefit.IO.CloseDialogException;
 
 /**
  * This class Handles all of the IO functionality of LineFit. This is a static class and keeps track of the export and save variables
@@ -23,74 +21,62 @@ import linefit.IO.CloseDialogException;
  * and not directly dealing with the file, only formatting and creating what will be outputted to the file here. The Opening of files
  * has to deal with the reader, but should throw errors.
  * 
- * @author	Keith Rice
+ * @author	Das Keifer
  * @version	1.0
  * @since 	1.0
  */
 public class DataFileIO 
 {
 	/** The LineFit instance that this IOHandler is linked to */
-	private static LineFit lineFit;
+	private LineFit lineFit;
+	private GeneralIO generalIO;
 	
 	//Used for saving and opening files
-	/** The returned value from the dialog box that asks the user if they want to save before exiting LineFit
-	 * if there are unsaved changed (The dirtyBit is dirty/true) */
-	private static int saveBeforeClosingDialogChoice;
 	/** the returned value from the dialog box that allows the user to select a file to open or import */
-	private static int lastSelectedFileDialogChoice;
+	private int lastSelectedFileDialogChoice;
 	/** The JFileChooser that allows the user to select files to open or import with a GUI */
-	private static JFileChooser fileChooser;
+	private JFileChooser fileChooser;
+
+
+	DataFileIO(GeneralIO parentIO, LineFit lineFitToAssociateWith)
+	{
+		generalIO = parentIO;
+		lineFit = lineFitToAssociateWith;
+	}
 	
 	/**
 	 * Opens up a LineFit file in this instance of LineFit after allowing the user to choose which file to open
 	 * @param offerChoiceToNotReadInGraphSettings Whether or not the user can choose not to import the graph settings. This should only be false when opening a file on start up
 	 */
-	static void chooseAndOpenLineFitFile(boolean offerChoiceToNotReadInGraphSettings)
+	public void chooseAndOpenLineFitFile(boolean offerChoiceToNotReadInGraphSettings)
 	{
-		File file = promptUserForLineFitFileToOpen();
-		
-		//Makes sure the user selected something
-		if(file != null)
+		fileChooser = new JFileChooser(generalIO.getMostRecentDirectory());
+		fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+		lastSelectedFileDialogChoice = fileChooser.showDialog(lineFit, "Open");
+		if(lastSelectedFileDialogChoice == JOptionPane.OK_OPTION)
 		{
-			openLineFitFile(file, offerChoiceToNotReadInGraphSettings);
-		}
-	}
-
-	/** Starts a new instance of LineFit and loads the data from the file into it
-	 * @throws NumberFormatException Throws this exception if it expected to find a number while parsing the file and found something else
-	 */
-	static void openLineFitFileInNewInstance() throws NumberFormatException 
-	{
-		try 
-		{
-			File file = promptUserForLineFitFileToOpen();
-			
-			//make sure we got a file
-			if(file != null)
+			File fileToOpen = fileChooser.getSelectedFile();
+			generalIO.storeCurrentDirectory();
+			if(fileToOpen != null && !fileToOpen.getName().endsWith(".txt"))
 			{
-				// Run a java app in a separate system process
-				String javaBin = System.getProperty("java.home") + File.separator + "bin" + File.separator + "java";
-					
-				try 
-				{
-					File currProgram = new File(LineFit.class.getProtectionDomain().getCodeSource().getLocation().toURI());
-					if(currProgram.getName().endsWith(".jar"))
-					{
-						ProcessBuilder newProgram = new ProcessBuilder(javaBin, "-jar", currProgram.getPath(), file.getAbsolutePath());
-						newProgram.start();
-					}
-				} 
-				catch (URISyntaxException e) 
-				{
-					JOptionPane.showMessageDialog(lineFit, "Internal error creating new intance of linefit : Process aborted",
-						    "URI Error", JOptionPane.ERROR_MESSAGE);
-				}		
+				int confirm = JOptionPane.showConfirmDialog(lineFit, "File is not a recognized lineFit .txt file. Continue opening?", "Unsupported File Type", JOptionPane.OK_CANCEL_OPTION);
+				if (confirm == JOptionPane.OK_OPTION) 
+				{ 
+					openLineFitFile(fileToOpen, offerChoiceToNotReadInGraphSettings);
+				}
 			}
-		} 
-		catch (IOException exception) 
+			else if (fileToOpen == null || lastSelectedFileDialogChoice == JFileChooser.CANCEL_OPTION)
+			{
+				System.out.println("Cancelled Opening Unrecognized File");
+			} 
+			else
+			{
+				openLineFitFile(fileToOpen, offerChoiceToNotReadInGraphSettings);
+			}
+		}
+		else
 		{
-			JOptionPane.showMessageDialog(lineFit, "An error occured while opening the file : Process aborted",
-				    "IO Error", JOptionPane.ERROR_MESSAGE);
+			System.out.println("Cancelled Opening File");
 		}
 	}
 	
@@ -99,7 +85,7 @@ public class DataFileIO
 	 * @param filePath the path to open the file up at
 	 * @param offerChoiceToNotReadInGraphSettings Whether or not the user can choose not to import the graph settings. This should only be false when opening a file on start up
 	 */
-	static void openLineFitFileAtPath(String filePath, boolean offerChoiceToNotReadInGraphSettings)
+	public void openLineFitFileAtPath(String filePath, boolean offerChoiceToNotReadInGraphSettings)
 	{
 		File fileToOpen = new File(filePath);
 		openLineFitFile(fileToOpen, offerChoiceToNotReadInGraphSettings);
@@ -111,7 +97,7 @@ public class DataFileIO
 	 * @param offerChoiceToNotReadInGraphSettings Whether of not the user is prompted id they want to read in the graph settings
 	 * as well as the datasets. True means that the user is prompted
 	 */
-	static void openLineFitFile(File fileToOpen, boolean offerChoiceToNotReadInGraphSettings)
+	public void openLineFitFile(File fileToOpen, boolean offerChoiceToNotReadInGraphSettings)
 	{
 		//make sure the file is actually there
 		if(fileToOpen != null)
@@ -200,178 +186,11 @@ public class DataFileIO
 		}
 	}
 
-	/** Pops up the frame that allows us to select a file for loading and importing
-	 * @return The File the user has selected or null if there was a problem or canceled out of selecting
-	 */
-	static File promptUserForLineFitFileToOpen() 
-	{
-		fileChooser = new JFileChooser(GeneralIO.getMostRecentDirectory());
-		fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-		lastSelectedFileDialogChoice = fileChooser.showDialog(lineFit, "Open");
-		if(lastSelectedFileDialogChoice == JOptionPane.OK_OPTION)
-		{
-			File fileToOpen = fileChooser.getSelectedFile();
-			GeneralIO.storeCurrentDirectory();
-			if(fileToOpen != null && !fileToOpen.getName().endsWith(".txt"))
-			{
-				int confirm = JOptionPane.showConfirmDialog(lineFit, "File is not a recognized lineFit .txt file. Continue opening?", "Unsupported File Type", JOptionPane.OK_CANCEL_OPTION);
-				if (confirm == JOptionPane.OK_OPTION) 
-				{ 
-					return fileToOpen;
-				}
-			}
-			else if (fileToOpen == null || lastSelectedFileDialogChoice == JFileChooser.CANCEL_OPTION)
-			{
-				System.err.println("Cancelled");
-			} 
-			else
-			{
-				return fileToOpen;
-			}
-		}
-		return null;
-	}
-	
-	/** Opens a blank instance of LineFit in a new separate window
-	 * Note: This will only work if it is running from a JAR file */
-	static void newLineFitFile()
-	{
-		// Run a java app in a separate system process
-		String javaBin = System.getProperty("java.home") + File.separator + "bin" + File.separator + "java";
-
-		try 
-		{
-			File currProgram = new File(LineFit.class.getProtectionDomain().getCodeSource().getLocation().toURI());
-			if(currProgram.getName().endsWith(".jar"))
-			{
-				ProcessBuilder newProgram = new ProcessBuilder(javaBin, "-jar", currProgram.getPath());
-				newProgram.start();
-			}
-		} 
-		catch (URISyntaxException e) 
-		{
-			JOptionPane.showMessageDialog(lineFit, "Internal error creating new intance of linefit : Process aborted",
-				    "URI Error", JOptionPane.ERROR_MESSAGE);
-		} 
-		catch (IOException e) 
-		{
-			JOptionPane.showMessageDialog(lineFit, "An error occured while creating a new file : Process aborted",
-				    "IO Error", JOptionPane.ERROR_MESSAGE);
-		}
-	}
-	
-	/** Shows the save file dialog that allows us to specify where to save our data and what to call it
-	 * @param extensionToPutOnFile The file extension to save the file with
-	 * @return The File that this LineFit's data will be saved to
-	 * @throws CloseDialogException throws this error if the save dialog was closed out of
-	 */
-	private static File showSaveFileDialog(String extensionToPutOnFile) throws CloseDialogException 
-	{
-		File fileToOpen; 
-		fileChooser = new JFileChooser(GeneralIO.getMostRecentDirectory());
-		fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-		
-		int overwriteCheck = fileChooser.showSaveDialog(lineFit);
-		
-		//if they hit the save button
-		if ( overwriteCheck == JFileChooser.APPROVE_OPTION ) 
-		{ 
-			fileToOpen = fileChooser.getSelectedFile();
-			
-			//make sure it has the right extension
-			if ( !fileToOpen.exists() ) 
-			{ 
-				fileToOpen = forceExtension(fileToOpen, extensionToPutOnFile);
-				GeneralIO.storeCurrentDirectory();
-				return fileToOpen;
-			}
-			//make sure they want to overwrite the existing file
-			else 
-			{ 
-				int confirm = JOptionPane.showConfirmDialog(lineFit, "Overwrite existing file " + fileToOpen + "?"); 
-				
-				if ( confirm == JOptionPane.OK_OPTION ) 
-				{ 
-					fileToOpen = forceExtension(fileToOpen, extensionToPutOnFile);
-					GeneralIO.storeCurrentDirectory();
-					return fileToOpen;
-				}
-				else 
-				{
-					throw new CloseDialogException();
-				}
-			}
-			
-		}
-		else if(overwriteCheck == JFileChooser.CANCEL_OPTION) 
-		{ //thow this error if we cancel it so that we can catch it and do nothing outside
-			throw new CloseDialogException(); //make a exception or find one that works
-		}
-		
-		// something went wrong
-		return null; 
-	}
-
-	/** Makes sure the filename ends with the given extension and if it does not it adds the extension to the end of the file
-	 * @param fileToForceExtensionOn The File to force the extension on
-	 * @param extensionToPutOnFile The extension to force onto the File
-	 * @return The File with the extension forced on it
-	 */
-	static File forceExtension(File fileToForceExtensionOn, String extensionToPutOnFile) 
-	{
-		if (fileToForceExtensionOn.getName().endsWith(extensionToPutOnFile)) 
-		{
-			return fileToForceExtensionOn;
-		} 
-		else 
-		{
-			String newFileName = fileToForceExtensionOn.getPath().concat(extensionToPutOnFile);
-			return new File(newFileName);
-		}
-	}
-	
-	/** Asks the user if they want to save before the quit the LineFit if there are unsaved changes */
-	private static void confirmQuitWithoutSave()
-	{
-		String[] dialogOptions = { "Save", "Don't Save", "Cancel" };
-		saveBeforeClosingDialogChoice = JOptionPane.showOptionDialog(lineFit, "Do you want to save the changes you made to the graph \"" + lineFit.getGraphName() + "\"?\nYour changes will be lost if you don\'t save.", "Save changes?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, dialogOptions, dialogOptions[0]);
-		
-		switch (saveBeforeClosingDialogChoice) 
-		{
-			case JOptionPane.YES_OPTION: 
-			{
-				saveLineFitFile();
-				System.out.println("Now Saving!");
-				break;
-			}
-			case JOptionPane.NO_OPTION: 
-			{
-				DirtyBit.setClean();
-				GeneralIO.closeApplication();
-				System.out.println("Quitting without saving!");
-				break;
-			}
-			case JOptionPane.CANCEL_OPTION: 
-			{
-				System.out.println("Cancelling!");
-				break; 
-			}
-			case JOptionPane.CLOSED_OPTION:
-			{
-				System.out.println("User closed the dialog box!");
-				break;
-			}
-			default: 
-			{
-				System.out.println("confirmQuitWithoutSave: Unexpected exception");
-			}
-		}
-	}
 	
 	/** Saves the LineFit file */
-	public static void saveLineFitFile()
+	public void saveLineFitFile()
 	{
-		File outputFile = GeneralIO.promptUserToSelectFileForSaving(".txt");
+		File outputFile = generalIO.promptUserToSelectFileForSaving(".txt");
 		if(outputFile != null)
 		{
 			try 
@@ -396,9 +215,10 @@ public class DataFileIO
 				lineFit.retrieveAllDataSetVariables(dataSetsVarNames, dataSetsVarValues);
 				for(int i = 0; i < dataSetsVarNames.size(); i++)
 				{
-					if(dataSetsVarValues.get(i).equals("newDataSetDefinition"))
+					if(dataSetsVarNames.get(i).equals("DataSet"))
 					{
-						output.format("# %s%s", dataSetsVarNames.get(i), dataSetsVarValues.get(i), System.getProperty("line.separator"));
+						output.format("%s# %s %s%s", System.getProperty("line.separator"), dataSetsVarNames.get(i), 
+								dataSetsVarValues.get(i), System.getProperty("line.separator"));
 					}
 					else
 					{
@@ -411,7 +231,7 @@ public class DataFileIO
 				output.close();
 				
 				// We have now saved our file! The DirtyBit should be clean!
-				DirtyBit.setClean();
+				generalIO.setFileModified();
 		
 				//Make sure our file is not empty and if it is warn the user that it might not have saved correctly and to check it
 				if(outputFile.length() > 10) 
@@ -433,12 +253,5 @@ public class DataFileIO
 				e.printStackTrace();
 			} 
 		}
-	}
-
-	/** Sets the LineFit object that this IO Handler is attached to 
-	 * @param associatedWith The instance of LineFit to associate the static IOHandler class with */
-	static void assocaiteWithLineFit(LineFit associatedWith)
-	{
-		lineFit = associatedWith;
 	}
 }

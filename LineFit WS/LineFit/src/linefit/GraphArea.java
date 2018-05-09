@@ -6,7 +6,6 @@ import java.awt.geom.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Formatter;
 
 import javax.swing.*;
 

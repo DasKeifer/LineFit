@@ -23,7 +23,6 @@ import java.awt.event.KeyEvent;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Formatter;
 import java.util.Iterator;
 
 import javax.swing.*;
@@ -956,8 +955,8 @@ public class DataSet extends JScrollPane
 		if(dataTableModel.hasData())
 		{
 		
-			variableNames.add(dataSetName);
-			variableValues.add("newDataSetDefinition");
+			variableNames.add("DataSet");
+			variableValues.add("dataSetName");
 			variableNames.add("NumberOfColumns");
 			variableValues.add(Integer.toString((visibleDataColumns.size() + invisibleDataColumns.size())));
 			variableNames.add("FitType");

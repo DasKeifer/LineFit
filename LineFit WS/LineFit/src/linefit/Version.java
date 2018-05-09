@@ -49,7 +49,7 @@ public class Version
 	/** The current LineFit file format's minor version number that should only be  
 	 * updated when new features are added that do not break backwards compatibility&#46;
 	 * It must be updated manually */
-	public static final int LINEFIT_FILE_FORMAT_MINOR_VERSION = 0;
+	public static final int LINEFIT_FILE_FORMAT_MINOR_VERSION = 1;
 	/** The current LineFit file version */
 	public static final String LINEFIT_FILE_FORMAT_VERSION = LINEFIT_FILE_FORMAT_MAJOR_VERSION + "." + 
 			LINEFIT_FILE_FORMAT_MINOR_VERSION;

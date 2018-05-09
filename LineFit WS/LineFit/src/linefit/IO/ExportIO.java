@@ -1,6 +1,5 @@
 package linefit.IO;
 
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics2D;
@@ -29,47 +28,56 @@ import linefit.IO.CloseDialogException;
  * and not directly dealing with the file, only formatting and creating what will be outputted to the file here. The Opening of files
  * has to deal with the reader, but should throw errors.
  * 
- * @author	Keith Rice
+ * @author	Das Keifer
  * @version	1.0
  * @since 	1.0
  */
 public class ExportIO 
 {	
+	/** The LineFit instance that this ExportIO is linked to */
+	private LineFit lineFit;
+	private GeneralIO generalIO;
+	
 	//PDF display and exporting variables
 	/** The default width in inches when exporting to a PDF image */
 	private final static double DEFAULT_PDF_WIDTH = 8.5;
 	/** The default height in inches when exporting to a PDF image */
 	private final static double DEFAULT_PDF_HEIGHT = 8.5;
 	/** The width of the PDF image when exported */
-	public static double PDFPageWidth = DEFAULT_PDF_WIDTH;
+	private double PDFPageWidth = DEFAULT_PDF_WIDTH;
 	/** The height of the PDF image when exported */
-	public static double PDFPageHeight = DEFAULT_PDF_HEIGHT;
+	private double PDFPageHeight = DEFAULT_PDF_HEIGHT;
 	
 	/** The LaTex Export spacing in cm of */
-	public final static double LATEX_EXPORT_SPACING_IN_CM = 0.35;
+	private final static double LATEX_EXPORT_SPACING_IN_CM = 0.35;
 
 	//Exporting Variables
 	/** The desired width of the graph when it is exported to LaTex */
-	public static double LaTexGraphWidthInCm = 15;
+	private double LaTexGraphWidthInCm = 15;
 	/** The desired height of the graph when it is exported to LaTex */
-	public static double LaTexGraphHeightInCm = 15;
+	private double LaTexGraphHeightInCm = 15;
 	
 	/** Allows the user to change the font size on any exported image of the graph */
-	public static float exportFontSize = 12;
+	private float exportFontSize = 12;
 
+	public ExportIO(GeneralIO parentIO, LineFit lineFitToAssociateWith)
+	{
+		generalIO = parentIO;
+		lineFit = lineFitToAssociateWith;
+	}
 
 	/** Creates the linefit.sty file for the user to use for LaTex exports 
 	 * @param destinationFolderPath The File path to create the .sty file at. This must contain the ending "\\" to denote a folder
 	 */
-	static void createLineFitStyFile(String destinationFolderPath) 
+	void createLineFitStyFile(String destinationFolderPath) 
 	{
-		GeneralIO.copyResourceFileToContainingFolder("linefit.sty", destinationFolderPath);
+		generalIO.copyResourceFileToContainingFolder("linefit.sty", destinationFolderPath);
 	}
 
 	/** Saves/exports the current graph area as a PDF image */
-	public static void exportPDF(LineFit lineFit)
+	public void exportPDF()
 	{
-		File outputFile = promptUserToSelectFileForSaving(".pdf");
+		File outputFile = generalIO.promptUserToSelectFileForSaving(".pdf");
 		if(outputFile != null)
 		{
 			Dimension pdfDim = new Dimension(inchesToPixels(PDFPageWidth), inchesToPixels(PDFPageHeight));
@@ -104,9 +112,9 @@ public class ExportIO
 	}
 
 	/** Saves/exports the LineFit graph as a JPG image */
-	public static void exportJPG(LineFit lineFit)
+	public void exportJPG()
 	{
-		File outputFile = promptUserToSelectFileForSaving(".jpg");
+		File outputFile = generalIO.promptUserToSelectFileForSaving(".jpg");
 		if(outputFile != null)
 		{
 			// Create an image to save
@@ -145,9 +153,9 @@ public class ExportIO
 	}
 
 	/** Saves/Exports the current graph area as a LaTex linefit graph */
-	public static void exportLaTex(LineFit lineFit)
+	public void exportLaTex()
 	{
-		File outputFile = promptUserToSelectFileForSaving(".tex");
+		File outputFile = generalIO.promptUserToSelectFileForSaving(".tex");
 		if(outputFile != null)
 		{		
 			try 
@@ -175,27 +183,6 @@ public class ExportIO
 			String pathToFolder = outputFile.getParent();
 			createLineFitStyFile(pathToFolder + "\\\\");
 		}
-	}
-	
-	/** Opens a prompt that allows users to select a file that is then returned
-	 * 
-	 * @param extensionToPutOnFile The extension that the file will be saved with
-	 * @return The file that the user has selected or null if the operation was canceled
-	 */
-	private static File promptUserToSelectFileForSaving(String extensionToPutOnFile)
-	{
-		try
-		{
-			File outputFile = GeneralIO.showSaveFileDialog(extensionToPutOnFile);
-			GeneralIO.storeCurrentDirectory();
-			return outputFile;
-		}
-		catch (NullPointerException npe) 
-		{
-			JOptionPane.showMessageDialog(null, "An invalid null value occured : Process aborted", "Null Error", JOptionPane.ERROR_MESSAGE);
-		} 
-		catch (CloseDialogException e) {} //the error we throw if we selected cancel
-		return null;
 	}
 	
 	/** Converts the given length in inches to pixel length - used to determine the size of PDF when we export it

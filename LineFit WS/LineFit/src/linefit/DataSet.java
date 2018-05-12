@@ -30,7 +30,7 @@ import javax.swing.event.*;
 
 import linefit.FitAlgorithms.FixedVariable;
 import linefit.FitAlgorithms.LinearFitStrategy;
-import linefit.IO.DirtyBit;
+import linefit.IO.ChangeTracker;
 import linefit.FitAlgorithms.FitType;
 
 /**
@@ -58,6 +58,8 @@ public class DataSet extends JScrollPane
 
 	/** The GraphArea this GraphDataSet is linked to */
 	private GraphArea graphArea;
+	
+	private ChangeTracker changeTracker;
 	
 	/** The table that contains and allows us to input data */
 	private JTable tableContainingData;
@@ -98,8 +100,10 @@ public class DataSet extends JScrollPane
 	
 	/** Creates a new empty DataSet that is linked to the GraphArea 
 	 * @param parentGraphArea The GraphArea that this DataSet belongs to and will be drawn to */
-	DataSet(GraphArea parentGraphArea) 
+	DataSet(GraphArea parentGraphArea, ChangeTracker parentsChangeTracker) 
 	{
+		changeTracker = parentsChangeTracker;
+		
 		currentFitType = FitType.NONE;
 		visibleGraph = true;
 
@@ -450,7 +454,7 @@ public class DataSet extends JScrollPane
 	void changeNumVisibleColumns(int desiredColumns) 
 	{
 		// Either add or remove columns based on user input
-		DirtyBit.setDirty();
+		changeTracker.setFileModified();
 
 		if (visibleDataColumns.size() < desiredColumns)
 		{
@@ -1189,7 +1193,7 @@ public class DataSet extends JScrollPane
 	 * @param color The desired Color to use when drawing this DataSet to the GraphArea */
 	public void setColor(Color color) 
 	{
-		DirtyBit.setDirty();
+		changeTracker.setFileModified();
 		dataSetColor = color;
 		graphArea.repaint();
 	}
@@ -1200,7 +1204,7 @@ public class DataSet extends JScrollPane
 	 */
 	public void setShape(Shape shape) 
 	{
-		DirtyBit.setDirty();
+		changeTracker.setFileModified();
 		dataSetShape = shape;
 	}
 
@@ -1210,7 +1214,7 @@ public class DataSet extends JScrollPane
 	 */
 	public void setFitType(FitType fit) 
 	{		
-		DirtyBit.setDirty();
+		changeTracker.setFileModified();
 		currentFitType = fit;
 	}
 	

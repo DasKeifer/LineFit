@@ -36,6 +36,8 @@ public class DataFileIO
 	private int lastSelectedFileDialogChoice;
 	/** The JFileChooser that allows the user to select files to open or import with a GUI */
 	private JFileChooser fileChooser;
+	
+	private static final String saveFileExtension = ".txt";
 
 
 	DataFileIO(GeneralIO parentIO, LineFit lineFitToAssociateWith)
@@ -44,11 +46,7 @@ public class DataFileIO
 		lineFit = lineFitToAssociateWith;
 	}
 	
-	/**
-	 * Opens up a LineFit file in this instance of LineFit after allowing the user to choose which file to open
-	 * @param offerChoiceToNotReadInGraphSettings Whether or not the user can choose not to import the graph settings. This should only be false when opening a file on start up
-	 */
-	public void chooseAndOpenLineFitFile(boolean offerChoiceToNotReadInGraphSettings)
+	public File chooseLineFitFile()
 	{
 		fileChooser = new JFileChooser(generalIO.getMostRecentDirectory());
 		fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
@@ -57,12 +55,12 @@ public class DataFileIO
 		{
 			File fileToOpen = fileChooser.getSelectedFile();
 			generalIO.storeCurrentDirectory();
-			if(fileToOpen != null && !fileToOpen.getName().endsWith(".txt"))
+			if(fileToOpen != null && !fileToOpen.getName().endsWith(saveFileExtension))
 			{
-				int confirm = JOptionPane.showConfirmDialog(lineFit, "File is not a recognized lineFit .txt file. Continue opening?", "Unsupported File Type", JOptionPane.OK_CANCEL_OPTION);
-				if (confirm == JOptionPane.OK_OPTION) 
+				int confirm = JOptionPane.showConfirmDialog(lineFit, "File is not a recognized lineFit " + saveFileExtension + " file. Continue opening?", "Unsupported File Type", JOptionPane.OK_CANCEL_OPTION);
+				if (confirm == JOptionPane.OK_OPTION)
 				{ 
-					openLineFitFile(fileToOpen, offerChoiceToNotReadInGraphSettings);
+					return fileToOpen;
 				}
 			}
 			else if (fileToOpen == null || lastSelectedFileDialogChoice == JFileChooser.CANCEL_OPTION)
@@ -71,12 +69,26 @@ public class DataFileIO
 			} 
 			else
 			{
-				openLineFitFile(fileToOpen, offerChoiceToNotReadInGraphSettings);
+				return fileToOpen;
 			}
 		}
 		else
 		{
 			System.out.println("Cancelled Opening File");
+		}
+		return null;
+	}
+	
+	/**
+	 * Opens up a LineFit file in this instance of LineFit after allowing the user to choose which file to open
+	 * @param offerChoiceToNotReadInGraphSettings Whether or not the user can choose not to import the graph settings. This should only be false when opening a file on start up
+	 */
+	public void chooseAndOpenLineFitFile(boolean offerChoiceToNotReadInGraphSettings)
+	{
+		File toOpen = chooseLineFitFile();
+		if(toOpen != null)
+		{
+			openLineFitFile(toOpen, offerChoiceToNotReadInGraphSettings);
 		}
 	}
 	
@@ -85,7 +97,7 @@ public class DataFileIO
 	 * @param filePath the path to open the file up at
 	 * @param offerChoiceToNotReadInGraphSettings Whether or not the user can choose not to import the graph settings. This should only be false when opening a file on start up
 	 */
-	public void openLineFitFileAtPath(String filePath, boolean offerChoiceToNotReadInGraphSettings)
+	public void openLineFitFile(String filePath, boolean offerChoiceToNotReadInGraphSettings)
 	{
 		File fileToOpen = new File(filePath);
 		openLineFitFile(fileToOpen, offerChoiceToNotReadInGraphSettings);
@@ -190,7 +202,7 @@ public class DataFileIO
 	/** Saves the LineFit file */
 	public void saveLineFitFile()
 	{
-		File outputFile = generalIO.promptUserToSelectFileForSaving(".txt");
+		File outputFile = generalIO.promptUserToSelectFileForSaving(saveFileExtension);
 		if(outputFile != null)
 		{
 			try 
@@ -198,7 +210,7 @@ public class DataFileIO
 				Formatter output = new Formatter(outputFile);
 
 				//save the current linefit file version number
-				output.format("%s %s%s", "FileFormatVersion", Version.LINEFIT_FILE_FORMAT_VERSION , System.getProperty("line.separator"));
+				output.format("FileFormatVersion %s%s", Version.LINEFIT_FILE_FORMAT_VERSION , System.getProperty("line.separator"));
 				
 				//get and save all the settings data
 				ArrayList<String> settingVarNames = new ArrayList<String>();
@@ -231,7 +243,7 @@ public class DataFileIO
 				output.close();
 				
 				// We have now saved our file! The DirtyBit should be clean!
-				generalIO.setFileModified();
+				generalIO.changeTracker.clearFileModified();
 		
 				//Make sure our file is not empty and if it is warn the user that it might not have saved correctly and to check it
 				if(outputFile.length() > 10) 

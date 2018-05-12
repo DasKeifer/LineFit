@@ -141,6 +141,7 @@ public class LineFit extends JFrame
 	private static final String menuTitles_LineFitHelp = "LineFit Help...        F1";
 	
 	//Other variables
+	private GeneralIO ioHandler;
 	/** A lock that allows us to prevent the DataSets from updating so we can change things automatically with less 
 	 * computational overhead */
 	private boolean setLock = false;
@@ -155,9 +156,9 @@ public class LineFit extends JFrame
 		super("LineFit");
 		setSize(1000, 750);
 		
-		GeneralIO.assocaiteWithLineFit(this);
+		ioHandler = new GeneralIO(this);
 		
-		this.setIconImage(GeneralIO.getLineFitIcon());
+		this.setIconImage(ioHandler.getLineFitIcon());
 		
 		//make the results area that looks like a label so it doesnt look out of place
 		fitResultsArea = new JTextArea();
@@ -166,7 +167,9 @@ public class LineFit extends JFrame
 
 		//make our graph area		
 		dataSetSelector = new JComboBox<DataSet>();
-		graphingArea = new GraphArea(DEFAULT_X_AXIS_MINIMUM_VALUE, DEFAULT_X_AXIS_MAXIMUM_VALUE, DEFAULT_Y_AXIS_MINIMUM_VALUE, DEFAULT_Y_AXIS_MAXIMUM_VALUE, dataSetSelector, fitResultsArea);
+		graphingArea = new GraphArea(DEFAULT_X_AXIS_MINIMUM_VALUE, DEFAULT_X_AXIS_MAXIMUM_VALUE,
+				DEFAULT_Y_AXIS_MINIMUM_VALUE, DEFAULT_Y_AXIS_MAXIMUM_VALUE, dataSetSelector,
+				fitResultsArea, ioHandler.changeTracker);
 
 		//and then make an empty dataset to start
 		currentDataSet = new DataSet(graphingArea);
@@ -190,7 +193,7 @@ public class LineFit extends JFrame
 		{
 			public void windowClosing(WindowEvent e) 
 			{
-				GeneralIO.closeApplication();
+				ioHandler.closeApplication();
 			}
 		});
 		
@@ -204,7 +207,7 @@ public class LineFit extends JFrame
 	private LineFit(String filePathOfFileToLoad)
 	{
 		this(); //first create a blank one using the default constructor and then populate it
-		GeneralIO.openLineFitFileAtPath(filePathOfFileToLoad, false);
+		ioHandler.fileIO.openLineFitFile(filePathOfFileToLoad, false);
 	}
 	
 	/** Creates and initializes the right side bar for the LineFit display where the current DataSet and its linear fit results are displayed */
@@ -679,15 +682,15 @@ public class LineFit extends JFrame
 			//file drop down
 			switch(e.getActionCommand())
 			{
-				case menuTitles_NewWindow: GeneralIO.newLineFitInstance(); break;
-				case menuTitles_OpenFileNewWindow: GeneralIO.openLineFitFileInNewInstance(); break;
-				case menuTitles_OpenFile: GeneralIO.chooseAndOpenLineFitFile(true); break;
-				case menuTitles_SaveFile: DataFileIO.saveLineFitFile(); break;
-				case menuTitles_ExportJPG: ExportIO.exportJPG(); break;
-				case menuTitles_ExportPDF: ExportIO.exportPDF(); break;
-				case menuTitles_ExportTex: ExportIO.exportLaTex(); break;
-				case menuTitles_Exit: GeneralIO.closeApplication(); break;
-				case menuTitles_LineFitHelp: GeneralIO.showPDFHelpFile();	break;	
+				case menuTitles_NewWindow: ioHandler.newLineFitInstance(); break;
+				case menuTitles_OpenFileNewWindow: ioHandler.newLineFitInstancePromptForFile(); break;
+				case menuTitles_OpenFile: ioHandler.fileIO.chooseAndOpenLineFitFile(true); break;
+				case menuTitles_SaveFile: ioHandler.fileIO.saveLineFitFile(); break;
+				case menuTitles_ExportJPG: ioHandler.exportIO.exportJPG(); break;
+				case menuTitles_ExportPDF: ioHandler.exportIO.exportPDF(); break;
+				case menuTitles_ExportTex: ioHandler.exportIO.exportLaTex(); break;
+				case menuTitles_Exit: ioHandler.closeApplication(); break;
+				case menuTitles_LineFitHelp: ioHandler.showPDFHelpFile();	break;	
 				case menuTitles_AboutLineFit: case "About linefit.LineFit": case "About LineFit": showAboutBox(); break;
 			}
 		}
@@ -708,7 +711,7 @@ public class LineFit extends JFrame
 			if (e.getActionCommand().equals("Visible")) 
 			{
 				DataSet current = (DataSet) dataSetSelector.getSelectedItem();
-				DirtyBit.setDirty();
+				ioHandler.setFileModified();
 				current.visibleGraph = !current.visibleGraph;
 				graphingArea.repaint();
 			}
@@ -851,27 +854,27 @@ public class LineFit extends JFrame
 				{
 					switch(e.getKeyCode())
 					{
-						case KeyEvent.VK_S:	DataFileIO.saveLineFitFile(); break;
+						case KeyEvent.VK_S:	ioHandler.fileIO.saveLineFitFile(); break;
 						case KeyEvent.VK_G:
 								DataSet current = (DataSet) dataSetSelector.getSelectedItem();
 								new GraphOptionsMenu(graphingArea, current);
 								break; 
 						case KeyEvent.VK_D: createNewDataSet(); break; 
-						case KeyEvent.VK_N: GeneralIO.newLineFitInstance(); break;
+						case KeyEvent.VK_N: ioHandler.newLineFitInstance(); break;
 						case KeyEvent.VK_O: 
 						{
 							if(e.isShiftDown())
 							{
-								GeneralIO.openLineFitFileInNewInstance();								
+								ioHandler.newLineFitInstancePromptForFile();								
 							}
 							else
 							{
-								GeneralIO.chooseAndOpenLineFitFile(true);
+								ioHandler.fileIO.chooseAndOpenLineFitFile(true);
 							}
 						} break;
-						case KeyEvent.VK_L: ExportIO.exportLaTex(); break;
-						case KeyEvent.VK_J: ExportIO.exportJPG(); break;
-						case KeyEvent.VK_P: ExportIO.exportPDF(); break; 
+						case KeyEvent.VK_L: ioHandler.exportIO.exportLaTex(); break;
+						case KeyEvent.VK_J: ioHandler.exportIO.exportJPG(); break;
+						case KeyEvent.VK_P: ioHandler.exportIO.exportPDF(); break; 
 						default: return false; //return false if we didnt do anything with it
 					}
 				}
@@ -880,7 +883,7 @@ public class LineFit extends JFrame
 					//this is for the f1-12 keys
 					switch(e.getKeyCode())
 					{
-						case KeyEvent.VK_F1: GeneralIO.showPDFHelpFile(); break;
+						case KeyEvent.VK_F1: ioHandler.showPDFHelpFile(); break;
 						case KeyEvent.VK_F2: showAboutBox(); break;
 						default: return false; // return false if we didnt do anything
 					}  

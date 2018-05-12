@@ -37,12 +37,9 @@ public class GeneralIO
 	/** The LineFit instance that this IOHandler is linked to */
 	private LineFit lineFit;
 	
-	public ExportIO exporter;
-	public DataFileIO fileHandler;
-	
-	/**The boolean that keeps track of whether or not all the changes have been saved&#46; 
-	 * Dirty means that there are unsaved changes */
-	private boolean modifiedBit = false;
+	public ExportIO exportIO;
+	public DataFileIO fileIO;
+	public ChangeTracker changeTracker;
 	
 	/** The Icon as a BufferedImage that is used for any JFrames created in the lineFit program */
 	private static BufferedImage lineFitIcon;
@@ -70,24 +67,8 @@ public class GeneralIO
 	public GeneralIO(LineFit lineFitToAssociateWith)
 	{
 		lineFit = lineFitToAssociateWith;
-		exporter = new ExportIO(this, lineFit);
-		fileHandler = new DataFileIO(this, lineFit);
-	}
-	
-	/**
-	 * Sets the dirty bit to dirty, meaning that there are unsaved changes
-	 */
-	public void setFileModified() 
-	{
-		modifiedBit = true;
-	}
-	
-	/**
-	 * Sets the dirty bit to clean, meaning that all changes have been saved
-	 */
-	void clearFileModified() 
-	{
-		modifiedBit = false;
+		exportIO = new ExportIO(this, lineFit);
+		fileIO = new DataFileIO(this, lineFit);
 	}
 	
 	public void isUpdateAvailable()
@@ -105,6 +86,15 @@ public class GeneralIO
 		}
 	}
 
+	public void newLineFitInstancePromptForFile()
+	{
+		File file = fileIO.chooseLineFitFile();
+		if(file != null)
+		{
+			newLineFitInstance(file.getAbsolutePath());
+		}
+	}
+	
 	/** Starts a new instance of LineFit and loads the data from the file into it
 	 * @throws NumberFormatException Throws this exception if it expected to find a number while parsing the file and found something else
 	 */
@@ -281,13 +271,13 @@ public class GeneralIO
 		{
 			case JOptionPane.YES_OPTION: 
 			{
-				fileHandler.saveLineFitFile();
+				fileIO.saveLineFitFile();
 				System.out.println("Now Saving!");
 				break;
 			}
 			case JOptionPane.NO_OPTION: 
 			{
-				clearFileModified();
+				changeTracker.clearFileModified();
 				closeApplication();
 				System.out.println("Quitting without saving!");
 				break;
@@ -312,7 +302,7 @@ public class GeneralIO
 	/** Closes ourself in a safe way that asks the user if they want to save if there are unsaved changes */
 	public void closeApplication() 
 	{
-		if (modifiedBit)
+		if (changeTracker.unsavedModifications())
 		{
 			// Ask user if data should be saved
 			confirmQuitWithoutSave();

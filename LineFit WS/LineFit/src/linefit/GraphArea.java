@@ -11,7 +11,9 @@ import javax.swing.*;
 
 import linefit.FitAlgorithms.FitType;
 import linefit.FitAlgorithms.LinearFitFactory;
+import linefit.IO.ChangeTracker;
 import linefit.IO.ExportIO;
+import linefit.IO.GeneralIO;
 
 /**
  * The main interface of LineFit. This class is responsible for drawing and calculating the graph as well 
@@ -25,6 +27,8 @@ class GraphArea extends JPanel
 {
 	/** The current serial version UID that changes when the interface of the class is changed */
 	private final static long serialVersionUID = 42;
+	
+	private ChangeTracker changeTracker;
 	
 	//spacing variables
 	/** The width of the points we are using to draw the shapes on the graph */
@@ -180,8 +184,11 @@ class GraphArea extends JPanel
 	 * @param dataSetSelectorToUse The data set selector that contains all the data sets to draw on the graph
 	 * @param resultsPanelToUse The Results Panel to display the currently selected DataSet's results data as a String in
 	 */
-	GraphArea(double defaultXAxisMinimum, double defaultXAxisMaximum, double defaultYAxisMinimum, double defaultYAxisMaximum, JComboBox<DataSet> dataSetSelectorToUse, JTextArea resultsPanelToUse) 
-	{		
+	GraphArea(double defaultXAxisMinimum, double defaultXAxisMaximum, double defaultYAxisMinimum, 
+			double defaultYAxisMaximum, JComboBox<DataSet> dataSetSelectorToUse, JTextArea resultsPanelToUse,
+			ChangeTracker parentsChangeTracker) 
+	{
+		changeTracker = parentsChangeTracker;
 		xAxisMinimumValue = defaultXAxisMinimum;
 		xAxisMaximumValue = defaultXAxisMaximum;
 		yAxisMinimumValue = defaultYAxisMinimum;
@@ -968,7 +975,7 @@ class GraphArea extends JPanel
 				else
 				{
 					//create a new dataset and then read into it
-					DataSet readDataSet = new DataSet(this);
+					DataSet readDataSet = new DataSet(this, changeTracker);
 					readDataSet.continueRecursiveRead(inputReader);
 					
 					//now add it to our stuff

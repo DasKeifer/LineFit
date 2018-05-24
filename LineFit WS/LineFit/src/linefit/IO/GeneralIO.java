@@ -18,6 +18,7 @@ import javax.imageio.ImageIO;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
+import linefit.GraphArea;
 import linefit.LineFit;
 import linefit.IO.CloseDialogException;
 
@@ -64,10 +65,10 @@ public class GeneralIO
 	private JFileChooser fileChooser;
 
 
-	public GeneralIO(LineFit lineFitToAssociateWith)
+	public GeneralIO(LineFit lineFitToAssociateWith, GraphArea graphToExport)
 	{
 		lineFit = lineFitToAssociateWith;
-		exportIO = new ExportIO(this, lineFit);
+		exportIO = new ExportIO(this, lineFit, graphToExport);
 		fileIO = new DataFileIO(this, lineFit);
 	}
 	

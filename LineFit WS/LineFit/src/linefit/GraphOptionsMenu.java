@@ -26,9 +26,7 @@ import javax.swing.*;
 import linefit.FitAlgorithms.FitType;
 import linefit.FitAlgorithms.FixedVariable;
 import linefit.FitAlgorithms.LinearFitFactory;
-import linefit.IO.DirtyBit;
 import linefit.IO.GeneralIO;
-import linefit.IO.ExportIO;
 
 /**
  * This class handles the creation and the display of the graph options menu
@@ -44,6 +42,7 @@ class GraphOptionsMenu extends JFrame
     //Pointers we need
 	/** The GraphArea that the options are being changed of */
     private GraphArea graphingArea;
+    private GeneralIO ioHandler;
     
     //Graph name and axes labels variables
     /** The label for the graph name TextField */
@@ -276,12 +275,14 @@ class GraphOptionsMenu extends JFrame
      * @param graphAreaToEditOptionsOf the GraphArea whose options and settings will be edited
      * @param currentSetInGraphArea The currently selected GraphDataSet that is select in the given GraphArea
      */
-	GraphOptionsMenu(GraphArea graphAreaToEditOptionsOf, DataSet currentSetInGraphArea) 
+	GraphOptionsMenu(GraphArea graphAreaToEditOptionsOf, DataSet currentSetInGraphArea, GeneralIO parentIoHandler) 
 	{
 		super("Graph Settings");
 
 		//set our icon
-		this.setIconImage(GeneralIO.getLineFitIcon());
+		this.setIconImage(ioHandler.getLineFitIcon());
+		
+		ioHandler = parentIoHandler;
 		
 		setResizable(false);
 		graphingArea = graphAreaToEditOptionsOf;
@@ -372,7 +373,7 @@ class GraphOptionsMenu extends JFrame
 		getContentPane().add(pdfSizeLabel);
 
 		pdfWidthField = new JTextField("");
-		pdfWidthField.setText("" + ExportIO.PDFPageWidth);
+		pdfWidthField.setText("" + ioHandler.exportIO.PDFPageWidth);
 		//PDFWidthField.setHorizontalAlignment(JTextField.CENTER);
 		getContentPane().add(pdfWidthField);
 		pdfWidthField.addFocusListener(onlyNumbers);
@@ -383,7 +384,7 @@ class GraphOptionsMenu extends JFrame
 		//getContentPane().add(new JLabel());
 
 		pdfHeightField = new JTextField("");
-		pdfHeightField.setText("" + ExportIO.PDFPageHeight);
+		pdfHeightField.setText("" + ioHandler.exportIO.PDFPageHeight);
 		//PDFHeightField.setHorizontalAlignment(JTextField.CENTER);
 		getContentPane().add(pdfHeightField);
 		pdfHeightField.addFocusListener(onlyNumbers);
@@ -506,19 +507,19 @@ class GraphOptionsMenu extends JFrame
 	    LaTexSizeLabel.setFont(new Font("Verdana", Font.BOLD, 12));
 	    getContentPane().add(LaTexSizeLabel);
 	    LaTexWidthField = new JTextField();
-	    LaTexWidthField.setText("" + ExportIO.LaTexGraphWidthInCm);
+	    LaTexWidthField.setText("" + ioHandler.exportIO.LaTexGraphWidthInCm);
 	    getContentPane().add(LaTexWidthField);
 	    LaTexWidthField.addFocusListener(onlyNumbers);
 		LaTexTimesSymbol = new JLabel("x");
 		LaTexTimesSymbol.setFont(new Font("Verdana", Font.BOLD, 12));
 		getContentPane().add(LaTexTimesSymbol);
 		LaTexHeightField = new JTextField();
-	    LaTexHeightField.setText("" + ExportIO.LaTexGraphHeightInCm);
+	    LaTexHeightField.setText("" + ioHandler.exportIO.LaTexGraphHeightInCm);
 		getContentPane().add(LaTexHeightField);
 		LaTexHeightField.addFocusListener(onlyNumbers);
 		exportFontSizeLabel = new JLabel("Exporting Font Size");		
 		getContentPane().add(exportFontSizeLabel);
-		SpinnerNumberModel laTexSpinnerModel = new SpinnerNumberModel(ExportIO.exportFontSize, 4.0, 32.0, 0.5);
+		SpinnerNumberModel laTexSpinnerModel = new SpinnerNumberModel(ioHandler.exportIO.exportFontSize, 4.0, 32.0, 0.5);
 		exportFontSize = new JSpinner(laTexSpinnerModel);
 		JSpinner.NumberEditor numberEditor = new JSpinner.NumberEditor(exportFontSize, "0.0");
 		exportFontSize.setEditor(numberEditor);
@@ -880,7 +881,7 @@ class GraphOptionsMenu extends JFrame
 	/** Saves all the fields values from the options into the GraphArea so that the values actually get changed in the graph */
     void applyChanges()
 	{
-		DirtyBit.setDirty(); //so we know we have unsaved changes
+    	ioHandler.changeTracker.setFileModified(); //so we know we have unsaved changes
 		
 		graphingArea.userDefinedAxes = customAxesCheckBox.isSelected();
 		if(graphingArea.userDefinedAxes)	
@@ -943,9 +944,9 @@ class GraphOptionsMenu extends JFrame
 			yPowerField.setText("0");
 		}
 			
-		ExportIO.LaTexGraphWidthInCm = Double.parseDouble(LaTexWidthField.getText());
-		ExportIO.LaTexGraphHeightInCm = Double.parseDouble(LaTexHeightField.getText());	
-		ExportIO.exportFontSize = ((Double) exportFontSize.getValue()).floatValue();
+		ioHandler.exportIO.LaTexGraphWidthInCm = Double.parseDouble(LaTexWidthField.getText());
+		ioHandler.exportIO.LaTexGraphHeightInCm = Double.parseDouble(LaTexHeightField.getText());	
+		ioHandler.exportIO.exportFontSize = ((Double) exportFontSize.getValue()).floatValue();
 		
 		graphingArea.resultsAreDisplayedOnGraph = displayResultsOnGraphCheckBox.isSelected();
 
@@ -1009,10 +1010,10 @@ class GraphOptionsMenu extends JFrame
      * @param height The desire height of the PDF export image size */
 	private void changePDFSize(double width, double height) 
 	{
-		ExportIO.PDFPageWidth = width;
-		ExportIO.PDFPageHeight = height;
-		pdfWidthField.setText("" + ExportIO.PDFPageWidth);
-		pdfHeightField.setText("" + ExportIO.PDFPageHeight);
+		ioHandler.exportIO.PDFPageWidth = width;
+		ioHandler.exportIO.PDFPageHeight = height;
+		pdfWidthField.setText("" + ioHandler.exportIO.PDFPageWidth);
+		pdfHeightField.setText("" + ioHandler.exportIO.PDFPageHeight);
 	}
 	
 	//check the fitalgorithm switching

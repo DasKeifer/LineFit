@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 
 import javax.imageio.ImageIO;
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 import com.itextpdf.awt.PdfGraphics2D;
@@ -19,7 +20,8 @@ import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.pdf.PdfWriter;
 
 import linefit.LineFit;
-import linefit.IO.CloseDialogException;
+import linefit.GraphArea;
+import linefit.ScientificNotation;
 
 /**
  * This class Handles all of the IO functionality of LineFit. This is a static class and keeps track of the export and save variables
@@ -35,35 +37,37 @@ import linefit.IO.CloseDialogException;
 public class ExportIO 
 {	
 	/** The LineFit instance that this ExportIO is linked to */
-	private LineFit lineFit;
+	private JFrame toCenterOn;
+	private GraphArea graphingArea;
 	private GeneralIO generalIO;
 	
 	//PDF display and exporting variables
 	/** The default width in inches when exporting to a PDF image */
-	private final static double DEFAULT_PDF_WIDTH = 8.5;
+	public final static double DEFAULT_PDF_WIDTH = 8.5;
 	/** The default height in inches when exporting to a PDF image */
-	private final static double DEFAULT_PDF_HEIGHT = 8.5;
+	public final static double DEFAULT_PDF_HEIGHT = 8.5;
 	/** The width of the PDF image when exported */
-	private double PDFPageWidth = DEFAULT_PDF_WIDTH;
+	public double PDFPageWidth = DEFAULT_PDF_WIDTH;
 	/** The height of the PDF image when exported */
-	private double PDFPageHeight = DEFAULT_PDF_HEIGHT;
+	public double PDFPageHeight = DEFAULT_PDF_HEIGHT;
 	
 	/** The LaTex Export spacing in cm of */
-	private final static double LATEX_EXPORT_SPACING_IN_CM = 0.35;
+	public final static double LATEX_EXPORT_SPACING_IN_CM = 0.35;
 
 	//Exporting Variables
 	/** The desired width of the graph when it is exported to LaTex */
-	private double LaTexGraphWidthInCm = 15;
+	public double LaTexGraphWidthInCm = 15;
 	/** The desired height of the graph when it is exported to LaTex */
-	private double LaTexGraphHeightInCm = 15;
+	public double LaTexGraphHeightInCm = 15;
 	
 	/** Allows the user to change the font size on any exported image of the graph */
-	private float exportFontSize = 12;
+	public float exportFontSize = 12;
 
-	public ExportIO(GeneralIO parentIO, LineFit lineFitToAssociateWith)
+	public ExportIO(GeneralIO parentIO, JFrame frameToCenterOn, GraphArea graphToExport)
 	{
 		generalIO = parentIO;
-		lineFit = lineFitToAssociateWith;
+		toCenterOn = frameToCenterOn;
+		graphingArea = graphToExport;
 	}
 
 	/** Creates the linefit.sty file for the user to use for LaTex exports 
@@ -92,19 +96,19 @@ public class ExportIO
 				Font fontBase = new Font(g2.getFont().getName(), Font.PLAIN, 12);//12 just because we have to give it some height
 				Font exportFont = fontBase.deriveFont(exportFontSize);
 				
-			    lineFit.drawGraphWithGraphics(g2, pdfDim, true, exportFont);
+			    graphingArea.makeGraph(g2, pdfDim, true, exportFont);
 				
 			    g2.dispose(); 
-				JOptionPane.showMessageDialog(lineFit, "File Successfully Exported as a PDF Image", "File Exported", JOptionPane.INFORMATION_MESSAGE);
+				JOptionPane.showMessageDialog(toCenterOn, "File Successfully Exported as a PDF Image", "File Exported", JOptionPane.INFORMATION_MESSAGE);
 			} 
 			catch (FileNotFoundException e) 
 			{
-				JOptionPane.showMessageDialog(lineFit, "Could not find specified file or it is already in use by another program : Process aborted",
+				JOptionPane.showMessageDialog(toCenterOn, "Could not find specified file or it is already in use by another program : Process aborted",
 					    "FNF Error", JOptionPane.ERROR_MESSAGE);
 			} 
 			catch (DocumentException e) 
 			{
-				JOptionPane.showMessageDialog(lineFit, "Exception occured while exporting to PDF : Process aborted",
+				JOptionPane.showMessageDialog(toCenterOn, "Exception occured while exporting to PDF : Process aborted",
 					    "Document Error", JOptionPane.ERROR_MESSAGE);
 			} 
 		    document.close();
@@ -134,7 +138,7 @@ public class ExportIO
 			Font fontBase = new Font(g2d.getFont().getName(), Font.PLAIN, 12);//12 just because we have to give it some height
 			Font exportFont = fontBase.deriveFont(exportFontSize);
 			
-		    lineFit.drawGraphWithGraphics(g2d, d, true, exportFont);
+		    graphingArea.makeGraph(g2d, d, true, exportFont);
 			
 			// Graphics context no longer needed so dispose it
 			g2d.dispose();
@@ -143,11 +147,11 @@ public class ExportIO
 			try
 			{
 				ImageIO.write(bufferedImage, "jpg", outputFile);
-				JOptionPane.showMessageDialog(lineFit, "File Successfully Exported as a JPG Image", "File Exported", JOptionPane.INFORMATION_MESSAGE);
+				JOptionPane.showMessageDialog(toCenterOn, "File Successfully Exported as a JPG Image", "File Exported", JOptionPane.INFORMATION_MESSAGE);
 			} 
 			catch (IOException error2) 
 			{
-				JOptionPane.showMessageDialog(lineFit, "Exception occured while exporting to JPG : Process aborted", "IO Error", JOptionPane.ERROR_MESSAGE);
+				JOptionPane.showMessageDialog(toCenterOn, "Exception occured while exporting to JPG : Process aborted", "IO Error", JOptionPane.ERROR_MESSAGE);
 			} 
 		}
 	}
@@ -165,17 +169,17 @@ public class ExportIO
 				StringBuilder output = new StringBuilder();
 				
 				//kick it off!
-				lineFit.initiateLaTexExportStringGeneration(output);
+				graphingArea.recursivelyGenerateLaTexExportString(output);
 				
 				outputStream.print(output.toString());
 				outputStream.close();
 	
-				JOptionPane.showMessageDialog(lineFit, "File Successfully Exported as a LaTex LineFit Graph",
+				JOptionPane.showMessageDialog(toCenterOn, "File Successfully Exported as a LaTex LineFit Graph",
 					    "File Exported", JOptionPane.INFORMATION_MESSAGE);
 			} 
 			catch (IOException error) 
 			{
-				JOptionPane.showMessageDialog(lineFit, "Exception occured while saving as a LaTex file : Process aborted",
+				JOptionPane.showMessageDialog(toCenterOn, "Exception occured while saving as a LaTex file : Process aborted",
 					    "IO Error", JOptionPane.ERROR_MESSAGE);
 			}
 			

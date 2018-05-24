@@ -505,7 +505,7 @@ public class DataSet extends JScrollPane
 			if (visibleDataColumns.size() == 3) 
 			{
 				FitType fitBeforeChange = currentFitType;
-				visibleDataColumns.add(2,new DataColumn());
+				visibleDataColumns.add(2,new DataColumn(changeTracker));
 				UpdateGraphColumnAssociations();
 				updateColumnNames();
 				dataTableModel.removeColumn(2);
@@ -515,7 +515,7 @@ public class DataSet extends JScrollPane
 			} 
 			else
 			{
-				visibleDataColumns.add(new DataColumn());
+				visibleDataColumns.add(new DataColumn(changeTracker));
 				UpdateGraphColumnAssociations();
 				updateColumnNames();
 				dataTableModel.addColumn((visibleDataColumns.get(visibleDataColumns.size() - 1)).getName());

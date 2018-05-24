@@ -18,7 +18,7 @@ package linefit;
 
 import java.util.ArrayList;
 
-import linefit.IO.DirtyBit;
+import linefit.IO.ChangeTracker;
 
 /**
  * This class provides the columns for the GraphSet that are used to input and store data
@@ -29,6 +29,8 @@ import linefit.IO.DirtyBit;
  */
 public class DataColumn 
 {
+	private ChangeTracker changeTracker;
+	
 	/** The name that is displayed and associated with this column */
 	private String columnName;
 	/** The List of all the data stored this column */
@@ -37,8 +39,9 @@ public class DataColumn
 	/**
 	 * The default constructor for this class
 	 */
-	public DataColumn() 
+	public DataColumn(ChangeTracker parentChangeTracker) 
 	{
+		changeTracker = parentChangeTracker;
 		data = new ArrayList<Double>();
 	}
 	
@@ -114,7 +117,7 @@ public class DataColumn
 
 		try 
 		{
-			DirtyBit.setDirty();
+			changeTracker.setFileModified();
 			data.set(rowIndex, Double.parseDouble(toWrite));
 		} 
 		catch (Exception e) 
@@ -200,7 +203,7 @@ public class DataColumn
 	 */
 	public void setName(String name) 
 	{
-		DirtyBit.setDirty();
+		changeTracker.setFileModified();
 		setColumnName(name);
 	}
 

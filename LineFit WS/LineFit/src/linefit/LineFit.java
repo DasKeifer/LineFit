@@ -156,7 +156,7 @@ public class LineFit extends JFrame
 		super("LineFit");
 		setSize(1000, 750);
 		
-		ioHandler = new GeneralIO(this);
+		ioHandler = new GeneralIO(this, graphingArea);
 		
 		this.setIconImage(ioHandler.getLineFitIcon());
 		
@@ -172,7 +172,7 @@ public class LineFit extends JFrame
 				fitResultsArea, ioHandler.changeTracker);
 
 		//and then make an empty dataset to start
-		currentDataSet = new DataSet(graphingArea);
+		currentDataSet = new DataSet(graphingArea, ioHandler.changeTracker);
 
 		//create our panels and menu bars
 		mainDisplayPanel = new JPanel();
@@ -526,7 +526,7 @@ public class LineFit extends JFrame
 		rightSideBar.removeAll();
 		
 		//create a new dataset but keep the new DataSet option at the end of the list
-		DataSet current = new DataSet(graphingArea);
+		DataSet current = new DataSet(graphingArea, ioHandler.changeTracker);
 		graphingArea.registerDataSet(current);
 		
 		rightSideBar.add(current);
@@ -584,25 +584,7 @@ public class LineFit extends JFrame
 	{ 
 		dataSetToUpdateCellsOf.updateCellFormattingInColumns();
 	}	
-
-	/** Draws the current graph using the passed Graphics2D to be used for creating an exported image 
-	 * 
-	 * @param exportGraphics The graphics to draw the graph for exporting with
-	 * @param exportDimensions The dimensions to draw the graph with
-	 */
-	public void drawGraphWithGraphics(Graphics2D graphics, Dimension dimensions, boolean paintCursorLocation, Font fontToUse)
-	{
-		graphingArea.makeGraph(graphics, dimensions, paintCursorLocation, fontToUse);
-	}
 	
-	/** Saves the LineFit graph as a LaTex file to be used with the linefit.sty file 
-	 * @param outputStringBuilder The StringBuilder that is being used to store and generate the LaTex graph file
-	 */
-	public void initiateLaTexExportStringGeneration(StringBuilder outputStringBuilder) 
-	{
-		graphingArea.recursivelyGenerateLaTexExportString(outputStringBuilder);
-	}	
-
 	/** Shows the about frame - called by the action listener */
 	private void showAboutBox()
 	{
@@ -711,7 +693,7 @@ public class LineFit extends JFrame
 			if (e.getActionCommand().equals("Visible")) 
 			{
 				DataSet current = (DataSet) dataSetSelector.getSelectedItem();
-				ioHandler.setFileModified();
+				ioHandler.changeTracker.setFileModified();
 				current.visibleGraph = !current.visibleGraph;
 				graphingArea.repaint();
 			}
@@ -814,7 +796,7 @@ public class LineFit extends JFrame
 			else if (e.getSource() == graphOptionsButton) 
 			{
 				DataSet current = (DataSet) dataSetSelector.getSelectedItem();
-				centerOnThis(new GraphOptionsMenu(graphingArea, current));
+				centerOnThis(new GraphOptionsMenu(graphingArea, current, ioHandler));
 			}
 		}
 	}
@@ -857,7 +839,7 @@ public class LineFit extends JFrame
 						case KeyEvent.VK_S:	ioHandler.fileIO.saveLineFitFile(); break;
 						case KeyEvent.VK_G:
 								DataSet current = (DataSet) dataSetSelector.getSelectedItem();
-								new GraphOptionsMenu(graphingArea, current);
+								new GraphOptionsMenu(graphingArea, current, ioHandler);
 								break; 
 						case KeyEvent.VK_D: createNewDataSet(); break; 
 						case KeyEvent.VK_N: ioHandler.newLineFitInstance(); break;
@@ -892,6 +874,5 @@ public class LineFit extends JFrame
 			}
 			return false;
 		}
-		
 	}
 }

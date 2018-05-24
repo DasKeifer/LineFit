@@ -23,7 +23,7 @@ import linefit.IO.GeneralIO;
  * @version	1.1.0
  * @since 	&lt;0.98.0
  */
-class GraphArea extends JPanel 
+public class GraphArea extends JPanel 
 {
 	/** The current serial version UID that changes when the interface of the class is changed */
 	private final static long serialVersionUID = 42;
@@ -516,7 +516,7 @@ class GraphArea extends JPanel
 	 * @param graphMaximumDimensions The dimensions of the Graph area to which we are drawing
 	 * @param areExporting Whether or not this graph is being drawn to be exported to a file. This changes the top spacing proportions slightly and changes the font size and the spacing to account for the size differnce
 	 */
-	void makeGraph(Graphics2D graphGraphics, Dimension graphMaximumDimensions, boolean paintCursorLocation, Font fontToUse)
+	public void makeGraph(Graphics2D graphGraphics, Dimension graphMaximumDimensions, boolean paintCursorLocation, Font fontToUse)
 	{
 		refreshAxesPower();
 		calculateAxesMinimumAndMaximumValues();
@@ -1018,6 +1018,9 @@ class GraphArea extends JPanel
 		{
 			switch(field)
 			{
+				//case "pdfpagewidth": ExportIO.PDFPageWidth = Double.parseDouble(valueForField); break;
+				//case "pdfpageheight": ExportIO.PDFPageHeight = Double.parseDouble(valueForField); break;
+				//case "exportfontsize": ExportIO.exportFontSize = Float.parseFloat(valueForField); break;
 				case "graphname": setGraphName(valueForField); break;
 				case "xaxisdescription": setXAxisDescription(valueForField); break;
 				case "yaxisdescription": setYAxisDescription(valueForField); break;
@@ -1030,8 +1033,6 @@ class GraphArea extends JPanel
 				case "customaxespowers": userDefinedAxesPowers = valueForField.toLowerCase().equals("true"); break;
 				case "xpower": case "xaxispower": xAxisPower = Integer.parseInt(valueForField); break;
 				case "ypower": case "yaxispower": yAxisPower = Integer.parseInt(valueForField); break;
-				case "pdfpagewidth": ExportIO.PDFPageWidth = Double.parseDouble(valueForField); break;
-				case "pdfpageheight": ExportIO.PDFPageHeight = Double.parseDouble(valueForField); break;
 				case "hastickmarksx": case "xaxishastickmarks": xAxisHasTickMarks = valueForField.toLowerCase().equals("true"); break;
 				case "hasticklabelsx": case "xaxishasticklabels": xAxisHasTickMarkLabels = valueForField.toLowerCase().equals("true"); break;
 				case "ticksx": case "xaxisnumberofticks": xAxisNumberOfTickMarks = Integer.parseInt(valueForField); break;
@@ -1048,7 +1049,6 @@ class GraphArea extends JPanel
 				case "resultsscinot": case "resultsusescientificnotation": resultsUseScientificNotation = valueForField.toLowerCase().equals("true"); break;
 				case "xerrors": case "xerrorsbeforeyerrors": xErrorsOnly = valueForField.toLowerCase().equals("true");
 					refreshAllSetsThirdColumn(); break;
-				case "exportfontsize": ExportIO.exportFontSize = Float.parseFloat(valueForField); break;
 				case "fitalgorithm": LineFit.currentFitAlgorithmFactory = LinearFitFactory.getAlgorithmWithName(valueForField);
 				default: System.err.println("Non Fatal Error reading in Setting - Continuing: " + lineRead); break;
 			}
@@ -1150,10 +1150,11 @@ class GraphArea extends JPanel
 	
 	/**
 	 * Continues to recursively export to a LaTEx File. This saves the Graph Area and below
-	 * @param output The StringBuilder that is bulding the output for the LaTex files
+	 * @param output The StringBuilder that is building the output for the LaTex files
 	 */
-	void recursivelyGenerateLaTexExportString(StringBuilder output)
-	{
+	void recursivelyGenerateLaTexExportString(StringBuilder output, double laTexGraphWidthInCm, 
+			double laTexGraphHeightInCm, float exportFontSize, double laTexExportSpacingInCm)
+	{				
 		//if our values are too small than LaTex will handle them poorly so we adjust them so it draws them like they are bigger
 		//and label them so they are small again
 		int origXPower = xAxisPower;
@@ -1200,17 +1201,17 @@ class GraphArea extends JPanel
 		
 		output.append("\\setbox0=\\hbox{\n");
 		output.append("\t\\shiftleft{");
-		output.append(ExportIO.LaTexGraphWidthInCm / 5 + 2 * (ExportIO.exportFontSize - 12.0) / 22.0); //just to give it a reasonable starting point
+		output.append(laTexGraphWidthInCm / 5 + 2 * (exportFontSize - 12.0) / 22.0); //just to give it a reasonable starting point
 		output.append("}\n");
 		output.append("\t\\settextsize{");
-		output.append(ExportIO.exportFontSize);
+		output.append(exportFontSize);
 		output.append("}\n");
 
 		//begin the graph and tell it how numbers on our graph relate to cm
 		output.append("\t\\linefitgraphbegin{");
-		output.append(ScientificNotation.WithNoErrorAndZeroPower(ExportIO.LaTexGraphWidthInCm / (xAxisSpan / xAxisPowerMultiplier)));
+		output.append(ScientificNotation.WithNoErrorAndZeroPower(laTexGraphWidthInCm / (xAxisSpan / xAxisPowerMultiplier)));
 		output.append("}{");
-		output.append(ScientificNotation.WithNoErrorAndZeroPower(ExportIO.LaTexGraphHeightInCm / (yAxisSpan / yAxisPowerMultiplier)));
+		output.append(ScientificNotation.WithNoErrorAndZeroPower(laTexGraphHeightInCm / (yAxisSpan / yAxisPowerMultiplier)));
 		output.append("}\n"); 
 		
 		//export our datasets and fits
@@ -1367,11 +1368,11 @@ class GraphArea extends JPanel
 								
 								double defaultResultsLength = currentFontMeasurements.stringWidth("m = 0.0000");
 								double currentResultsLength = findLongestResultsLength();
-								String xPosStr = "" + (ExportIO.LaTexGraphWidthInCm - (1 + ExportIO.exportFontSize * 0.1) * //this is y = mx + b from plotting desired spacing at 3 different font sizes and then fitting a line to it
-										(currentResultsLength / defaultResultsLength) - (double)resultsPositionX / graphWidthAfterPadding * ExportIO.LaTexGraphWidthInCm); 
+								String xPosStr = "" + (laTexGraphWidthInCm - (1 + exportFontSize * 0.1) * //this is y = mx + b from plotting desired spacing at 3 different font sizes and then fitting a line to it
+										(currentResultsLength / defaultResultsLength) - (double)resultsPositionX / graphWidthAfterPadding * laTexGraphWidthInCm); 
 								
-								double yFontSizeInGraphUnits = 0.35 * (ExportIO.exportFontSize / 12.0);
-								double yResPos = -yFontSizeInGraphUnits / 2 + (double)resultsPositionY / graphHeightAfterPadding * ExportIO.LaTexGraphHeightInCm;								
+								double yFontSizeInGraphUnits = 0.35 * (exportFontSize / 12.0);
+								double yResPos = -yFontSizeInGraphUnits / 2 + (double)resultsPositionY / graphHeightAfterPadding * laTexGraphHeightInCm;								
 								
 								String resultsSuffixString = "}{" + xAxisMinimumValue / xAxisPowerMultiplier + "}{" + yAxisMinimumValue / yAxisPowerMultiplier + "}\n";
 								output.append("\t\\putresults{y");
@@ -1457,7 +1458,7 @@ class GraphArea extends JPanel
 
 		output.append(ScientificNotation.WithNoErrorAndZeroPower(yAxisMinimumValue / yAxisPowerMultiplier));
 		output.append("}{");
-		output.append(ScientificNotation.WithNoErrorAndZeroPower(ExportIO.LATEX_EXPORT_SPACING_IN_CM + ExportIO.exportFontSize / 12 * 0.35 )); //0.35 is the spacing from the axes to the tick labels, 0.35 * fontsize is for the labels width and axes name label
+		output.append(ScientificNotation.WithNoErrorAndZeroPower(laTexExportSpacingInCm + exportFontSize / 12 * 0.35 )); //0.35 is the spacing from the axes to the tick labels, 0.35 * fontsize is for the labels width and axes name label
 		output.append("}\n");
 		
 		if(origXPower != 0) 
@@ -1470,7 +1471,7 @@ class GraphArea extends JPanel
 			output.append("}{");
 			output.append(ScientificNotation.WithNoErrorAndZeroPower(yAxisMinimumValue / yAxisPowerMultiplier));
 			output.append("}{");
-			output.append(ExportIO.LATEX_EXPORT_SPACING_IN_CM);
+			output.append(laTexExportSpacingInCm);
 			output.append("}\n");
 		}
 		
@@ -1519,7 +1520,7 @@ class GraphArea extends JPanel
 			longestYStringLength = yMinStringLength;
 		}
 		
-		output.append(ScientificNotation.WithNoErrorAndZeroPower(ExportIO.LATEX_EXPORT_SPACING_IN_CM + ExportIO.exportFontSize / 12.0 * 0.10 + (ExportIO.exportFontSize / 12.0) * 
+		output.append(ScientificNotation.WithNoErrorAndZeroPower(laTexExportSpacingInCm + exportFontSize / 12.0 * 0.10 + (exportFontSize / 12.0) * 
 				(longestYStringLength / defaultLongestYStringLength) * 0.65 )); //this spacing was just figured out by trial and error
 		output.append("}\n");
 		
@@ -1533,7 +1534,7 @@ class GraphArea extends JPanel
 			output.append("}{");
 			output.append(ScientificNotation.WithNoErrorAndZeroPower(yAxisMaximumValue / yAxisPowerMultiplier));
 			output.append("}{");
-			output.append(ExportIO.LATEX_EXPORT_SPACING_IN_CM);
+			output.append(laTexExportSpacingInCm);
 			output.append("}\n");
 		}
 		output.append("\t\\linefitgraphend\n}");

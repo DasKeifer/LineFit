@@ -67,9 +67,14 @@ public class GeneralIO
 
 	public GeneralIO(LineFit lineFitToAssociateWith, GraphArea graphToExport)
 	{
+		changeTracker = new ChangeTracker();
 		lineFit = lineFitToAssociateWith;
-		exportIO = new ExportIO(this, lineFit, graphToExport);
 		fileIO = new DataFileIO(this, lineFit);
+	}
+	
+	public void InitializeExportIO(GraphArea graphToExport)
+	{
+		exportIO = new ExportIO(this, lineFit, graphToExport);
 	}
 	
 	public void isUpdateAvailable()

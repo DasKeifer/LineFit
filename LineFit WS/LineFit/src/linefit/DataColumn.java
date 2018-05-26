@@ -62,7 +62,7 @@ public class DataColumn
 	 * 
 	 * @return Returns the number of filled rows we have in the current column
 	 */
-	int getNonNullDataSize()
+	public int getNonNullDataSize()
 	{
 		int nonNull = 0;
 		for(int i = 0; i < data.size(); i++) 

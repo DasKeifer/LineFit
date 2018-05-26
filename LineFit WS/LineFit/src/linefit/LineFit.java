@@ -171,6 +171,8 @@ public class LineFit extends JFrame
 				DEFAULT_Y_AXIS_MINIMUM_VALUE, DEFAULT_Y_AXIS_MAXIMUM_VALUE, dataSetSelector,
 				fitResultsArea, ioHandler.changeTracker);
 
+		ioHandler.InitializeExportIO(graphingArea);
+		
 		//and then make an empty dataset to start
 		currentDataSet = new DataSet(graphingArea, ioHandler.changeTracker);
 

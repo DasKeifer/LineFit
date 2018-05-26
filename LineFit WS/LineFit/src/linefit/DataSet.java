@@ -68,7 +68,7 @@ public class DataSet extends JScrollPane
 	/** The name of this graph set to be displayed to the user */
 	private String dataSetName;
 	/** If the current GraphDataSet is visible and should be drawn to the GraphArea */
-	boolean visibleGraph;
+	public boolean visibleGraph;
 	/** Whether or not the linearFit should be updated automatically. This allows us to disable updates on it when we are modifying the data to save some unnecessary computation */
 	private boolean fitLock = false;
 	
@@ -78,13 +78,13 @@ public class DataSet extends JScrollPane
 	ArrayList<DataColumn> invisibleDataColumns;
 	
 	/** The DataColumn that keeps track of the x data for this DataSet */
-	DataColumn xData;
+	public DataColumn xData;
 	/** The DataColumn that keeps track of the y data for this DataSet */
-	DataColumn yData;
+	public DataColumn yData;
 	/** The DataColumn that keeps track of the x error/uncertainty data for this DataSet */
-	DataColumn xErrorData;
+	public DataColumn xErrorData;
 	/** The DataColumn that keeps track of the y error/uncertainty data for this DataSet */
-	DataColumn yErrorData;
+	public DataColumn yErrorData;
 	/** The currently selected FitType of this DataSet (i.e. no fit, x error fit) */
 	private FitType currentFitType;
 	/** The drop down box that allows the user to specify the type of linear fit to use (i.e. no fit, x error fit) */
@@ -722,7 +722,7 @@ public class DataSet extends JScrollPane
 	 * Determines whether or not their is data in this DataSet
 	 * @return Returns true if there is data and false if no data was found
 	 */
-	boolean hasData()
+	public boolean hasData()
 	{
 		return this.dataTableModel.hasData();
 	}

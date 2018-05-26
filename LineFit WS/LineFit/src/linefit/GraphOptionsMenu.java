@@ -373,7 +373,7 @@ class GraphOptionsMenu extends JFrame
 		getContentPane().add(pdfSizeLabel);
 
 		pdfWidthField = new JTextField("");
-		pdfWidthField.setText("" + ioHandler.exportIO.PDFPageWidth);
+		pdfWidthField.setText("" + ioHandler.exportIO.pdfPageWidth);
 		//PDFWidthField.setHorizontalAlignment(JTextField.CENTER);
 		getContentPane().add(pdfWidthField);
 		pdfWidthField.addFocusListener(onlyNumbers);
@@ -384,7 +384,7 @@ class GraphOptionsMenu extends JFrame
 		//getContentPane().add(new JLabel());
 
 		pdfHeightField = new JTextField("");
-		pdfHeightField.setText("" + ioHandler.exportIO.PDFPageHeight);
+		pdfHeightField.setText("" + ioHandler.exportIO.pdfPageHeight);
 		//PDFHeightField.setHorizontalAlignment(JTextField.CENTER);
 		getContentPane().add(pdfHeightField);
 		pdfHeightField.addFocusListener(onlyNumbers);
@@ -507,14 +507,14 @@ class GraphOptionsMenu extends JFrame
 	    LaTexSizeLabel.setFont(new Font("Verdana", Font.BOLD, 12));
 	    getContentPane().add(LaTexSizeLabel);
 	    LaTexWidthField = new JTextField();
-	    LaTexWidthField.setText("" + ioHandler.exportIO.LaTexGraphWidthInCm);
+	    LaTexWidthField.setText("" + ioHandler.exportIO.laTexGraphWidthInCm);
 	    getContentPane().add(LaTexWidthField);
 	    LaTexWidthField.addFocusListener(onlyNumbers);
 		LaTexTimesSymbol = new JLabel("x");
 		LaTexTimesSymbol.setFont(new Font("Verdana", Font.BOLD, 12));
 		getContentPane().add(LaTexTimesSymbol);
 		LaTexHeightField = new JTextField();
-	    LaTexHeightField.setText("" + ioHandler.exportIO.LaTexGraphHeightInCm);
+	    LaTexHeightField.setText("" + ioHandler.exportIO.laTexGraphHeightInCm);
 		getContentPane().add(LaTexHeightField);
 		LaTexHeightField.addFocusListener(onlyNumbers);
 		exportFontSizeLabel = new JLabel("Exporting Font Size");		
@@ -944,8 +944,8 @@ class GraphOptionsMenu extends JFrame
 			yPowerField.setText("0");
 		}
 			
-		ioHandler.exportIO.LaTexGraphWidthInCm = Double.parseDouble(LaTexWidthField.getText());
-		ioHandler.exportIO.LaTexGraphHeightInCm = Double.parseDouble(LaTexHeightField.getText());	
+		ioHandler.exportIO.laTexGraphWidthInCm = Double.parseDouble(LaTexWidthField.getText());
+		ioHandler.exportIO.laTexGraphHeightInCm = Double.parseDouble(LaTexHeightField.getText());	
 		ioHandler.exportIO.exportFontSize = ((Double) exportFontSize.getValue()).floatValue();
 		
 		graphingArea.resultsAreDisplayedOnGraph = displayResultsOnGraphCheckBox.isSelected();
@@ -1010,10 +1010,10 @@ class GraphOptionsMenu extends JFrame
      * @param height The desire height of the PDF export image size */
 	private void changePDFSize(double width, double height) 
 	{
-		ioHandler.exportIO.PDFPageWidth = width;
-		ioHandler.exportIO.PDFPageHeight = height;
-		pdfWidthField.setText("" + ioHandler.exportIO.PDFPageWidth);
-		pdfHeightField.setText("" + ioHandler.exportIO.PDFPageHeight);
+		ioHandler.exportIO.pdfPageWidth = width;
+		ioHandler.exportIO.pdfPageHeight = height;
+		pdfWidthField.setText("" + ioHandler.exportIO.pdfPageWidth);
+		pdfHeightField.setText("" + ioHandler.exportIO.pdfPageHeight);
 	}
 	
 	//check the fitalgorithm switching

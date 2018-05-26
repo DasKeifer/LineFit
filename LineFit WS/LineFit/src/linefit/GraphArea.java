@@ -12,8 +12,6 @@ import javax.swing.*;
 import linefit.FitAlgorithms.FitType;
 import linefit.FitAlgorithms.LinearFitFactory;
 import linefit.IO.ChangeTracker;
-import linefit.IO.ExportIO;
-import linefit.IO.GeneralIO;
 
 /**
  * The main interface of LineFit. This class is responsible for drawing and calculating the graph as well 
@@ -152,7 +150,7 @@ public class GraphArea extends JPanel
 	/** The number of decimal places to use in the linear fit results */
 	int resultsDecimalPlaces = 4;
 	/** Keeps track of if the results should be drawn on the graph itself */
-	boolean resultsAreDisplayedOnGraph = true;
+	public boolean resultsAreDisplayedOnGraph = true;
 	/** The x position in pixels of the bottom right corner of the results from the bottom right corner of the square formed by the axes */
 	int resultsPositionX = 5;
 	/** The y position in pixels of the bottom right corner of the results from the bottom right corner of the square formed by the axes */
@@ -163,7 +161,7 @@ public class GraphArea extends JPanel
 	//Graph Data variables 
 	/** The drop down selector box that allows us to add new datasets and that selects the current 
 	 * dataset to display the data of in the columns */
-	JComboBox<DataSet> dataSetSelector;
+	public JComboBox<DataSet> dataSetSelector;
 	/** The linear fit's results as a string */
 	private String fitResultsString;
 	/** The JTextArea in which the linear fit's results are displayed to the user. This is a TextArea instead of a Label so that the user can copy the results */
@@ -195,7 +193,7 @@ public class GraphArea extends JPanel
 		yAxisMaximumValue = defaultYAxisMaximum;
 
 		dataSetSelector = dataSetSelectorToUse;
-		this.fitResultsArea = resultsPanelToUse;
+		fitResultsArea = resultsPanelToUse;
 		
 		graphAreaDimensions = getSize();
 
@@ -676,7 +674,7 @@ public class GraphArea extends JPanel
 								cStr = convertToSubScript(c + 1);
 							}
 							int lineHeight = (int)graphGraphics.getFont().getSize() + resultsInbetweenSpacing;
-							int relPosX = xResultOnGraphThisPass + findLongestResultsLength();
+							int relPosX = xResultOnGraphThisPass + getLongestResultsLength();
 							int relPosY = yResultOnGraphThisPass + 3 * lineHeight * (dataSetSelector.getItemCount() - 1); // -1 because of the new DataSet option
 
 							graphGraphics.drawString("y" + cStr + " = m" + cStr + "x + b" + cStr, graphMaximumDimensions.width - relPosX - graphAreaRightSpacing, 
@@ -863,7 +861,7 @@ public class GraphArea extends JPanel
 	 * 
 	 * @return Returns an integer of the length of the longest line in the results string (0 if none are being displayed)
 	 */
-	int findLongestResultsLength()
+	public int getLongestResultsLength()
 	{
 		String longString = "";
 		int numDataSets = dataSetSelector.getItemCount() - 1;
@@ -903,39 +901,7 @@ public class GraphArea extends JPanel
 
 		return currentFontMeasurements.stringWidth(longString);
 	}
-	
-	/** 
-	 * Determines where the results are to be placed on the graph in the x direction for a LaTex graph in order to keep the same relative position as when drawn to the GUI
-	 * 
-	 * @return Returns the x value of the graph to put the results in order for it to be displayed in the same relative position in LaTex
-	 */
-	double getXLaTexResultsPos() 
-	{
-		return (xAxisMaximumValue - (resultsPositionX + findLongestResultsLength()) * (xAxisMaximumValue - xAxisMinimumValue) / ExportIO.cmToPixels(ExportIO.LaTexGraphHeightInCm)) / Math.pow(10, xAxisPower);
-	}
-	
-	/** 
-	 * Determines where the results are to be placed on the graph in the y direction for a LaTex graph in order to keep the same relative position as when drawn to the GUI
-	 * 
-	 * @return Returns the y value of the graph to put the results in order for it to be displayed in the same relative position in LaTex
-	 */
-	double getYLaTexResultsPos() 
-	{
-		return graphAreaBottomSpacing + resultsPositionY;
-	}
-	
-	/**
-	 * Returns the text height in terms of the y coordinates of the graph in order to be used for making a LaTex graph
-	 * 
-	 * @return The height of the font for LaTex exporting
-	 */
-	double getLaTexTextHeight() 
-	{
-		//change this to use the export font height and what not - looks like it changes some but not enough
-		return ExportIO.exportFontSize * (yAxisMaximumValue - yAxisMinimumValue) / ExportIO.cmToPixels(ExportIO.LaTexGraphHeightInCm) / Math.pow(10, yAxisPower);		
-		//return currentFontMeasurements.getHeight() * (yAxisMaximumValue - yAxisMinimumValue)/(DEFAULT_GRAPH_AREA_DIMENSIONS.height - (graphAreaBottomSpacing + graphAreaTopSpacing)) / Math.pow(10, yAxisPower);
-	}
-		
+
     /**
      * Makes sure all the dataset's third columns are updated so we can change whether we use only x errors of y errors
      * This has to be done because the third column can be either x or y errors/uncertainties
@@ -1148,411 +1114,7 @@ public class GraphArea extends JPanel
 		}
 	}
 	
-	/**
-	 * Continues to recursively export to a LaTEx File. This saves the Graph Area and below
-	 * @param output The StringBuilder that is building the output for the LaTex files
-	 */
-	void recursivelyGenerateLaTexExportString(StringBuilder output, double laTexGraphWidthInCm, 
-			double laTexGraphHeightInCm, float exportFontSize, double laTexExportSpacingInCm)
-	{				
-		//if our values are too small than LaTex will handle them poorly so we adjust them so it draws them like they are bigger
-		//and label them so they are small again
-		int origXPower = xAxisPower;
-		double origXMin = xAxisMinimumValue;
-		double origXMax = xAxisMaximumValue;
-		double xAdjForSmall = 0;
-		if(Math.abs(xAxisMaximumValue - xAxisMinimumValue) / Math.pow(10, origXPower) < 0.1) 
-		{
-			xAdjForSmall = xAxisMinimumValue;
-			xAxisMaximumValue -= xAxisMinimumValue;
-			xAxisMinimumValue = 0;
-			xAxisPower = 0;
-			while(Math.abs(xAxisMaximumValue - xAxisMinimumValue) / Math.pow(10, xAxisPower) < 0.1) 
-			{
-				xAxisPower--;
-			}
-		}
-		int origYPower = yAxisPower;
-		double origYMin = yAxisMinimumValue;
-		double origYMax = yAxisMaximumValue;
-		double yAdjForSmall = 0;
-		if(Math.abs(yAxisMaximumValue - yAxisMinimumValue) / Math.pow(10, origYPower) < 0.1)
-		{
-			yAdjForSmall = yAxisMinimumValue;
-			yAxisMaximumValue -= yAxisMinimumValue;
-			yAxisMinimumValue = 0;
-			yAxisPower = 0;				
-			while(Math.abs(yAxisMaximumValue - yAxisMinimumValue) / Math.pow(10, yAxisPower) < 0.1)
-			{
-				yAxisPower--;
-			}
-		}
-		
-		//calculate some of our needed values for spacing our graph
-		double xAxisPowerMultiplier = Math.pow(10, xAxisPower);
-		double yAxisPowerMultiplier = Math.pow(10, yAxisPower);
-		double xAxisSpan = xAxisMaximumValue - xAxisMinimumValue;
-		double yAxisSpan = yAxisMaximumValue - yAxisMinimumValue;
-
-		//comments and directions for the top
-		output.append("% Important: You must put \\RequirePackage{linefit} in the beging of the file to use graphs\n");
-		output.append("% Note: You can change the horizontal location on the graph by editing the value in the brackets in this line in the graph code: \\leftshift{value}\n");
-		output.append("% Note: changing this will NOT change the word spacings. In order to change spacing for a different test size, re-export the graph with a different export font size selected in the Graph Options\n\n");
-		
-		output.append("\\setbox0=\\hbox{\n");
-		output.append("\t\\shiftleft{");
-		output.append(laTexGraphWidthInCm / 5 + 2 * (exportFontSize - 12.0) / 22.0); //just to give it a reasonable starting point
-		output.append("}\n");
-		output.append("\t\\settextsize{");
-		output.append(exportFontSize);
-		output.append("}\n");
-
-		//begin the graph and tell it how numbers on our graph relate to cm
-		output.append("\t\\linefitgraphbegin{");
-		output.append(ScientificNotation.WithNoErrorAndZeroPower(laTexGraphWidthInCm / (xAxisSpan / xAxisPowerMultiplier)));
-		output.append("}{");
-		output.append(ScientificNotation.WithNoErrorAndZeroPower(laTexGraphHeightInCm / (yAxisSpan / yAxisPowerMultiplier)));
-		output.append("}\n"); 
-		
-		//export our datasets and fits
-		for(int k = 0; k < dataSetSelector.getItemCount(); k++) 
-		{
-			DataSet current = dataSetSelector.getItemAt(k);
-			//if its not the empty set we save it
-			if(!current.getName().equals("New DataSet")) 
-			{
-				if (current.visibleGraph && current.hasData()) 
-				{	
-					if (current.getColor() == Color.BLACK) {
-						output.append("\n\t\\color{black}\n");
-					} else if (current.getColor() == Color.YELLOW) {
-						output.append("\n\t\\color{yellow}\n");
-					} else if (current.getColor() == Color.BLUE) {
-						output.append("\n\t\\color{blue}\n");
-					} else if (current.getColor() == Color.GREEN) {
-						output.append("\n\t\\color{green}\n");
-					} else if(current.getColor() == Color.ORANGE) {
-						output.append("\n\t\\color{orange}\n");
-					} else if (current.getColor() == Color.RED) {
-						output.append("\n\t\\color{red}\n");
-					} else {
-						output.append("\n\t\\color[RGB]{" + current.getColor().getRed() + "," + current.getColor().getGreen() + "," + current.getColor().getBlue() + "}\n");
-					}
-						
-					if (current.xData != null && current.yData != null) 
-					{	
-						String symbol = "{\\symFilledSquare}";
-						Ellipse2D.Double ellipse = new Ellipse2D.Double();
-						Polygon triangle = new Polygon();
-						
-						if (current.getShape().getClass() == ellipse.getClass()) 
-						{
-							symbol = "{\\symFilledCircle}";
-						} 
-						else if (current.getShape().getClass() == triangle.getClass()) 
-						{
-							symbol = "{\\symFilledTriangle}";
-						}
-						
-						if(current.xData.getNonNullDataSize() > 0 && current.yData.getNonNullDataSize() > 0) 
-						{
-							for (int l = 0; l < Math.max(current.xData.getData().size(), current.yData.getData().size()); l++) 
-							{
-								if(!current.xData.isNull(l) && !current.yData.isNull(l)) 
-								{
-									output.append("\t\\putpoint");
-									if (current.xErrorData != null && !current.xErrorData.isNull(l) && current.xErrorData.readDouble(l) != 0.0)
-									{
-										if (current.yErrorData != null && !current.yErrorData.isNull(l) && current.yErrorData.readDouble(l) != 0.0)
-										{
-											output.append("xyerr");
-										} 
-										else
-										{
-											output.append("xerr");
-										}
-									} 
-									else if (current.yErrorData != null && !current.yErrorData.isNull(l) && current.yErrorData.readDouble(l) != 0.0) 
-									{
-										output.append("yerr");
-									}
-									
-									output.append(symbol);
-									output.append("{");
-									output.append(ScientificNotation.WithNoErrorAndZeroPower((current.xData.readDouble(l) - xAdjForSmall) / Math.pow(10, xAxisPower)));
-									output.append("}{");
-									output.append(ScientificNotation.WithNoErrorAndZeroPower((current.yData.readDouble(l) - yAdjForSmall) / Math.pow(10, yAxisPower)));
-									output.append("}");							
-									
-									if (current.xErrorData != null && !current.xErrorData.isNull(l) && current.xErrorData.readDouble(l) != 0.0) 
-									{
-										output.append("{");
-										output.append(ScientificNotation.WithNoErrorAndZeroPower(current.xErrorData.readDouble(l) / Math.pow(10, xAxisPower)));
-										output.append("}");
-									}
-									
-									if (current.yErrorData != null && !current.yErrorData.isNull(l) && current.yErrorData.readDouble(l) != 0.0) {
-										output.append("{");
-										output.append(ScientificNotation.WithNoErrorAndZeroPower(current.yErrorData.readDouble(l) / Math.pow(10, yAxisPower)));
-										output.append("}");
-									}
-									output.append("\n");									
-								}
-							}
-						}
-						
-						//put the line on the graph if we have a fit
-						if(current.getFitType() != FitType.NONE) 
-						{
-							//finds out which axis the line starts and ends on and draws it off of those otherwise we would get lines that go outside the graph
-							double xStart = (origXMin) / Math.pow(10, xAxisPower);
-							double yStart = (current.linearFitStrategy.getYOfXPoint(origXMin)) / Math.pow(10, yAxisPower);
-
-							if(yStart < origYMin / Math.pow(10, yAxisPower) || yStart > origYMax / Math.pow(10, yAxisPower)) 
-							{ //if its not on the graph then the other must be
-								yStart = origYMin / Math.pow(10, yAxisPower);
-								xStart = current.linearFitStrategy.getXOfYPoint(origYMin) / Math.pow(10, xAxisPower);
-							}
-								
-							double xEnd = (origXMax) / Math.pow(10, xAxisPower);
-							double yEnd = (current.linearFitStrategy.getYOfXPoint(origXMax)) / Math.pow(10, yAxisPower);
-							if(yEnd > origYMax / Math.pow(10, yAxisPower) || yEnd < origYMin / Math.pow(10, yAxisPower))
-							{ //if its not on the graph then the other must be
-								yEnd = origYMax / Math.pow(10, yAxisPower);
-								xEnd = current.linearFitStrategy.getXOfYPoint(origYMax) / Math.pow(10, xAxisPower);
-								if(xEnd > (origXMax) / Math.pow(10, xAxisPower) || xEnd < (origXMin) / Math.pow(10, xAxisPower)) 
-								{
-									yEnd = origYMin / Math.pow(10, yAxisPower);
-									xEnd = current.linearFitStrategy.getXOfYPoint(origYMin) / Math.pow(10, xAxisPower);
-								}
-							}
-							
-							if(Double.isNaN(xStart) || Double.isNaN(xEnd)) 
-							{
-								xStart = origXMax;
-								xEnd = origXMax;
-							}
-							
-							if(Double.isNaN(yStart) || Double.isNaN(yEnd))
-							{
-								yStart = origYMax;
-								yEnd = origYMax;
-							}
-							
-							output.append("\t\\putline{");
-							output.append(ScientificNotation.WithNoErrorAndZeroPower(xStart - xAdjForSmall / yAxisPowerMultiplier));
-							output.append("}{");
-							output.append(ScientificNotation.WithNoErrorAndZeroPower(yStart - yAdjForSmall / yAxisPowerMultiplier));
-							output.append("}{");
-							output.append(ScientificNotation.WithNoErrorAndZeroPower(xEnd - xAdjForSmall / xAxisPowerMultiplier));
-							output.append("}{");
-							output.append(ScientificNotation.WithNoErrorAndZeroPower(yEnd - yAdjForSmall / xAxisPowerMultiplier));
-							output.append("}\n");
-						
-							//do the result on graphs part if they are selected to be displayed
-							if(resultsAreDisplayedOnGraph) 
-							{
-								String kStr = "";
-								if(dataSetSelector.getItemCount() > 1)
-								{
-									kStr = "$_{" + (k + 1) + "}$";
-								}
-								//String xPosStr = ScientificNotation.WithNoErrorAndZeroPower(getXLaTexResultsPos());
-//
-//								BufferedImage bufferedImage = new BufferedImage(200, 200, BufferedImage.TYPE_INT_RGB);
-//								Graphics2D graphGraphics = bufferedImage.createGraphics();
-//								Font fontBase = new Font(graphGraphics.getFont().getName(), Font.PLAIN, 12);//12 just because we have to give it some height
-//								Font newFont = fontBase.deriveFont(exportFontSize);
-//								graphGraphics.setFont(newFont);
-//								currentFontMeasurements = graphGraphics.getFontMetrics();
-								
-								double defaultResultsLength = currentFontMeasurements.stringWidth("m = 0.0000");
-								double currentResultsLength = findLongestResultsLength();
-								String xPosStr = "" + (laTexGraphWidthInCm - (1 + exportFontSize * 0.1) * //this is y = mx + b from plotting desired spacing at 3 different font sizes and then fitting a line to it
-										(currentResultsLength / defaultResultsLength) - (double)resultsPositionX / graphWidthAfterPadding * laTexGraphWidthInCm); 
-								
-								double yFontSizeInGraphUnits = 0.35 * (exportFontSize / 12.0);
-								double yResPos = -yFontSizeInGraphUnits / 2 + (double)resultsPositionY / graphHeightAfterPadding * laTexGraphHeightInCm;								
-								
-								String resultsSuffixString = "}{" + xAxisMinimumValue / xAxisPowerMultiplier + "}{" + yAxisMinimumValue / yAxisPowerMultiplier + "}\n";
-								output.append("\t\\putresults{y");
-								output.append(kStr);
-								output.append(" = m");
-								output.append(kStr);
-								output.append("x + b");
-								output.append(kStr);
-								output.append("}{");
-								output.append(xPosStr);
-								output.append("}{");
-								output.append(ScientificNotation.WithNoErrorAndZeroPower(yResPos + yFontSizeInGraphUnits * 3));
-								output.append(resultsSuffixString);
-								output.append("\t\\putresults{m");
-								output.append(kStr);
-								output.append(" = ");
-								output.append(current.linearFitStrategy.getSlopeAsString(resultsDecimalPlaces, resultsUseScientificNotation, true));
-								output.append("}{");
-								output.append(xPosStr); 
-								output.append("}{");
-								output.append(ScientificNotation.WithNoErrorAndZeroPower(yResPos + yFontSizeInGraphUnits * 2));
-								output.append(resultsSuffixString);
-								output.append("\t\\putresults{b");
-								output.append(kStr);
-								output.append(" = ");
-								output.append(current.linearFitStrategy.getInterceptAsString(resultsDecimalPlaces, yAxisPower, resultsUseScientificNotation, true));
-								output.append("}{");
-								output.append(xPosStr);
-								output.append("}{");
-								output.append(ScientificNotation.WithNoErrorAndZeroPower(yResPos + yFontSizeInGraphUnits));
-								output.append(resultsSuffixString);
-							}
-						}
-					}
-				}
-			}
-		}
-		
-		//set the color back to black
-		output.append("\n\t\\color{black}\n");		
-		
-		//Moved the axes down to here so that we dont have to worry as much about the plots going through the axes
-
-		
-		//put the begining part
-		if(Math.abs(xAxisSpan) / Math.pow(10, origXPower) >= 0.1) 
-		{
-			output.append("\t\\drawxaxis{");
-			output.append(getXAxisDescription());
-			output.append("}{");
-		} 
-		else 
-		{
-			output.append("\t\\drawxaxisforsmallvals{");
-			output.append(getXAxisDescription());
-			output.append("}{");
-			//if we are a small axis then we need to put the adjusted positions for on the document as well as the labeled positions
-			if(xAxisNumberOfTickMarks > 0 && xAxisHasTickMarks) 
-			{
-				for(int i = 0; i < xAxisNumberOfTickMarks; i++)
-				{
-					Double labelSpot = (origXMax - origXMin) * i / xAxisNumberOfTickMarks + origXMin;
-					output.append(ScientificNotation.withoutTimesTen(labelSpot, origXPower, xAxisDecimalPlaces));
-					output.append(" ");
-				}
-			}
-			output.append(ScientificNotation.withoutTimesTen(origXMax, origXPower, xAxisDecimalPlaces));
-			output.append("}{");
-		}
-			
-		//add the label positions for the x axis
-		if(xAxisNumberOfTickMarks > 0 && xAxisHasTickMarks) 
-		{
-			for(int i = 0; i < xAxisNumberOfTickMarks; i++)
-			{
-				Double tickSpot = xAxisSpan * i / xAxisNumberOfTickMarks + xAxisMinimumValue;
-				output.append(ScientificNotation.withoutTimesTen(tickSpot, xAxisPower, xAxisDecimalPlaces));
-				output.append(" ");
-			}
-			output.append(ScientificNotation.withoutTimesTen(xAxisMaximumValue, xAxisPower, xAxisDecimalPlaces));
-			output.append("}{");
-		} 
-
-		output.append(ScientificNotation.WithNoErrorAndZeroPower(yAxisMinimumValue / yAxisPowerMultiplier));
-		output.append("}{");
-		output.append(ScientificNotation.WithNoErrorAndZeroPower(laTexExportSpacingInCm + exportFontSize / 12 * 0.35 )); //0.35 is the spacing from the axes to the tick labels, 0.35 * fontsize is for the labels width and axes name label
-		output.append("}\n");
-		
-		if(origXPower != 0) 
-		{
-			output.append("\t\\putxpower{");
-			output.append("$\\times10^{");
-			output.append(origXPower);
-			output.append("}$}{");
-			output.append(ScientificNotation.WithNoErrorAndZeroPower(xAxisMaximumValue / xAxisPowerMultiplier));
-			output.append("}{");
-			output.append(ScientificNotation.WithNoErrorAndZeroPower(yAxisMinimumValue / yAxisPowerMultiplier));
-			output.append("}{");
-			output.append(laTexExportSpacingInCm);
-			output.append("}\n");
-		}
-		
-		//now the same for the y
-		if(Math.abs(yAxisSpan) / Math.pow(10, origYPower) >= 0.1) 
-		{
-			output.append("\t\\drawyaxis{");
-			output.append(getYAxisDescription());
-			output.append("}{");	
-		} 
-		else
-		{				
-			output.append("\t\\drawyaxisforsmallvals{");
-			output.append(getYAxisDescription());
-			output.append("}{");	
-			for(int i = 0; i < yAxisNumberOfTickMarks; i++)
-			{
-				Double labelSpot = yAxisSpan * i / yAxisNumberOfTickMarks + origYMin;
-				output.append(ScientificNotation.withoutTimesTen(labelSpot, origYPower, yAxisDecimalPlaces));
-				output.append(" ");
-			}
-			output.append(ScientificNotation.withoutTimesTen(origYMax, origYPower, yAxisDecimalPlaces));
-			output.append("}{");
-		}
-		
-		if(yAxisNumberOfTickMarks > 0 && yAxisHasTickMarks)
-		{
-			for(int i = 0; i < yAxisNumberOfTickMarks; i++) 
-			{
-				Double tickSpot = yAxisSpan * i / yAxisNumberOfTickMarks + yAxisMinimumValue;
-				output.append(ScientificNotation.withoutTimesTen(tickSpot, yAxisPower, yAxisDecimalPlaces));
-				output.append(" ");
-			}
-			output.append(ScientificNotation.withoutTimesTen(yAxisMaximumValue, yAxisPower, yAxisDecimalPlaces));
-			output.append("}{");
-		} 
-		
-		output.append(ScientificNotation.WithNoErrorAndZeroPower(xAxisMinimumValue / xAxisPowerMultiplier));
-		output.append("}{");
-		
-		double defaultLongestYStringLength =  currentFontMeasurements.stringWidth("0.00");
-		double longestYStringLength =  currentFontMeasurements.stringWidth(ScientificNotation.withoutTimesTen(yAxisMaximumValue, yAxisPower, yAxisDecimalPlaces));
-		double yMinStringLength =  currentFontMeasurements.stringWidth(ScientificNotation.withoutTimesTen(yAxisMinimumValue, yAxisPower, yAxisDecimalPlaces));
-		if(yMinStringLength > longestYStringLength)
-		{
-			longestYStringLength = yMinStringLength;
-		}
-		
-		output.append(ScientificNotation.WithNoErrorAndZeroPower(laTexExportSpacingInCm + exportFontSize / 12.0 * 0.10 + (exportFontSize / 12.0) * 
-				(longestYStringLength / defaultLongestYStringLength) * 0.65 )); //this spacing was just figured out by trial and error
-		output.append("}\n");
-		
-		if(origYPower != 0) 
-		{
-			output.append("\t\\putypower{");
-			output.append("$\\times10^{");
-			output.append(origYPower);
-			output.append("}$}{");
-			output.append(ScientificNotation.WithNoErrorAndZeroPower(xAxisMinimumValue / xAxisPowerMultiplier));
-			output.append("}{");
-			output.append(ScientificNotation.WithNoErrorAndZeroPower(yAxisMaximumValue / yAxisPowerMultiplier));
-			output.append("}{");
-			output.append(laTexExportSpacingInCm);
-			output.append("}\n");
-		}
-		output.append("\t\\linefitgraphend\n}");
-		
-		//moved down here so we dont have to import but can just copy the whole thing
-		output.append("\n\\begin{figure}\n\\begin{center}\n");			
-		output.append("\\scalebox{1}{\\box0}\n\\caption{");
-		output.append(getGraphName());
-		output.append("}\n\\end{center}\n\\end{figure}\n");
-		
-		//now put our powers back
-		xAxisPower = origXPower;
-		xAxisMaximumValue = origXMax;
-		xAxisMinimumValue = origXMin;
-		yAxisPower = origYPower;
-		yAxisMaximumValue = origYMax;
-		yAxisMinimumValue = origYMin;
-	}
+	
 	
 	// Getters and Setters for graphName and axisDescriptions
 	/**
@@ -1614,7 +1176,95 @@ public class GraphArea extends JPanel
 	{
 		return graphName;
 	}
+	
+	public class GraphAxesRanges
+	{
+		public double xAxisMinimumValue = 0;
+		public double xAxisMaximumValue = 0;
+		public double yAxisMinimumValue = 0;
+		public double yAxisMaximumValue = 0;
+	}
+	
+	public GraphAxesRanges GetGraphAxesRanges()
+	{
+		GraphAxesRanges rangesData = new GraphAxesRanges();
+		rangesData.xAxisMinimumValue = xAxisMinimumValue;
+		rangesData.xAxisMaximumValue = xAxisMaximumValue;
+		rangesData.yAxisMinimumValue = yAxisMinimumValue;
+		rangesData.yAxisMaximumValue = yAxisMaximumValue;
+		return rangesData;
+	}
 
+	public class GraphAxesPowers
+	{
+		public int xAxisPower = 0;
+		public int yAxisPower = 0;
+	}
+	
+	public GraphAxesPowers GetGraphAxesPowers()
+	{
+		GraphAxesPowers powerData = new GraphAxesPowers();
+		powerData.xAxisPower = xAxisPower;
+		powerData.yAxisPower = yAxisPower;
+		return powerData;
+	}
+
+	public class GraphMetaData
+	{
+		public String graphName = "";
+		public String xAxisDescription = "";
+		public String yAxisDescription = "";
+		public Boolean xAxisHasTickMarks = false;
+		public Boolean yAxisHasTickMarks = false;
+		public int xAxisNumberOfTickMarks = 0;
+		public int yAxisNumberOfTickMarks = 0;
+		public int xAxisDecimalPlaces = 0;
+		public int yAxisDecimalPlaces = 0;
+	}
+
+	public GraphMetaData GetGraphMetaData()
+	{
+		GraphMetaData metaData = new GraphMetaData();
+		metaData.graphName = graphName;
+		metaData.xAxisDescription = xAxisDescription;
+		metaData.yAxisDescription = yAxisDescription;
+		metaData.xAxisHasTickMarks = xAxisHasTickMarks;
+		metaData.yAxisHasTickMarks = yAxisHasTickMarks;
+		metaData.xAxisNumberOfTickMarks = xAxisNumberOfTickMarks;
+		metaData.yAxisNumberOfTickMarks = yAxisNumberOfTickMarks;
+		metaData.xAxisDecimalPlaces = xAxisDecimalPlaces;
+		metaData.yAxisDecimalPlaces = yAxisDecimalPlaces;
+		return metaData;
+	}
+
+	public class ResultsDisplayData
+	{
+		public int graphWidthAfterPadding = 0;
+		public int graphHeightAfterPadding = 0;
+		public int resultsPositionX = 0;
+		public int resultsPositionY = 0;
+		public int resultsDecimalPlaces = 0;
+		public boolean resultsUseScientificNotation = false;
+	}
+	
+	public ResultsDisplayData GetResultsDisplayData()
+	{
+		ResultsDisplayData displayData = new ResultsDisplayData();
+		displayData.graphWidthAfterPadding = graphWidthAfterPadding;
+		displayData.graphHeightAfterPadding = graphHeightAfterPadding; 
+		displayData.resultsPositionX = resultsPositionX;
+		displayData.resultsPositionY = resultsPositionY;
+		displayData.resultsDecimalPlaces = resultsDecimalPlaces;
+		displayData.resultsUseScientificNotation = resultsUseScientificNotation;
+		return displayData;
+	}
+
+	public FontMetrics GetGraphFontMetrics()
+	{
+		// FontMetrics and its Font are both immutable so it is safe to let the
+		// reference escape (not to mention they don't have copy functions)
+		return currentFontMeasurements;
+	}
 	
 	//Private Classes
 	/**

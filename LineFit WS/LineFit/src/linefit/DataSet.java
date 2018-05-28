@@ -761,196 +761,168 @@ public class DataSet extends JScrollPane
 		return customColorMenu;
 	}
 	
-	/** Reads in the data for a GraphSet from a LineFit file after we have identified it as GraphSet data
-	 * Note: Used only as part of reading functions - will not work independently
-	 * @param inputReader The BufferedReader that is parsing the input file
-	 * @throws IOException throws an IOException if one occurred while reading in the data to be handled in the IOHandler class
-	 */
-	void continueRecursiveRead(BufferedReader inputReader) throws IOException 
+	void readInLine(String line)
 	{
-		FitType tempFitType = FitType.NONE;
-		int rowNumber = 0;
+		//now split the input into the two parts
+		//we can't use split because it will mess up on names as well as points since they have multiple spaces
+		int firstSpaceIndex = line.indexOf(' ');
+		String field = line.substring(0, firstSpaceIndex).toLowerCase();
+		String valueForField = line.substring(firstSpaceIndex + 1).toLowerCase();
 		
-		//while it is dataset information
-		boolean finishedReadingInDataSet = false;
-		String dataSetLine = "";
-		while (!finishedReadingInDataSet && (dataSetLine = inputReader.readLine()) != null && !dataSetLine.isEmpty()) 
+		try
 		{
-			//get our label and then decide what to do with the next value we read in
-			if(dataSetLine.startsWith("~"))
-			{
-				dataSetLine = dataSetLine.substring(1).trim();
+			switch(field)
+			{			
+				case "colnum": case "numberofcolumns":
+				{
+					int numCols = Integer.parseInt(valueForField);
+									
+					for (int i = visibleDataColumns.size(); i < numCols; i++)
+					{
+						addColumn();
+					}
+					break;
+				}
+				case "fittype": 
+				{
+					//loop through all the fit types checking them against their toString methods
+					boolean foundFitType = false;
+					for(FitType ft : FitType.values())
+					{
+						if(valueForField.equals(ft.toString().toLowerCase())) 
+						{
+							foundFitType = true;
+							this.setFitType(ft);
+							break;
+						}
+					}
+					//if we didn't find it for whatever strange reason, default to none
+					if(!foundFitType)
+					{
+						this.setFitType(FitType.NONE);
+					}
+					break;
+				}
+				case "whatisfixed":
+				{
+					//loop though all the fixed variables checking them against the toString methods
+					boolean foundFixedVariable = false;
+					for(FixedVariable fv : FixedVariable.values())
+					{
+						if(valueForField.equals(fv.toString().toLowerCase())) 
+						{
+							linearFitStrategy.setWhatIsFixed(fv, linearFitStrategy.getFixedValue());
+							foundFixedVariable = true;
+							break;
+						}
+					}
+					//if we didnt find anyone just default to none
+					if(!foundFixedVariable)
+					{
+						linearFitStrategy.setWhatIsFixed(FixedVariable.NONE, linearFitStrategy.getFixedValue());
+					}
+					break;
+				}
+				
+				case "fixedvalue": linearFitStrategy.setWhatIsFixed(linearFitStrategy.getWhatIsFixed(), Double.parseDouble(valueForField)); break;
+				case "visible": visibleGraph = valueForField.toLowerCase().equals("true"); break;
+				case "shape":								
+				{
+					if (valueForField.equals("rectangle")) 
+					{
+						setShape(new Rectangle2D.Double());
+					} 
+					else if (valueForField.equals("circle")) 
+					{
+						setShape(new Ellipse2D.Double());
+					} 		
+					else 
+					{
+						setShape(new Polygon());
+					}
+					break;
+				}
+				case "color":
+				{				
+					switch(valueForField)
+					{
+						case "black": setColor(Color.BLACK);break;
+						case "yellow": setColor(Color.YELLOW); break;
+						case "blue": setColor(Color.BLUE); break;
+						case "green": setColor(Color.GREEN); break;
+						case "orange": setColor(Color.ORANGE); break;
+						case "red": setColor(Color.RED); break;
+						default://we expect three ints
+						{
+							String[] colorInputExploded = valueForField.split(" ");
+							if(colorInputExploded.length == 3)
+							{
+								//get the rgb as ints and set up the color
+								try
+								{
+									int red = Integer.parseInt(colorInputExploded[0]);
+									int green = Integer.parseInt(colorInputExploded[1]);
+									int blue = Integer.parseInt(colorInputExploded[2]);
+									setColor(new Color(red, green, blue));
+								}
+								catch(NumberFormatException e)
+								{
+									setColor(Color.BLACK);
+								}
+							}
+							else
+							{
+								setColor(Color.BLACK);
+							}
+							break;
+						}
+					}
+					break;
+				}
+				case "colname": break;	//we don't use this anymore but we don't want to cause errors when reading old files int. visibleDataColumns.get(colNum).setName(valueForField); break;	
+				case "coldesc": break;	//we don't use this anymore but we don't want to cause errors when reading old files in
+				case "p": case "datapoint":
+				{
+					//split it up into the separate string parts
+					String[] splitPointValuesInput = valueForField.split(" ");
+					for (int column = 0; column < splitPointValuesInput.length; column++) 
+					{	
+						String pointValueString = splitPointValuesInput[column];
+										
+						Double value = null;
+										
+						if (!pointValueString.equals("null")) 
+						{
+							value = Double.parseDouble(pointValueString);
+						}
+
+						//Reads should only take place when a set is created so we
+						//can just use the data size of the first column to determine
+						// the next row to add at.
+						int row = visibleDataColumns.get(0).dataSize();
+						try
+						{
+							visibleDataColumns.get(column).writeData(row, pointValueString);
+							dataTableModel.setValueAt(value, row, column);
+						}
+						catch (IndexOutOfBoundsException iobe)
+						{
+							System.err.println("Error reading in DataPoint - More values specified than columns - Continuing: " + line); break;
+						}
+					}
+					break;
+				} 
+				default: System.err.println("Error reading in DataSet - Continuing: " + line); break;
 			}
 			
-			//if all we have is the # then we know we are done or that we belong to the settings not the data points
-			if(dataSetLine.startsWith("#"))
-			{
-				//so reset it to the last line we read in because it wasn't ours and we don't want to lose it!
-				//Note we mark it after every line we read in just in case its our last one
-				inputReader.reset();
-				//and then tell it were done so we can finish up
-				finishedReadingInDataSet = true;
-			}
-			//otherwise readin in the data!
-			else
-			{
-				//now split the input into the two parts
-				//we cant use split because it will mess up on names as well as points since they have multiple spaces
-				int firstSpaceIndex = dataSetLine.indexOf(' ');
-				String field = dataSetLine.substring(0, firstSpaceIndex).toLowerCase();
-				String valueForField = dataSetLine.substring(firstSpaceIndex + 1).toLowerCase();
-				
-				try
-				{
-					switch(field)
-					{			
-						case "colnum": case "numberofcolumns":
-						{
-							int numCols = Integer.parseInt(valueForField);
-											
-							for (int i = visibleDataColumns.size(); i < numCols; i++)
-							{
-								addColumn();
-							}
-							break;
-						}
-						case "fittype": 
-						{
-							//loop through all the fit types checking them against their toString methods
-							boolean foundFitType = false;
-							for(FitType ft : FitType.values())
-							{
-								if(valueForField.equals(ft.toString().toLowerCase())) 
-								{
-									tempFitType = ft;
-									foundFitType = true;
-									break;
-								}
-							}
-							//if we didnt find it for whatever strange reason, default to none
-							if(!foundFitType)
-							{
-								tempFitType = FitType.NONE;
-							}
-							break;
-						}
-						case "whatisfixed":
-						{
-							//loop though all the fixed variables checking them against the toString methods
-							boolean foundFixedVariable = false;
-							for(FixedVariable fv : FixedVariable.values())
-							{
-								if(valueForField.equals(fv.toString().toLowerCase())) 
-								{
-									linearFitStrategy.setWhatIsFixed(fv, linearFitStrategy.getFixedValue());
-									foundFixedVariable = true;
-									break;
-								}
-							}
-							//if we didnt find anyone just default to none
-							if(!foundFixedVariable)
-							{
-								linearFitStrategy.setWhatIsFixed(FixedVariable.NONE, linearFitStrategy.getFixedValue());
-							}
-							break;
-						}
-						
-						case "fixedvalue": linearFitStrategy.setWhatIsFixed(linearFitStrategy.getWhatIsFixed(), Double.parseDouble(valueForField)); break;
-						case "visible": visibleGraph = valueForField.toLowerCase().equals("true"); break;
-						case "shape":								
-						{
-							if (valueForField.equals("rectangle")) 
-							{
-								setShape(new Rectangle2D.Double());
-							} 
-							else if (valueForField.equals("circle")) 
-							{
-								setShape(new Ellipse2D.Double());
-							} 		
-							else 
-							{
-								setShape(new Polygon());
-							}
-							break;
-						}
-						case "color":
-						{				
-							switch(valueForField)
-							{
-								case "black": setColor(Color.BLACK);break;
-								case "yellow": setColor(Color.YELLOW); break;
-								case "blue": setColor(Color.BLUE); break;
-								case "green": setColor(Color.GREEN); break;
-								case "orange": setColor(Color.ORANGE); break;
-								case "red": setColor(Color.RED); break;
-								default://we expect three ints
-								{
-									String[] colorInputExploded = valueForField.split(" ");
-									if(colorInputExploded.length == 3)
-									{
-										//get the rgb as ints and set up the color
-										try
-										{
-											int red = Integer.parseInt(colorInputExploded[0]);
-											int green = Integer.parseInt(colorInputExploded[1]);
-											int blue = Integer.parseInt(colorInputExploded[2]);
-											setColor(new Color(red, green, blue));
-										}
-										catch(NumberFormatException e)
-										{
-											setColor(Color.BLACK);
-										}
-									}
-									else
-									{
-										setColor(Color.BLACK);
-									}
-									break;
-								}
-							}
-							break;
-						}
-						case "colname": break;	//we don't use this anymore but we don't want to cause errors when reading old files int. visibleDataColumns.get(colNum).setName(valueForField); break;	
-						case "coldesc": break;	//we don't use this anymore but we don't want to cause errors when reading old files in
-						case "p": case "datapoint":
-						{
-							//split it up into the seperate string parts
-							String[] splitPointValuesInput = valueForField.split(" ");
-							for (int f = 0; f < splitPointValuesInput.length; f++) 
-							{	
-								String poinValueString = splitPointValuesInput[f];
-												
-								Double value = null;
-												
-								if (!poinValueString.equals("null")) 
-								{
-									value = Double.parseDouble(poinValueString);
-								}
-	
-								visibleDataColumns.get(f % visibleDataColumns.size()).writeData(rowNumber, poinValueString);
-								dataTableModel.setValueAt(value, rowNumber, f % visibleDataColumns.size());
-							}
-							rowNumber++;
-							break;
-						} 
-						default: System.err.println("Error reading in DataSet - Continuing: " + dataSetLine); break;
-					}
-					
-				}
-				catch (NumberFormatException nfe)
-				{
-					JOptionPane.showMessageDialog(this, "Error reading in number from line: " + dataSetLine,
-						    "NFE Error", JOptionPane.ERROR_MESSAGE);
-				}
-				
-				//mark this line in case it was the last one so we can reread it later on when we exit out
-				inputReader.mark(100);
-			}
 		}
-		//now set the fit type now that we are done adding data
-		this.setFitType(tempFitType);
+		catch (NumberFormatException nfe)
+		{
+			JOptionPane.showMessageDialog(this, "Error reading in number from line: " + line,
+				    "NFE Error", JOptionPane.ERROR_MESSAGE);
+		}
 	}
-	
+		
 	/** Recursively saves this DataSet's data into the Formatter file. 
 	 * Note: This should not be used independently of the other recursive save functions! 
 	 * @param output The formatter that is being used to write the file */

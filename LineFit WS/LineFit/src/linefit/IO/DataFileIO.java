@@ -54,7 +54,7 @@ public class DataFileIO
 		if(lastSelectedFileDialogChoice == JOptionPane.OK_OPTION)
 		{
 			File fileToOpen = fileChooser.getSelectedFile();
-			generalIO.storeCurrentDirectory();
+			generalIO.storeDirectoryOfChooser(fileChooser); //TODO: move into GeneralIO?
 			if(fileToOpen != null && !fileToOpen.getName().endsWith(saveFileExtension))
 			{
 				int confirm = JOptionPane.showConfirmDialog(lineFit, "File is not a recognized lineFit " + saveFileExtension + " file. Continue opening?", "Unsupported File Type", JOptionPane.OK_CANCEL_OPTION);
@@ -149,16 +149,18 @@ public class DataFileIO
 							try
 							{
 								//do some bounds checking here and handle appropriately
-								String[] versionParts = versionLine.substring(versionLine.indexOf(' ')).split(".");
-								int majorVersion = Integer.parseInt(versionParts[0]);
-								int minorVersion = Integer.parseInt(versionParts[1]);
-								if(majorVersion > Version.LINEFIT_FILE_FORMAT_MAJOR_VERSION)
+								String[] versionParts = versionLine.substring(versionLine.indexOf(' ') + 1).split("\\.");
+								int majorVersion = Integer.parseInt(versionParts[0].trim());
+								int minorVersion = Integer.parseInt(versionParts[1].trim());
+								if(majorVersion > Version.LINEFIT_FILE_FORMAT_MAJOR_VERSION || 
+										(majorVersion == Version.LINEFIT_FILE_FORMAT_MAJOR_VERSION &&
+										minorVersion > Version.LINEFIT_FILE_FORMAT_MINOR_VERSION))
 								{
 									//ask them if they want to still try reading in the file
 									int confirm = JOptionPane.showConfirmDialog(lineFit, "This File was created with a newer LineFit file format protocol. Because of this, data could be missed or read in incorrectly. Continue loading data from it?", "Time Traveling File", JOptionPane.OK_CANCEL_OPTION);
 									if (confirm != JOptionPane.OK_OPTION)
 									{ 
-										//if they dont than close us of and return
+										//if they don't than close us of and return
 										inputReader.close();
 										return;
 									}
@@ -172,13 +174,43 @@ public class DataFileIO
 						}
 						else
 						{
-							//old version - we can just keep going cause we are backwards compatable						
-							//reset the line so we dont miss it
+							//first version - we can just keep going cause we are backwards compatible						
+							//reset the line so we don't miss it
 							inputReader.reset();
 						}
 						
 						//now keep reading in the file
-						lineFit.initiateRecursiveOpen(inputReader, importSettings);
+				        String lineRead = "";
+				        boolean readingDataSet = false;
+				        while((lineRead = inputReader.readLine()) != null)
+				        {
+				        	//trim any whitespaces
+				        	lineRead = lineRead.trim();
+				        	
+				        	//these if statements handle backwards compatibility of the file
+				            if (lineRead.startsWith("#"))
+				            {
+				            	lineRead = lineRead.substring(1).trim();
+				            	if (lineRead.toLowerCase().startsWith("dataset"))
+				            	{
+				            		readingDataSet = true;
+				            		lineRead = "startOfDataSet";
+				            	}
+				            }
+				            else if (lineRead.startsWith("~"))
+				            {
+				            	lineRead = lineRead.substring(1).trim();
+				            }
+				            else if (lineRead.isEmpty() && readingDataSet)
+				            {
+				            	lineRead = "endOfDataSet";
+				            }
+
+				            if (!lineRead.isEmpty())
+				            {
+				            	lineFit.readInLine(lineRead, importSettings);
+				            }
+				        }
 					}	
 					inputReader.close();
 				}

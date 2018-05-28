@@ -57,6 +57,11 @@ public class DataColumn
 		data = new ArrayList<Double>();
 	}
 	
+	public int dataSize()
+	{
+		return data.size();
+	}
+	
 	/**
 	 * Returns the number of data points we have that have a value in them (not null)
 	 * 
@@ -69,7 +74,7 @@ public class DataColumn
 		{
 			if(!isNull(i)) 
 			{
-				nonNull ++;
+				nonNull++;
 			}
 		}
 		return nonNull;

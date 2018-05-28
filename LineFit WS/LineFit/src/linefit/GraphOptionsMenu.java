@@ -278,11 +278,10 @@ class GraphOptionsMenu extends JFrame
 	GraphOptionsMenu(GraphArea graphAreaToEditOptionsOf, DataSet currentSetInGraphArea, GeneralIO parentIoHandler) 
 	{
 		super("Graph Settings");
+		ioHandler = parentIoHandler;
 
 		//set our icon
 		this.setIconImage(ioHandler.getLineFitIcon());
-		
-		ioHandler = parentIoHandler;
 		
 		setResizable(false);
 		graphingArea = graphAreaToEditOptionsOf;

@@ -637,39 +637,6 @@ public class ExportIO
 		output.append(graphName);
 		output.append("}\n\\end{center}\n\\end{figure}\n");
 	}
-	
-	//TODO: are these used at all???
-	/** 
-	 * Determines where the results are to be placed on the graph in the x direction for a LaTex graph in order to keep the same relative position as when drawn to the GUI
-	 * 
-	 * @return Returns the x value of the graph to put the results in order for it to be displayed in the same relative position in LaTex
-	 */
-	double getXLaTexResultsPos(double xAxisMin, double xAxisMax, int resultsPositionX, int xAxisPower) 
-	{
-		return (xAxisMax - (resultsPositionX + graphingArea.getLongestResultsLength()) * (xAxisMax - xAxisMin) / cmToPixels(laTexGraphHeightInCm)) / Math.pow(10, xAxisPower);
-	}
-	
-	/** 
-	 * Determines where the results are to be placed on the graph in the y direction for a LaTex graph in order to keep the same relative position as when drawn to the GUI
-	 * 
-	 * @return Returns the y value of the graph to put the results in order for it to be displayed in the same relative position in LaTex
-	 */
-	double getYLaTexResultsPos(int resultsPositionY, int graphAreaBottomSpacing) 
-	{
-		return graphAreaBottomSpacing + resultsPositionY;
-	}
-	
-	/**
-	 * Returns the text height in terms of the y coordinates of the graph in order to be used for making a LaTex graph
-	 * 
-	 * @return The height of the font for LaTex exporting
-	 */
-	double getLaTexTextHeight(double yAxisMin, double yAxisMax, int yAxisPower) 
-	{
-		//change this to use the export font height and what not - looks like it changes some but not enough
-		return exportFontSize * (yAxisMax - yAxisMin) / ExportIO.cmToPixels(laTexGraphHeightInCm) / Math.pow(10, yAxisPower);		
-		//return currentFontMeasurements.getHeight() * (yAxisMaximumValue - yAxisMinimumValue)/(DEFAULT_GRAPH_AREA_DIMENSIONS.height - (graphAreaBottomSpacing + graphAreaTopSpacing)) / Math.pow(10, yAxisPower);
-	}
 		
 	
 	/** Converts the given length in inches to pixel length - used to determine the size of PDF when we export it

@@ -495,7 +495,8 @@ public abstract class LinearFitStrategy
 				if(!canFixSlope)
 				{
 					System.err.println("Cannot fix the slope for this Fit Algortihm");
-				}; break;
+				}; 
+				break;
 			case INTERCEPT: 
 				//we still set it so we can hold onto it if the fit is switched back
 				whatIsFixed = whatFixed;
@@ -503,10 +504,12 @@ public abstract class LinearFitStrategy
 				if(!canFixIntercept)
 				{
 					System.err.println("Cannot fix the Intercept for this Fit Algortihm");
-				}; break;
-			default: System.err.println("Trying to fix an Undefined variable");break;
+				}; 
+				break;
+			default: System.err.println("Trying to fix an Undefined variable"); break;
 		}
 		fixedValue = valueOfFixed;
+		//TODO: Fix this
 		if(canFixIntercept || canFixSlope)
 		{
 			System.err.println("Cannot set any fixed values for this Fit Algortihm");

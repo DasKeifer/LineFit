@@ -599,10 +599,13 @@ public class LineFit extends JFrame
 	 * @param importSettings Whether or not to read in the graph settings/options along with the DataSets from the passed BufferedReader containing the input file's data
 	 * @throws IOException throws any IO exceptions to be dealt with at a higher level
 	 */
-	public void initiateRecursiveOpen(BufferedReader inputFileReader, boolean importSettings) throws IOException
+	public void readInLine(String line, boolean importSettings) 
 	{
-		graphingArea.recursivelyOpenLineFitFile(inputFileReader, importSettings);
-
+		graphingArea.readInLine(line, importSettings);
+	}
+	
+	public void refreshGraph()
+	{
 		//this just makes it so that it updates our quickbar
 		dataSetSelector.setSelectedIndex(dataSetSelector.getSelectedIndex()); 
 		graphingArea.repaint();

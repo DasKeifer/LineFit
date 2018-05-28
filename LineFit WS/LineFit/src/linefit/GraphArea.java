@@ -171,6 +171,8 @@ public class GraphArea extends JPanel
 	 * in a DataSet. True means to use x errors/uncertainties and false means to use y errors/uncertainties. */
 	boolean xErrorsOnly = false;
 	
+	boolean readingDataSet = false;
+	
 	/**
 	 * Constructor for our graph area that is called by LineFit to create the visual graph
 	 * Note: Each LineFit should have only one GraphArea
@@ -917,48 +919,37 @@ public class GraphArea extends JPanel
 		calculateAxesMinimumAndMaximumValues();
 	}
 	
-	/**
-	 * Continues the recursive open of a LineFit file into the current instance
-	 * Note: this should not be used independently!
-	 * @param inputReader The reader currently reading in the LineFit file
-	 * @param readInGraphSettings Whether or not the user wants to read in the graph settings of this file
-	 * @throws IOException Throws this it encounters an IO error while opening the file
-	 */
-	void recursivelyOpenLineFitFile(BufferedReader inputReader, boolean readInGraphSettings) throws IOException
+	void readInLine(String line, boolean readInGraphSettings)
 	{
-		//while there is file to read
-		String lineRead = "";
-		while((lineRead = inputReader.readLine()) != null)
+		if (line.toLowerCase().equals("endofdataset"))
 		{
-			lineRead = lineRead.trim();
-			if (lineRead.toLowerCase().contains("# dataset")) 
-			{		
-				//see if the last one is a blank one and if it is use it
-				if(!this.dataSetSelector.getItemAt(dataSetSelector.getItemCount() - 2).hasData())
-				{
-					this.dataSetSelector.getItemAt(dataSetSelector.getItemCount() - 2).continueRecursiveRead(inputReader);				
-				}
-				else
-				{
-					//create a new dataset and then read into it
-					DataSet readDataSet = new DataSet(this, changeTracker);
-					readDataSet.continueRecursiveRead(inputReader);
-					
-					//now add it to our stuff
-					registerDataSet(readDataSet);
-				}
-			}
-			else if(lineRead.startsWith("#"))
+			readingDataSet = false;
+		}
+		else if (line.toLowerCase().startsWith("startofdataset")) 
+		{		
+			readingDataSet = true;
+			
+			//see if the last one is a blank one and if it isn't then add one
+			if(this.dataSetSelector.getItemAt(dataSetSelector.getItemCount() - 2).hasData())
 			{
-				if(readInGraphSettings)
-				{						
-					readInSettingFromLine(lineRead);
-				}
-				else
-				{
-					//read past it - just ignore it
-				}
+				//create a new dataset and then read into it
+				DataSet readDataSet = new DataSet(this, changeTracker);
+				
+				//now add it to the drop down
+				registerDataSet(readDataSet);
 			}
+		}
+		else if(readingDataSet)
+		{
+			this.dataSetSelector.getItemAt(dataSetSelector.getItemCount() - 2).readInLine(line);
+		}
+		else
+		{
+			if(readInGraphSettings)
+			{						
+				readInSettingFromLine(line);
+			}
+			//else read past it - just ignore it
 		}
 	}
 
@@ -966,14 +957,8 @@ public class GraphArea extends JPanel
 	 * @param lineRead The String that contains the line of data which contains a particular graph setting and its value
 	 */
 	void readInSettingFromLine(String lineRead) 
-	{
-		//first remove the # if it is there
-		if(lineRead.startsWith("#"))
-		{
-			lineRead = lineRead.substring(1).trim();
-		}
-		
-		//now split the input into the two parts
+	{		
+		//split the input into the two parts
 		//we cant use split because it will mess up on names
 		int firstSpaceIndex = lineRead.indexOf(' ');
 		String field = lineRead.substring(0, firstSpaceIndex).toLowerCase();

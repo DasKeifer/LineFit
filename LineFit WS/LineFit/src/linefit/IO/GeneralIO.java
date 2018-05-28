@@ -219,7 +219,7 @@ public class GeneralIO
 			if ( !fileToOpen.exists() ) 
 			{ 
 				fileToOpen = forceExtension(fileToOpen, extensionToPutOnFile);
-				storeCurrentDirectory();
+				storeDirectoryOfChooser(fileChooser);
 				return fileToOpen;
 			}
 			//make sure they want to overwrite the existing file
@@ -230,7 +230,7 @@ public class GeneralIO
 				if ( confirm == JOptionPane.OK_OPTION ) 
 				{ 
 					fileToOpen = forceExtension(fileToOpen, extensionToPutOnFile);
-					storeCurrentDirectory();
+					storeDirectoryOfChooser(fileChooser);
 					return fileToOpen;
 				}
 				else 
@@ -322,12 +322,12 @@ public class GeneralIO
 	}
 	
 	/** Stores the current directory the user is in for the file chooser so we do not have to navigate from scratch each time */
-	void storeCurrentDirectory() 
+	void storeDirectoryOfChooser(JFileChooser chooser) 
 	{
 		String currentDirectory = null;
 		try 
 		{
-			currentDirectory = fileChooser.getCurrentDirectory().getCanonicalPath();
+			currentDirectory = chooser.getCurrentDirectory().getCanonicalPath();
 		} 
 		catch (IOException e) 
 		{
@@ -407,7 +407,7 @@ public class GeneralIO
 		try
 		{
 			File outputFile = showSaveFileDialog(extensionToPutOnFile);
-			storeCurrentDirectory();
+			storeDirectoryOfChooser(fileChooser);
 			return outputFile;
 		}
 		catch (NullPointerException npe) 

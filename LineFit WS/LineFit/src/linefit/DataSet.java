@@ -761,7 +761,7 @@ public class DataSet extends JScrollPane
 		return customColorMenu;
 	}
 	
-	void readInLine(String line)
+	boolean readInLine(String line)
 	{
 		//now split the input into the two parts
 		//we can't use split because it will mess up on names as well as points since they have multiple spaces
@@ -769,6 +769,7 @@ public class DataSet extends JScrollPane
 		String field = line.substring(0, firstSpaceIndex).toLowerCase();
 		String valueForField = line.substring(firstSpaceIndex + 1).toLowerCase();
 		
+		boolean found = true;
 		try
 		{
 			switch(field)
@@ -912,7 +913,7 @@ public class DataSet extends JScrollPane
 					}
 					break;
 				} 
-				default: System.err.println("Error reading in DataSet - Continuing: " + line); break;
+				default: found = false; break;
 			}
 			
 		}
@@ -921,6 +922,8 @@ public class DataSet extends JScrollPane
 			JOptionPane.showMessageDialog(this, "Error reading in number from line: " + line,
 				    "NFE Error", JOptionPane.ERROR_MESSAGE);
 		}
+		
+		return found;
 	}
 		
 	/** Recursively saves this DataSet's data into the Formatter file. 

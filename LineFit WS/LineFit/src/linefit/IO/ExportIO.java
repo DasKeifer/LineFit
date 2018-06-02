@@ -25,12 +25,14 @@ import com.itextpdf.text.pdf.PdfWriter;
 
 import linefit.DataSet;
 import linefit.GraphArea;
+import linefit.LineFit;
 import linefit.GraphArea.GraphAxesPowers;
 import linefit.GraphArea.GraphAxesRanges;
 import linefit.GraphArea.GraphMetaData;
 import linefit.GraphArea.ResultsDisplayData;
 import linefit.ScientificNotation;
 import linefit.FitAlgorithms.FitType;
+import linefit.FitAlgorithms.LinearFitFactory;
 
 /**
  * This class Handles all of the IO functionality of LineFit. This is a static class and keeps track of the export and save variables
@@ -79,6 +81,36 @@ public class ExportIO
 		graphingArea = graphToExport;
 	}
 
+	boolean readInExportSetting(String lineRead)
+	{
+		//split the input into the two parts
+		//we can't use split because it will mess up on names
+		int firstSpaceIndex = lineRead.indexOf(' ');
+		String field = lineRead.substring(0, firstSpaceIndex).toLowerCase();
+		String valueForField = lineRead.substring(firstSpaceIndex + 1);
+		
+		//now try and read in the option
+		boolean found = true;
+		try
+		{
+			switch(field)
+			{
+				case "pdfpagewidth": pdfPageWidth = Double.parseDouble(valueForField); break;
+				case "pdfpageheight": pdfPageHeight = Double.parseDouble(valueForField); break;
+				case "exportfontsize": exportFontSize = Float.parseFloat(valueForField); break;
+				default: found = false; break; //if it wasn't an export option return false
+			}
+		} 
+		catch (NumberFormatException nfe)
+		{
+			JOptionPane.showMessageDialog(toCenterOn, "Error reading in number from line: " + lineRead,
+				    "NFE Error", JOptionPane.ERROR_MESSAGE);
+		}
+		
+		//return if this was in fact a export setting
+		return found;
+	}
+	
 	/** Creates the linefit.sty file for the user to use for LaTex exports 
 	 * @param destinationFolderPath The File path to create the .sty file at. This must contain the ending "\\" to denote a folder
 	 */

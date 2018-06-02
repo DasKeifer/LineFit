@@ -11,7 +11,7 @@ FileFormatVersion 1.0
 # CustomAxesPowers false
 # XAxisPower 0
 # YAxisPower 0
-# PDFPageWidth 8.5
+# PDFPageWidth 9.5
 # PDFPageHeight 8.5
 # XAxisHasTickMarks true
 # XAxisHasTickLabels true

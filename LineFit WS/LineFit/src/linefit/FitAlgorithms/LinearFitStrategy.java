@@ -509,8 +509,8 @@ public abstract class LinearFitStrategy
 			default: System.err.println("Trying to fix an Undefined variable"); break;
 		}
 		fixedValue = valueOfFixed;
-		//TODO: Fix this
-		if(canFixIntercept || canFixSlope)
+
+		if(!canFixIntercept && !canFixSlope)
 		{
 			System.err.println("Cannot set any fixed values for this Fit Algortihm");
 		}

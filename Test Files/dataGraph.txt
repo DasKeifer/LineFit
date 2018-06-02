@@ -10,7 +10,7 @@
 # customAxesPowers false
 # xPower 0
 # yPower 0
-# PDFPageWidth 8.5
+# PDFPageWidth 9.5
 # PDFPageHeight 8.5
 # hasTickMarksX true
 # hasTickLabelsX true

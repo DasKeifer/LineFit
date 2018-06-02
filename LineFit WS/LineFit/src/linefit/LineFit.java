@@ -599,9 +599,14 @@ public class LineFit extends JFrame
 	 * @param importSettings Whether or not to read in the graph settings/options along with the DataSets from the passed BufferedReader containing the input file's data
 	 * @throws IOException throws any IO exceptions to be dealt with at a higher level
 	 */
-	public void readInLine(String line, boolean importSettings) 
+	public boolean readInGraphSetting(String line) 
 	{
-		graphingArea.readInLine(line, importSettings);
+		return graphingArea.readInGraphSetting(line);
+	}
+	
+	public boolean readInDataSetLine(String line, boolean newDataSet) 
+	{
+		return graphingArea.readInDataSetLine(line, newDataSet);
 	}
 	
 	public void refreshGraph()

@@ -171,8 +171,6 @@ public class GraphArea extends JPanel
 	 * in a DataSet. True means to use x errors/uncertainties and false means to use y errors/uncertainties. */
 	boolean xErrorsOnly = false;
 	
-	boolean readingDataSet = false;
-	
 	/**
 	 * Constructor for our graph area that is called by LineFit to create the visual graph
 	 * Note: Each LineFit should have only one GraphArea
@@ -919,59 +917,52 @@ public class GraphArea extends JPanel
 		calculateAxesMinimumAndMaximumValues();
 	}
 	
-	void readInLine(String line, boolean readInGraphSettings)
+	boolean readInDataSetLine(String line, boolean newDataSet)
 	{
-		if (line.toLowerCase().equals("endofdataset"))
+		//if this is a new dataset then see if the last one is a blank one
+		//and if it isn't then add one
+		if (newDataSet && this.dataSetSelector.getItemAt(dataSetSelector.getItemCount() - 2).hasData())
 		{
-			readingDataSet = false;
-		}
-		else if (line.toLowerCase().startsWith("startofdataset")) 
-		{		
-			readingDataSet = true;
+			//create a new dataset and then read into it
+			DataSet readDataSet = new DataSet(this, changeTracker);
 			
-			//see if the last one is a blank one and if it isn't then add one
-			if(this.dataSetSelector.getItemAt(dataSetSelector.getItemCount() - 2).hasData())
+			//attempt to read in the setting and add it if it was successfully read
+			if (readDataSet.readInLine(line))
 			{
-				//create a new dataset and then read into it
-				DataSet readDataSet = new DataSet(this, changeTracker);
-				
 				//now add it to the drop down
 				registerDataSet(readDataSet);
+				return true;
 			}
-		}
-		else if(readingDataSet)
-		{
-			this.dataSetSelector.getItemAt(dataSetSelector.getItemCount() - 2).readInLine(line);
+			//otherwise don't add it and let the dataset get garbage collected...
+			else
+			{
+				return false;
+			}
 		}
 		else
 		{
-			if(readInGraphSettings)
-			{						
-				readInSettingFromLine(line);
-			}
-			//else read past it - just ignore it
+			//now actually process the line in the dataset
+			return this.dataSetSelector.getItemAt(dataSetSelector.getItemCount() - 2).readInLine(line);
 		}
 	}
 
 	/** Reads in the graph settings from the passed String and stores it in its proper value
 	 * @param lineRead The String that contains the line of data which contains a particular graph setting and its value
 	 */
-	void readInSettingFromLine(String lineRead) 
+	boolean readInGraphSetting(String lineRead) 
 	{		
 		//split the input into the two parts
-		//we cant use split because it will mess up on names
+		//we can't use split because it will mess up on names
 		int firstSpaceIndex = lineRead.indexOf(' ');
 		String field = lineRead.substring(0, firstSpaceIndex).toLowerCase();
 		String valueForField = lineRead.substring(firstSpaceIndex + 1);
 		
 		//now read in the option we want
+		boolean found = true;
 		try
 		{
 			switch(field)
 			{
-				//case "pdfpagewidth": ExportIO.PDFPageWidth = Double.parseDouble(valueForField); break;
-				//case "pdfpageheight": ExportIO.PDFPageHeight = Double.parseDouble(valueForField); break;
-				//case "exportfontsize": ExportIO.exportFontSize = Float.parseFloat(valueForField); break;
 				case "graphname": setGraphName(valueForField); break;
 				case "xaxisdescription": setXAxisDescription(valueForField); break;
 				case "yaxisdescription": setYAxisDescription(valueForField); break;
@@ -1001,7 +992,7 @@ public class GraphArea extends JPanel
 				case "xerrors": case "xerrorsbeforeyerrors": xErrorsOnly = valueForField.toLowerCase().equals("true");
 					refreshAllSetsThirdColumn(); break;
 				case "fitalgorithm": LineFit.currentFitAlgorithmFactory = LinearFitFactory.getAlgorithmWithName(valueForField);
-				default: System.err.println("Non Fatal Error reading in Setting - Continuing: " + lineRead); break;
+				default: found = false; break; //if it wasn't an export option return false
 			}
 		} 
 		catch (NumberFormatException nfe)
@@ -1009,6 +1000,7 @@ public class GraphArea extends JPanel
 			JOptionPane.showMessageDialog(this, "Error reading in number from line: " + lineRead,
 				    "NFE Error", JOptionPane.ERROR_MESSAGE);
 		}
+		return found;
 	}
 	
 	/** Continues the recursive save of the LineFit File. This function saves the GraphArea and down's data.

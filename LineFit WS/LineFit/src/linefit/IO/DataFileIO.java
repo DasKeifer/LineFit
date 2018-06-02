@@ -120,22 +120,21 @@ public class DataFileIO
 				//Scanner input = new Scanner(file);
 				BufferedReader inputReader = new BufferedReader(new FileReader(fileToOpen));
 				
-				//see if we need to read in the graph settings too
-				boolean importSettings = false;
+				//see if we need to read in the graph settings too - if we don't
+				//offer a choice than that means its a new LineFit so we want to
+				//read in the graph settings
+				boolean importSettings = true;
 				if(offerChoiceToNotReadInGraphSettings)
 				{
 					int importSettingsRes = JOptionPane.showOptionDialog(lineFit, "Import the graph settings as well?", 
 								"Import", JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE, null, new Object[]{"Yes","No"}, "No");
 						
-					if (importSettingsRes == 0)
+					if (importSettingsRes != 0)
 					{
-						importSettings = true;
+						importSettings = false;
 					}
 				}
-				else
-				{
-					importSettings = true;
-				}
+
 				try
 				{
 					//first see what version number it is if it has one - save our spot first
@@ -182,33 +181,81 @@ public class DataFileIO
 						//now keep reading in the file
 				        String lineRead = "";
 				        boolean readingDataSet = false;
+				        boolean newDataSet = false;
 				        while((lineRead = inputReader.readLine()) != null)
 				        {
+				        	//skip empty lines
+				            if (lineRead.isEmpty())
+				            {
+				            	continue;
+				            }
+				            
 				        	//trim any whitespaces
 				        	lineRead = lineRead.trim();
 				        	
-				        	//these if statements handle backwards compatibility of the file
+				        	//If its a graph level line
 				            if (lineRead.startsWith("#"))
-				            {
+				            {				  
+				            	readingDataSet = false;
+				            	
+				            	//trim off the #
 				            	lineRead = lineRead.substring(1).trim();
+				            	
+				            	//if it is signalling the start of a dataset then set our state
+				            	//variables and continue - the next line will be the first line 
+				            	//with actual dataset content - this line is just a switch
 				            	if (lineRead.toLowerCase().startsWith("dataset"))
 				            	{
 				            		readingDataSet = true;
-				            		lineRead = "startOfDataSet";
+				            		newDataSet = true;
+				            		continue;
+				            	}
+				            	//otherwise it is a "graph" setting and only import it if they
+				            	//selected to read in the graph settings
+				            	else if (importSettings)
+				            	{
+				            		//first see if it is an export parameter and if it wasn't check
+				            		//if it was a graph setting
+				            		boolean found = generalIO.exportIO.readInExportSetting(lineRead);
+				            		
+				            		//if it wasn't an export setting try loading it as a graph setting
+				            		if (!found)
+				            		{
+				            			found = lineFit.readInGraphSetting(lineRead);
+				            		}
+				            		
+				            		//if it wasn't either then print a warning and continue - it may 
+				            		//just be an unsupported setting (either an old one or a future one)
+				            		if (!found)
+				            		{
+				            			System.err.println("Non Fatal Error reading in Setting - Continuing: " + lineRead);
+				            		}
 				            	}
 				            }
-				            else if (lineRead.startsWith("~"))
+				            //if its a dataset level line and we are expecting dataset data
+				            else if (lineRead.startsWith("~") && readingDataSet)
 				            {
+				            	//trim off the ~
 				            	lineRead = lineRead.substring(1).trim();
+				            	
+				            	//if we didn't find it as valid setting give a warning an continue -
+				            	//it may just be a currently unsupported setting
+				            	if(!lineFit.readInDataSetLine(lineRead, newDataSet))
+				            	{
+				            		System.err.println("Error reading in DataSet - Continuing: " + lineRead);
+				            	}
+				            	//make sure it will only show up as new for the first successful parameter 
+				            	//passed or else it will split the dataset. If we failed to read in the line
+				            	//in the previous call it will not create the dataset so we need leave it set
+				            	else if (newDataSet)
+				            	{
+				            		newDataSet = false;
+				            	}
 				            }
-				            else if (lineRead.isEmpty() && readingDataSet)
+				            // we shouldn't ever get here - if we do it was an error
+				            else
 				            {
-				            	lineRead = "endOfDataSet";
-				            }
-
-				            if (!lineRead.isEmpty())
-				            {
-				            	lineFit.readInLine(lineRead, importSettings);
+				            	System.err.println("Unexpected line start or dataset line");
 				            }
 				        }
 					}	

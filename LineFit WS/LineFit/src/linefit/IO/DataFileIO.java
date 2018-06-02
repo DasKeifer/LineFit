@@ -191,7 +191,7 @@ public class DataFileIO
 				            }
 				            
 				        	//trim any whitespaces
-				        	lineRead = lineRead.trim();
+				        	lineRead = lineRead.trim().toLowerCase();
 				        	
 				        	//If its a graph level line
 				            if (lineRead.startsWith("#"))
@@ -199,12 +199,12 @@ public class DataFileIO
 				            	readingDataSet = false;
 				            	
 				            	//trim off the #
-				            	lineRead = lineRead.substring(1).trim();
+				            	String trimmedLine = lineRead.substring(1).trim();
 				            	
 				            	//if it is signalling the start of a dataset then set our state
 				            	//variables and continue - the next line will be the first line 
 				            	//with actual dataset content - this line is just a switch
-				            	if (lineRead.toLowerCase().startsWith("dataset"))
+				            	if (trimmedLine.startsWith("dataset"))
 				            	{
 				            		readingDataSet = true;
 				            		newDataSet = true;
@@ -216,12 +216,12 @@ public class DataFileIO
 				            	{
 				            		//first see if it is an export parameter and if it wasn't check
 				            		//if it was a graph setting
-				            		boolean found = generalIO.exportIO.readInExportSetting(lineRead);
+				            		boolean found = generalIO.exportIO.readInSetting(trimmedLine);
 				            		
 				            		//if it wasn't an export setting try loading it as a graph setting
 				            		if (!found)
 				            		{
-				            			found = lineFit.readInGraphSetting(lineRead);
+				            			found = lineFit.readInGraphSetting(trimmedLine);
 				            		}
 				            		
 				            		//if it wasn't either then print a warning and continue - it may 
@@ -236,11 +236,11 @@ public class DataFileIO
 				            else if (lineRead.startsWith("~") && readingDataSet)
 				            {
 				            	//trim off the ~
-				            	lineRead = lineRead.substring(1).trim();
+				            	String trimmedLine = lineRead.substring(1).trim();
 				            	
 				            	//if we didn't find it as valid setting give a warning an continue -
 				            	//it may just be a currently unsupported setting
-				            	if(!lineFit.readInDataSetLine(lineRead, newDataSet))
+				            	if(!lineFit.readInDataSetLine(trimmedLine, newDataSet))
 				            	{
 				            		System.err.println("Error reading in DataSet - Continuing: " + lineRead);
 				            	}
@@ -255,7 +255,7 @@ public class DataFileIO
 				            // we shouldn't ever get here - if we do it was an error
 				            else
 				            {
-				            	System.err.println("Unexpected line start or dataset line");
+				            	System.err.println("Unexpected line start or dataset line: " + lineRead);
 				            }
 				        }
 					}	
@@ -288,32 +288,44 @@ public class DataFileIO
 			{
 				Formatter output = new Formatter(outputFile);
 
-				//save the current linefit file version number
-				output.format("FileFormatVersion %s%s", Version.LINEFIT_FILE_FORMAT_VERSION , System.getProperty("line.separator"));
+				//save the current linefit file version number and then an additional space
+				output.format("FileFormatVersion %s%s%s", Version.LINEFIT_FILE_FORMAT_VERSION , System.getProperty("line.separator"),
+						System.getProperty("line.separator"));
 				
-				//get and save all the settings data
-				ArrayList<String> settingVarNames = new ArrayList<String>();
-				ArrayList<String> settingVarValues = new ArrayList<String>();
-				lineFit.retrieveAllSettingsVariables(settingVarNames, settingVarValues);
-				for(int i = 0; i < settingVarNames.size(); i++)
+				//get and save all the graph settings data
+				ArrayList<String> lineNames = new ArrayList<String>();
+				ArrayList<String> lineValues = new ArrayList<String>();
+				lineFit.retrieveAllGraphSettings(lineNames, lineValues);
+				for(int i = 0; i < lineNames.size(); i++)
 				{
-					output.format("# %s %s%s", settingVarNames.get(i), settingVarValues.get(i), System.getProperty("line.separator"));
+					output.format("# %s %s%s", lineNames.get(i), lineValues.get(i), System.getProperty("line.separator"));
+				}
+				
+				//get and save all the export settings data
+				//add a space between the settings groups
+				output.format(System.getProperty("line.separator"));
+				lineNames.clear();
+				lineValues.clear();
+				generalIO.exportIO.retrieveAllSettings(lineNames, lineValues);
+				for(int i = 0; i < lineNames.size(); i++)
+				{
+					output.format("# %s %s%s", lineNames.get(i), lineValues.get(i), System.getProperty("line.separator"));
 				}
 				
 				//get and save all the datasets variables
-				ArrayList<String> dataSetsVarNames = new ArrayList<String>();
-				ArrayList<String> dataSetsVarValues = new ArrayList<String>();
-				lineFit.retrieveAllDataSetVariables(dataSetsVarNames, dataSetsVarValues);
-				for(int i = 0; i < dataSetsVarNames.size(); i++)
+				lineNames.clear();
+				lineValues.clear();
+				lineFit.retrieveAllDataSetVariables(lineNames, lineValues);
+				for(int i = 0; i < lineNames.size(); i++)
 				{
-					if(dataSetsVarNames.get(i).equals("DataSet"))
+					if(lineNames.get(i).equals("DataSet"))
 					{
-						output.format("%s# %s %s%s", System.getProperty("line.separator"), dataSetsVarNames.get(i), 
-								dataSetsVarValues.get(i), System.getProperty("line.separator"));
+						output.format("%s# %s %s%s", System.getProperty("line.separator"), lineNames.get(i), 
+								lineValues.get(i), System.getProperty("line.separator"));
 					}
 					else
 					{
-						output.format("~ %s %s%s", dataSetsVarNames.get(i), dataSetsVarValues.get(i), System.getProperty("line.separator"));
+						output.format("~ %s %s%s", lineNames.get(i), lineValues.get(i), System.getProperty("line.separator"));
 					}
 				}
 				

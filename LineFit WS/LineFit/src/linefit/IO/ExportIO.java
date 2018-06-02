@@ -13,6 +13,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
@@ -81,7 +82,7 @@ public class ExportIO
 		graphingArea = graphToExport;
 	}
 
-	boolean readInExportSetting(String lineRead)
+	boolean readInSetting(String lineRead)
 	{
 		//split the input into the two parts
 		//we can't use split because it will mess up on names
@@ -110,6 +111,18 @@ public class ExportIO
 		//return if this was in fact a export setting
 		return found;
 	}
+	
+	void retrieveAllSettings(ArrayList<String> variableNames, ArrayList<String> variableValues)
+	{
+		variableNames.add("PDFPageWidth");
+		variableValues.add(Double.toString(pdfPageWidth));
+		variableNames.add("PDFPageHeight");
+		variableValues.add(Double.toString(pdfPageHeight));
+		variableNames.add("ExportFontSize");
+		variableValues.add(Float.toString(exportFontSize));
+	}
+	
+	//For tick marks and PDF dimensions
 	
 	/** Creates the linefit.sty file for the user to use for LaTex exports 
 	 * @param destinationFolderPath The File path to create the .sty file at. This must contain the ending "\\" to denote a folder

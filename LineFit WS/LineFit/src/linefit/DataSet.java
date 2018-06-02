@@ -929,13 +929,10 @@ public class DataSet extends JScrollPane
 	/** Recursively saves this DataSet's data into the Formatter file. 
 	 * Note: This should not be used independently of the other recursive save functions! 
 	 * @param output The formatter that is being used to write the file */
-	void retrieveAllDataSetVariables(ArrayList<String> variableNames, ArrayList<String> variableValues)
+	void retrieveAllData(ArrayList<String> variableNames, ArrayList<String> variableValues)
 	{
 		if(dataTableModel.hasData())
 		{
-		
-			variableNames.add("DataSet");
-			variableValues.add("dataSetName");
 			variableNames.add("NumberOfColumns");
 			variableValues.add(Integer.toString((visibleDataColumns.size() + invisibleDataColumns.size())));
 			variableNames.add("FitType");

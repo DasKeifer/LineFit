@@ -601,7 +601,7 @@ public class LineFit extends JFrame
 	 */
 	public boolean readInGraphSetting(String line) 
 	{
-		return graphingArea.readInGraphSetting(line);
+		return graphingArea.readInSetting(line);
 	}
 	
 	public boolean readInDataSetLine(String line, boolean newDataSet) 
@@ -619,15 +619,15 @@ public class LineFit extends JFrame
 	/** Recursively saves the LineFit file to a text document by calling GraphArea's recursivelySave function which calls the DataSets' recursivelySave function 
 	 * @param outputFormatter The Formatter that is being used to save the LineFit file
 	 */
-	public void retrieveAllSettingsVariables(ArrayList<String> variableNames, ArrayList<String> variableValues)
+	public void retrieveAllGraphSettings(ArrayList<String> variableNames, ArrayList<String> variableValues)
 	{
-		//do a recursive save so we dont have to access grapharea - it can take care of itself
-		graphingArea.retrieveAllSettingsVariables(variableNames, variableValues);
+		//do a recursive save so we don't have to access graph area - it can take care of itself
+		graphingArea.retrieveAllSettings(variableNames, variableValues);
 	}
 	
 	public void retrieveAllDataSetVariables(ArrayList<String> variableNames, ArrayList<String> variableValues)
 	{
-		//do a recursive save so we dont have to access grapharea - it can take care of itself
+		//do a recursive save so we don't have to access graph area - it can take care of itself
 		graphingArea.retrieveAllDataSetVariables(variableNames, variableValues);
 	}
 

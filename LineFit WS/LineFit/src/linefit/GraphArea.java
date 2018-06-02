@@ -946,10 +946,11 @@ public class GraphArea extends JPanel
 		}
 	}
 
-	/** Reads in the graph settings from the passed String and stores it in its proper value
+	/**
+	 * Reads in the graph settings from the passed String and stores it in its proper value
 	 * @param lineRead The String that contains the line of data which contains a particular graph setting and its value
 	 */
-	boolean readInGraphSetting(String lineRead) 
+	boolean readInSetting(String lineRead) 
 	{		
 		//split the input into the two parts
 		//we can't use split because it will mess up on names
@@ -1003,10 +1004,12 @@ public class GraphArea extends JPanel
 		return found;
 	}
 	
-	/** Continues the recursive save of the LineFit File. This function saves the GraphArea and down's data.
+	/** 
+	 * Continues the recursive save of the LineFit File. This function saves the GraphArea and down's data.
 	 * Note: Not to be used independently of LineFit.RecursivelySaveLineFitFile()!
-	 * @param output The Formatter being used to write the file */
-	void retrieveAllSettingsVariables(ArrayList<String> variableNames, ArrayList<String> variableValues)
+	 * @param output The Formatter being used to write the file 
+	 * */
+	void retrieveAllSettings(ArrayList<String> variableNames, ArrayList<String> variableValues)
 	{
 		variableNames.add("GraphName");
 		variableValues.add(getGraphName());
@@ -1031,28 +1034,23 @@ public class GraphArea extends JPanel
 		variableNames.add("CustomAxesPowers");
 		variableValues.add(Boolean.toString(userDefinedAxesPowers));
 		variableNames.add("XAxisPower");
-		variableValues.add(Double.toString(yAxisPower));
+		variableValues.add(Integer.toString(yAxisPower));
 		variableNames.add("YAxisPower");
-		variableValues.add(Double.toString(yAxisPower));
-		
-		//For tick marks and PDF dimensions
-		//output.format("%s", "# PDFPageWidth " + ExportIO.PDFPageWidth + System.getProperty("line.separator"));
-		//output.format("%s", "# PDFPageHeight " + ExportIO.PDFPageHeight + System.getProperty("line.separator"));
-		//output.format("%s", "# ExportFontSize " + ExportIO.exportFontSize + System.getProperty("line.separator"));
+		variableValues.add(Integer.toString(yAxisPower));
 
 		variableNames.add("XAxisHasTickMarks");
 		variableValues.add(Boolean.toString(xAxisHasTickMarks));
 		variableNames.add("XAxisHasTickLabels");
 		variableValues.add(Boolean.toString(xAxisHasTickMarkLabels));
 		variableNames.add("XAxisNumberOfTicks");
-		variableValues.add(Double.toString(xAxisNumberOfTickMarks));
+		variableValues.add(Integer.toString(xAxisNumberOfTickMarks));
 		
 		variableNames.add("YAxisHasTickMarks");
 		variableValues.add(Boolean.toString(yAxisHasTickMarks));
 		variableNames.add("YAxisHasTickLabels");
 		variableValues.add(Boolean.toString(yAxisHasTickMarkLabels));
 		variableNames.add("YAxisNumberOfTicks");
-		variableValues.add(Double.toString(yAxisNumberOfTickMarks));
+		variableValues.add(Integer.toString(yAxisNumberOfTickMarks));
 		
 		variableNames.add("XAxisDecimals");
 		variableValues.add(Double.toString(xAxisDecimalPlaces));
@@ -1083,10 +1081,15 @@ public class GraphArea extends JPanel
 		//pass it on to our datasets
 		for(int i = 0; i < dataSetSelector.getItemCount(); i++)
 		{
-			//if we arent just the new set option
+			//if we aren't just the new set option
 			if(!dataSetSelector.getItemAt(i).getName().equals("New DataSet")) 
 			{
-				dataSetSelector.getItemAt(i).retrieveAllDataSetVariables(variableNames, variableValues);
+				//add the dataset line so we know to trigger a new set
+				variableNames.add("DataSet");
+				variableValues.add(Integer.toString(i + 1));
+				
+				//now add the dataset's data
+				dataSetSelector.getItemAt(i).retrieveAllData(variableNames, variableValues);
 			}
 		}
 	}

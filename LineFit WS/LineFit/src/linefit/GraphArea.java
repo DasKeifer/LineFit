@@ -29,8 +29,10 @@ public class GraphArea extends JPanel
 	//spacing variables
 	/** The width of the points we are using to draw the shapes on the graph */
 	final static int GRAPH_DATAPOINT_WIDTH = 6; 
-	/** The pixels heigh the top bar which shows the cursor position is */
+	/** The pixels height the top bar which shows the cursor position is */
 	final static int GRAPH_AREA_TOP_BAR_HEIGHT = 25;
+	/** The pixels width the top bar that will be redrawn when the cursor position updates */
+	final static int GRAPH_AREA_TOP_BAR_WIDTH = 300;
 	/** The ratio used for determining the amount of space between labels in the Graph Area */
 	final static double GRAPH_LABEL_SPACING_RATIO = 0.5;
 	
@@ -265,12 +267,57 @@ public class GraphArea extends JPanel
 		Rectangle size = graphAreaGraphics2D.getClipBounds();
 		
 		//if it is not the cursor position part we need to redraw the graph first
-		if(size.height != GRAPH_AREA_TOP_BAR_HEIGHT || size.width != 500)
+		if(size.x != 0 || size.y != 0 || size.width != GRAPH_AREA_TOP_BAR_WIDTH || size.height != GRAPH_AREA_TOP_BAR_HEIGHT)
 		{ 
 			graphAreaDimensions = getSize();
-			makeGraph(graphAreaGraphics2D, graphAreaDimensions, false, null);
+			makeGraph(graphAreaGraphics2D, graphAreaDimensions, true, null);
 		}
+		
+		//now we need to update the cursor location bar. We draw this separately after the rest 
+		//so that it is easy to only draw it when it is displayed in linefit (i.e. so it is not
+		//drawn for exports) and so we can still update and draw it even if the rest of the graph
+		//does not need to be updated
+		addCursorLocationToGraph(graphAreaGraphics2D);
 	}
+
+	private void addCursorLocationToGraph(Graphics2D graphGraphics)
+	{
+		//paint the cursor box white
+		//note that we do not use the hardcoded width so that the white box is always drawn all the 
+		//way across the screen.
+		Rectangle2D.Double background = new Rectangle2D.Double(0, 0, this.getWidth(), GRAPH_AREA_TOP_BAR_HEIGHT);
+		graphGraphics.setColor(Color.white);
+		graphGraphics.fill(background);
+			
+		// Create cursor position display string
+		graphGraphics.setColor(Color.gray);
+			
+		//Prevents rounding errors so that mouse_over coordinates don't display "-0.0"
+		double mouseX;
+		double mouseY;
+		if(Math.abs((cursorPositionX - positionOfOriginX) / tickMarkRelativeValueX) < 0.09999999) 
+		{
+			mouseX = 0;
+		} 
+		else 
+		{ 
+			mouseX = (cursorPositionX - positionOfOriginX) / tickMarkRelativeValueX;
+		}
+		
+		if(Math.abs((cursorPositionY - positionOfOriginY) / tickMarkRelativeValueY * -1) < 0.09999999)
+		{
+			mouseY = 0;
+		} 
+		else
+		{
+			mouseY = (cursorPositionY - positionOfOriginY) / tickMarkRelativeValueY * -1;
+		}
+		
+		String cursorPosition = "(" + ScientificNotation.withNoError(mouseX, xAxisPower, xAxisDecimalPlaces) + "," + 
+									ScientificNotation.withNoError(mouseY, yAxisPower, yAxisDecimalPlaces) + ")";
+		graphGraphics.drawString(cursorPosition, 5, 15);
+	}
+	
 	
 	/** 
 	 * Calculates the lengths of the axes based on the data points, unless the user has overridden this functionality, so that they are all on screen
@@ -512,7 +559,7 @@ public class GraphArea extends JPanel
 	 * @param graphMaximumDimensions The dimensions of the Graph area to which we are drawing
 	 * @param areExporting Whether or not this graph is being drawn to be exported to a file. This changes the top spacing proportions slightly and changes the font size and the spacing to account for the size differnce
 	 */
-	public void makeGraph(Graphics2D graphGraphics, Dimension graphMaximumDimensions, boolean paintCursorLocation, Font fontToUse)
+	public void makeGraph(Graphics2D graphGraphics, Dimension graphMaximumDimensions, boolean leaveSpaceForCursorLocation, Font fontToUse)
 	{
 		refreshAxesPower();
 		calculateAxesMinimumAndMaximumValues();
@@ -526,7 +573,7 @@ public class GraphArea extends JPanel
 		//populate the padding variables with the correct sizes
 		//have to do this so that we dont draw the Jpanel with different sized font when we change the export Font size
 		double fontSize = graphGraphics.getFont().getSize();
-		calculatePaddingForGraphArea(fontSize, paintCursorLocation);
+		calculatePaddingForGraphArea(fontSize, leaveSpaceForCursorLocation);
 
 		
 		double gWidth = xAxisMaximumValue - xAxisMinimumValue;
@@ -781,48 +828,6 @@ public class GraphArea extends JPanel
 			}	
 			graphGraphics.drawString(ScientificNotation.onlyTimesTen(yAxisPower), graphAreaLeftSpacing - 10, graphAreaTopSpacing - yAxisPowerSpacing);
 		}
-		
-		if(paintCursorLocation)
-		{
-			addCursorLocationToGraph(graphGraphics);
-		}
-	}
-
-	private void addCursorLocationToGraph(Graphics2D graphGraphics)
-	{
-		
-		//now we need to update the cursor location bar
-		Rectangle2D.Double background = new Rectangle2D.Double(0, 0, this.getWidth(), 25);
-		graphGraphics.setColor(Color.white);
-		graphGraphics.fill(background);
-			
-		// Create cursor position display string
-		graphGraphics.setColor(Color.gray);
-			
-		//Prevents rounding errors so that mouse_over coordinates don't display "-0.0"
-		double mouseX;
-		double mouseY;
-		if(Math.abs((cursorPositionX - positionOfOriginX) / tickMarkRelativeValueX) < 0.09999999) 
-		{
-			mouseX = 0;
-		} 
-		else 
-		{ 
-			mouseX = (cursorPositionX - positionOfOriginX) / tickMarkRelativeValueX;
-		}
-		
-		if(Math.abs((cursorPositionY - positionOfOriginY) / tickMarkRelativeValueY * -1) < 0.09999999)
-		{
-			mouseY = 0;
-		} 
-		else
-		{
-			mouseY = (cursorPositionY - positionOfOriginY) / tickMarkRelativeValueY * -1;
-		}
-		
-		String cursorPosition = "(" + ScientificNotation.withNoError(mouseX, xAxisPower, xAxisDecimalPlaces) + "," + 
-									ScientificNotation.withNoError(mouseY, yAxisPower, yAxisDecimalPlaces) + ")";
-		graphGraphics.drawString(cursorPosition, 5, 15);
 	}
 	
     /**
@@ -1262,9 +1267,12 @@ public class GraphArea extends JPanel
 		 */
 		public void mouseMoved(MouseEvent passedMouseEvent) 
 		{
+			//save the cursor position to draw on the graph
 			cursorPositionX = passedMouseEvent.getX();
 			cursorPositionY = passedMouseEvent.getY();
-			repaint(0,0,500,25);
+
+			//initiate a repaint of the cursor are only
+			repaint(0, 0, GRAPH_AREA_TOP_BAR_WIDTH, GRAPH_AREA_TOP_BAR_HEIGHT);  
 		}
 
 		/**

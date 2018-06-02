@@ -7,10 +7,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.MalformedURLException;
 import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.Scanner;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
@@ -75,21 +72,6 @@ public class GeneralIO
 	public void InitializeExportIO(GraphArea graphToExport)
 	{
 		exportIO = new ExportIO(this, lineFit, graphToExport);
-	}
-	
-	public void isUpdateAvailable()
-	{
-		try {
-			URL url = new URL("https://sourceforge.net/projects/linefit/files/LatestVersion.txt");
-			Scanner s = new Scanner(url.openStream());
-			
-		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
 
 	public void newLineFitInstancePromptForFile()

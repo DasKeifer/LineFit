@@ -20,8 +20,6 @@ package linefit;
 import java.awt.*;
 import java.awt.geom.*;
 import java.awt.event.KeyEvent;
-import java.io.BufferedReader;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 

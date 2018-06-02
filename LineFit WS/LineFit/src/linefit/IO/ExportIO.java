@@ -26,14 +26,12 @@ import com.itextpdf.text.pdf.PdfWriter;
 
 import linefit.DataSet;
 import linefit.GraphArea;
-import linefit.LineFit;
 import linefit.GraphArea.GraphAxesPowers;
 import linefit.GraphArea.GraphAxesRanges;
 import linefit.GraphArea.GraphMetaData;
 import linefit.GraphArea.ResultsDisplayData;
 import linefit.ScientificNotation;
 import linefit.FitAlgorithms.FitType;
-import linefit.FitAlgorithms.LinearFitFactory;
 
 /**
  * This class Handles all of the IO functionality of LineFit. This is a static class and keeps track of the export and save variables

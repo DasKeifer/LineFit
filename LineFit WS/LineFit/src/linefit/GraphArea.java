@@ -3,8 +3,6 @@ package linefit;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.*;
-import java.io.BufferedReader;
-import java.io.IOException;
 import java.util.ArrayList;
 
 import javax.swing.*;
@@ -967,31 +965,31 @@ public class GraphArea extends JPanel
 				case "graphname": setGraphName(valueForField); break;
 				case "xaxisdescription": setXAxisDescription(valueForField); break;
 				case "yaxisdescription": setYAxisDescription(valueForField); break;
-				case "customaxes": case "usecustomaxes": userDefinedAxes = valueForField.toLowerCase().equals("true"); break;
+				case "customaxes": case "usecustomaxes": userDefinedAxes = Boolean.parseBoolean(valueForField); break;
 				case "xmin": case "xaxismin": xAxisMinimumValue = Double.parseDouble(valueForField); break;		
 				case "xmax": case "xaxismax": xAxisMaximumValue = Double.parseDouble(valueForField); break;
 				case "ymin": case "yaxismin": yAxisMinimumValue = Double.parseDouble(valueForField); break;
 				case "ymax": case "yaxismax": yAxisMaximumValue = Double.parseDouble(valueForField); break;
-				case "poweronaxes": case "usepowersonaxes": useAxesPowers = valueForField.toLowerCase().equals("true"); break;
-				case "customaxespowers": userDefinedAxesPowers = valueForField.toLowerCase().equals("true"); break;
+				case "poweronaxes": case "usepowersonaxes": useAxesPowers = Boolean.parseBoolean(valueForField); break;
+				case "customaxespowers": userDefinedAxesPowers = Boolean.parseBoolean(valueForField); break;
 				case "xpower": case "xaxispower": xAxisPower = Integer.parseInt(valueForField); break;
 				case "ypower": case "yaxispower": yAxisPower = Integer.parseInt(valueForField); break;
-				case "hastickmarksx": case "xaxishastickmarks": xAxisHasTickMarks = valueForField.toLowerCase().equals("true"); break;
-				case "hasticklabelsx": case "xaxishasticklabels": xAxisHasTickMarkLabels = valueForField.toLowerCase().equals("true"); break;
+				case "hastickmarksx": case "xaxishastickmarks": xAxisHasTickMarks = Boolean.parseBoolean(valueForField); break;
+				case "hasticklabelsx": case "xaxishasticklabels": xAxisHasTickMarkLabels = Boolean.parseBoolean(valueForField); break;
 				case "ticksx": case "xaxisnumberofticks": xAxisNumberOfTickMarks = Integer.parseInt(valueForField); break;
-				case "hastickmarksy": case "yaxishastickmarks": yAxisHasTickMarks = valueForField.toLowerCase().equals("true"); break;
-				case "hasticklabelsy": case "yaxishasticklabels": yAxisHasTickMarkLabels = valueForField.toLowerCase().equals("true"); break;
+				case "hastickmarksy": case "yaxishastickmarks": yAxisHasTickMarks = Boolean.parseBoolean(valueForField); break;
+				case "hasticklabelsy": case "yaxishasticklabels": yAxisHasTickMarkLabels = Boolean.parseBoolean(valueForField); break;
 				case "ticksy": case "yaxisnumberofticks": yAxisNumberOfTickMarks = Integer.parseInt(valueForField); break;
 				case "xdecimals": case "xaxisdecimals": xAxisDecimalPlaces = Integer.parseInt(valueForField); break;
 				case "ydecimals": case "yaxisdecimals": yAxisDecimalPlaces = Integer.parseInt(valueForField); break;
-				case "resultsongraph": case "displayresultsongraph": resultsAreDisplayedOnGraph = valueForField.toLowerCase().equals("true"); break;
-				case "customresultpos": break; //we dont use this anymore
+				case "resultsongraph": case "displayresultsongraph": resultsAreDisplayedOnGraph = Boolean.parseBoolean(valueForField); break;
+				case "customresultpos": System.err.println("discontinued setting detected (customresultpos). Ignoring and continuing..."); break;
 				case "resultposx": case "resultspositionx": resultsPositionX = Integer.parseInt(valueForField); break;
 				case "resultposy": case "resultspositiony": resultsPositionY = Integer.parseInt(valueForField); break;
 				case "resultdecimals": case "resultsdecimals": resultsDecimalPlaces = Integer.parseInt(valueForField); break;
-				case "resultsscinot": case "resultsusescientificnotation": resultsUseScientificNotation = valueForField.toLowerCase().equals("true"); break;
-				case "xerrors": case "xerrorsbeforeyerrors": xErrorsOnly = valueForField.toLowerCase().equals("true");
-					refreshAllSetsThirdColumn(); break;
+				case "resultsscinot": case "resultsusescientificnotation": resultsUseScientificNotation = Boolean.parseBoolean(valueForField); break;
+				case "xerrors": case "xerrorsbeforeyerrors": xErrorsOnly = Boolean.parseBoolean(valueForField);
+					refreshAllSetsThirdColumn(); break; //do this in case we are loading data into a graph that already has data
 				case "fitalgorithm": LineFit.currentFitAlgorithmFactory = LinearFitFactory.getAlgorithmWithName(valueForField);
 				default: found = false; break; //if it wasn't an export option return false
 			}
@@ -1053,16 +1051,16 @@ public class GraphArea extends JPanel
 		variableValues.add(Integer.toString(yAxisNumberOfTickMarks));
 		
 		variableNames.add("XAxisDecimals");
-		variableValues.add(Double.toString(xAxisDecimalPlaces));
+		variableValues.add(Integer.toString(xAxisDecimalPlaces));
 		variableNames.add("YAxisDecimals");
-		variableValues.add(Double.toString(yAxisDecimalPlaces));
+		variableValues.add(Integer.toString(yAxisDecimalPlaces));
 		
 		variableNames.add("DisplayResultsOnGraph");
 		variableValues.add(Boolean.toString(resultsAreDisplayedOnGraph));
 		variableNames.add("ResultsPositionX");
-		variableValues.add(Double.toString(resultsPositionX));
+		variableValues.add(Integer.toString(resultsPositionX));
 		variableNames.add("ResultsPositionY");
-		variableValues.add(Double.toString(resultsPositionY));
+		variableValues.add(Integer.toString(resultsPositionY));
 		variableNames.add("ResultsDecimals");
 		variableValues.add(Integer.toString(resultsDecimalPlaces));
 		variableNames.add("ResultsUseScientificNotation");

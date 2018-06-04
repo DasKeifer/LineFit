@@ -995,7 +995,7 @@ public class GraphArea extends JPanel
 				case "resultsscinot": case "resultsusescientificnotation": resultsUseScientificNotation = Boolean.parseBoolean(valueForField); break;
 				case "xerrors": case "xerrorsbeforeyerrors": xErrorsOnly = Boolean.parseBoolean(valueForField);
 					refreshAllSetsThirdColumn(); break; //do this in case we are loading data into a graph that already has data
-				case "fitalgorithm": LineFit.currentFitAlgorithmFactory = LinearFitFactory.getAlgorithmWithName(valueForField);
+				case "fitalgorithm": LineFit.currentFitAlgorithmFactory = LinearFitFactory.getAlgorithmWithName(valueForField); break;
 				default: found = false; break; //if it wasn't an export option return false
 			}
 		} 

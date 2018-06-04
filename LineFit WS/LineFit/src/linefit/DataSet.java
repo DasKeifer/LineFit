@@ -884,6 +884,11 @@ public class DataSet extends JScrollPane
 				{
 					//split it up into the separate string parts
 					String[] splitPointValuesInput = valueForField.split(" ");
+
+					//Reads should only take place when a set is created so we
+					//can just use the data size of the first column to determine
+					//the next row to add at.
+					int row = visibleDataColumns.get(0).dataSize();
 					for (int column = 0; column < splitPointValuesInput.length; column++) 
 					{	
 						String pointValueString = splitPointValuesInput[column];
@@ -894,11 +899,6 @@ public class DataSet extends JScrollPane
 						{
 							value = Double.parseDouble(pointValueString);
 						}
-
-						//Reads should only take place when a set is created so we
-						//can just use the data size of the first column to determine
-						// the next row to add at.
-						int row = visibleDataColumns.get(0).dataSize();
 						try
 						{
 							visibleDataColumns.get(column).writeData(row, pointValueString);

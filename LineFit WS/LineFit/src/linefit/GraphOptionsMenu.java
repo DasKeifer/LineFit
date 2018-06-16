@@ -35,7 +35,7 @@ import linefit.IO.GeneralIO;
  * @version	1.1.0
  * @since 	&lt;0.98.0
  */
-class GraphOptionsMenu extends JFrame 
+public class GraphOptionsMenu extends JFrame 
 {
 	private final static long serialVersionUID = 42;
     
@@ -43,6 +43,9 @@ class GraphOptionsMenu extends JFrame
 	/** The GraphArea that the options are being changed of */
     private GraphArea graphingArea;
     private GeneralIO ioHandler;
+    
+    //Spacing variables
+	public final static int STANDARD_ELEMENT_HEIGHT = 28;
     
     //Graph name and axes labels variables
     /** The label for the graph name TextField */
@@ -100,16 +103,6 @@ class GraphOptionsMenu extends JFrame
     /** The button that restores all the default settings and values in the GraphOptions */
     private JButton defaultsButton;
     
-    //PDF sizing variables
-    /** The label for the PDF export size TextFields */
-    private JLabel pdfSizeLabel;
-    /** The label for the multiplication mark between the PDF export size textFields */
-    private JLabel pdfTimesLabel;
-    /** The TextField for the PDF export width in inches */
-    private JTextField pdfWidthField;
-    /** The TextField for the  PDF export height in inches */
-    private JTextField pdfHeightField;
-    
     //Tick mark and decimals setting variables
     /** The label for the x-axis tick marks section */
     private JLabel xAxisTickMarksSectionLabel;
@@ -140,20 +133,6 @@ class GraphOptionsMenu extends JFrame
     private JLabel yAxisDecimalPlacesLabel;
     /** The TextField for the number of decimal places to use on the y-axis */
     private JTextField yAxisDecimalPlacesField;
-    
-    //LaTex export option variables
-    /** The label for the The LaTex export size TextFields */
-    private JLabel LaTexSizeLabel;
-    /** The TextField for the LaTex export width in cm */
-    private JTextField LaTexWidthField;
-    /** The label for the LaTex export multiplication sign between the two TextField */
-    private JLabel LaTexTimesSymbol;
-    /** The TextField for the LaTex export height in cm */
-    private JTextField LaTexHeightField;
-    /** The label for the export font size to use */
-    private JLabel exportFontSizeLabel;
-    /** The Spinner that allows the user to change the export font size with */
-    private JSpinner exportFontSize;
     
     //Results on graph setting variables
     /** The checkbox that determines whether or not the results are displayed in the GraphArea on the Graph */
@@ -230,9 +209,6 @@ class GraphOptionsMenu extends JFrame
 		customPowersCheckBox.setSelected(false);
 		xPowerField.setText("1");
 		yPowerField.setText("1");
-
-		pdfWidthField.setText("8.50");
-		pdfHeightField.setText("8.50");
 		
 		xShowTicksCheckBox.setSelected(true);
 		xNumberOfTicksField.setText("10");
@@ -243,10 +219,6 @@ class GraphOptionsMenu extends JFrame
 		yNumberOfTicksField.setText("10");
 		yShowTicksNumberLabelsCheckBox.setSelected(true);
 		yAxisDecimalPlacesField.setText("2");
-		
-		LaTexWidthField.setText("15.0");
-		LaTexHeightField.setText("15.0");
-		exportFontSize.setValue(12.0);
 		
 		displayResultsOnGraphCheckBox.setSelected(true);
 		xResultsLocationField.setText("5");
@@ -286,263 +258,220 @@ class GraphOptionsMenu extends JFrame
 		setResizable(false);
 		graphingArea = graphAreaToEditOptionsOf;
 		GraphOptionsFrameLayout customLayout = new GraphOptionsFrameLayout();
+		Container contentPane = getContentPane();
 
-		getContentPane().setFont(new Font("Arial", Font.PLAIN, 12));
-		getContentPane().setLayout(customLayout);
+		contentPane.setFont(new Font("Arial", Font.PLAIN, 12));
+		contentPane.setLayout(customLayout);
 		
 		FocusListener onlyNumbers = new OnlyAllowNumbersListener();
 		
 		xMinField = new JTextField("textfield_1");
-		getContentPane().add(xMinField);
+		contentPane.add(xMinField);
 		xMinField.setText("" + graphingArea.xAxisMinimumValue);
 		xMinField.addFocusListener(onlyNumbers);
 		
 		xMaxField = new JTextField("textfield_1");
-		getContentPane().add(xMaxField);
+		contentPane.add(xMaxField);
 		//xMaxField.setText(df.format(draw.xMax));
 		xMaxField.setText("" + graphingArea.xAxisMaximumValue);
 		xMaxField.addFocusListener(onlyNumbers);
 
 		yMinField = new JTextField("textfield_3");
-		getContentPane().add(yMinField);
+		contentPane.add(yMinField);
 		//yMinField.setText(df.format(draw.yMin));
 		yMinField.setText("" + graphingArea.yAxisMinimumValue);
 		yMinField.addFocusListener(onlyNumbers);
 
 		yMaxField = new JTextField("textfield_2");
-		getContentPane().add(yMaxField);
+		contentPane.add(yMaxField);
 		//yMaxField.setText(df.format(draw.yMax));
 		yMaxField.setText("" + graphingArea.yAxisMaximumValue);
 		yMaxField.addFocusListener(onlyNumbers);
 
 		xMinLabel = new JLabel("X Min");
-		getContentPane().add(xMinLabel);
+		contentPane.add(xMinLabel);
 
 		xMaxLabel = new JLabel("X Max");
-		getContentPane().add(xMaxLabel);
+		contentPane.add(xMaxLabel);
 
 		yMinLabel = new JLabel("Y Min");
-		getContentPane().add(yMinLabel);
+		contentPane.add(yMinLabel);
 
 		yMaxLabel = new JLabel("Y Max");
-		getContentPane().add(yMaxLabel);
+		contentPane.add(yMaxLabel);
 
-		getContentPane().add(new JLabel()); //temporary to keep the values from changing
-		getContentPane().add(new JLabel());
-		getContentPane().add(new JLabel());
-		getContentPane().add(new JLabel());
+		contentPane.add(new JLabel()); //temporary to keep the values from changing
+		contentPane.add(new JLabel());
+		contentPane.add(new JLabel());
+		contentPane.add(new JLabel());
 
 		applyCloseButton = new JButton("Apply and Close");
-		getContentPane().add(applyCloseButton);
+		contentPane.add(applyCloseButton);
 
 		applyButton = new JButton("Apply");
-		getContentPane().add(applyButton);
+		contentPane.add(applyButton);
 		
 		defaultsButton = new JButton("Defaults");
-		getContentPane().add(defaultsButton);
+		contentPane.add(defaultsButton);
 
-		getContentPane().add(new JLabel());
-		getContentPane().add(new JLabel());
-		getContentPane().add(new JLabel());
-		getContentPane().add(new JLabel());
+		contentPane.add(new JLabel());
+		contentPane.add(new JLabel());
+		contentPane.add(new JLabel());
+		contentPane.add(new JLabel());
 
 		xAxisNameLabel = new JLabel("Name the X-Axis");
-		getContentPane().add(xAxisNameLabel);
+		contentPane.add(xAxisNameLabel);
 
 		yAxisNameLabel = new JLabel("Name the Y-Axis");
-		getContentPane().add(yAxisNameLabel);
+		contentPane.add(yAxisNameLabel);
 
 		graphNameLabel = new JLabel("Name the Graph");
-		getContentPane().add(graphNameLabel);
+		contentPane.add(graphNameLabel);
 
 		graphNameField = new JTextField("");
 		graphNameField.setText(graphingArea.getGraphName());
-		getContentPane().add(graphNameField);
+		contentPane.add(graphNameField);
 
 		xAxisNameField = new JTextField("");
 		xAxisNameField.setText(graphingArea.getXAxisDescription());
-		getContentPane().add(xAxisNameField);
+		contentPane.add(xAxisNameField);
 
 		yAxisNameField = new JTextField("");
 		yAxisNameField.setText(graphingArea.getYAxisDescription());
-		getContentPane().add(yAxisNameField);
-
-		pdfSizeLabel = new JLabel("PDF Export Size (in inches)");
-		pdfSizeLabel.setFont(new Font("Verdana", Font.BOLD, 12));
-		getContentPane().add(pdfSizeLabel);
-
-		pdfWidthField = new JTextField("");
-		pdfWidthField.setText("" + ioHandler.exportIO.pdfPageWidth);
-		//PDFWidthField.setHorizontalAlignment(JTextField.CENTER);
-		getContentPane().add(pdfWidthField);
-		pdfWidthField.addFocusListener(onlyNumbers);
-
-		pdfTimesLabel = new JLabel("x");
-		pdfTimesLabel.setFont(new Font("Verdana", Font.BOLD, 12));
-		getContentPane().add(pdfTimesLabel);
-		//getContentPane().add(new JLabel());
-
-		pdfHeightField = new JTextField("");
-		pdfHeightField.setText("" + ioHandler.exportIO.pdfPageHeight);
-		//PDFHeightField.setHorizontalAlignment(JTextField.CENTER);
-		getContentPane().add(pdfHeightField);
-		pdfHeightField.addFocusListener(onlyNumbers);
+		contentPane.add(yAxisNameField);
 		
 		xAxisTickMarksSectionLabel = new JLabel("<html> <u> X-Axis </u> </html>");
 		xAxisTickMarksSectionLabel.setFont(new Font("Verdana", Font.BOLD, 12));
-		getContentPane().add(xAxisTickMarksSectionLabel);
+		contentPane.add(xAxisTickMarksSectionLabel);
 
 		yAxisTickMarksSectionLabel = new JLabel("<html> <u> Y-Axis </u> </html>");
 		yAxisTickMarksSectionLabel.setFont(new Font("Verdana", Font.BOLD, 12));
-		getContentPane().add(yAxisTickMarksSectionLabel);
+		contentPane.add(yAxisTickMarksSectionLabel);
 
 		xNumberOfTicksLabel = new JLabel("Number of Ticks");
-		getContentPane().add(xNumberOfTicksLabel);
+		contentPane.add(xNumberOfTicksLabel);
 
 		xNumberOfTicksField = new JTextField("");
 		xNumberOfTicksField.setText("" + graphingArea.xAxisNumberOfTickMarks);
-		getContentPane().add(xNumberOfTicksField);
+		contentPane.add(xNumberOfTicksField);
 		xNumberOfTicksField.addFocusListener(onlyNumbers);
 
 		yNumberOfTicksLabel = new JLabel("Number of Ticks");
-		getContentPane().add(yNumberOfTicksLabel);
+		contentPane.add(yNumberOfTicksLabel);
 
 		yNumberOfTicksField = new JTextField("");
 		yNumberOfTicksField.setText("" + graphingArea.yAxisNumberOfTickMarks);
-		getContentPane().add(yNumberOfTicksField);
+		contentPane.add(yNumberOfTicksField);
 		yNumberOfTicksField.addFocusListener(onlyNumbers);
 
 		xShowTicksCheckBox = new JCheckBox("Show Tick Marks");
 		xShowTicksCheckBox.setToolTipText("When checked, tick marks are drawn on the X-axis");
 		xShowTicksCheckBox.setSelected(graphingArea.xAxisHasTickMarks);
-		getContentPane().add(xShowTicksCheckBox);
+		contentPane.add(xShowTicksCheckBox);
 
 		xShowTicksNumberLabelsCheckBox = new JCheckBox("Show Tick Mark Numbers");
 		xShowTicksNumberLabelsCheckBox.setToolTipText("When checked, puts the location labels below the ticks on the X-axis");
 		xShowTicksNumberLabelsCheckBox.setSelected(graphingArea.xAxisHasTickMarkLabels);
-		getContentPane().add(xShowTicksNumberLabelsCheckBox);
+		contentPane.add(xShowTicksNumberLabelsCheckBox);
 
 		yShowTicksCheckBox = new JCheckBox("Show Tick Marks");
 		yShowTicksCheckBox.setToolTipText("When checked, tick marks are drawn on the Y-axis");
 		yShowTicksCheckBox.setSelected(graphingArea.yAxisHasTickMarks);
-		getContentPane().add(yShowTicksCheckBox);
+		contentPane.add(yShowTicksCheckBox);
 
 		yShowTicksNumberLabelsCheckBox = new JCheckBox("Show Tick Mark Numbers");
 		yShowTicksNumberLabelsCheckBox.setToolTipText("When checked, puts the location labels below the ticks on the Y-axis");
 		yShowTicksNumberLabelsCheckBox.setSelected(graphingArea.yAxisHasTickMarkLabels);
-		getContentPane().add(yShowTicksNumberLabelsCheckBox);
+		contentPane.add(yShowTicksNumberLabelsCheckBox);
 		
 		xErrorsOnlyCheckBox = new JCheckBox("x errors only");
 		xErrorsOnlyCheckBox.setToolTipText("When checked, the third column by itself will represent x errors. Otherwise, it will represent y errors.");
 		xErrorsOnlyCheckBox.setSelected(graphingArea.xErrorsOnly);
-		getContentPane().add(xErrorsOnlyCheckBox); 
+		contentPane.add(xErrorsOnlyCheckBox); 
 		
 		
 		usePowersCheckBox = new JCheckBox("Use Powers On Axes");
 		usePowersCheckBox.setToolTipText("When checked, powers of ten are taken out from the axes and placed on the end of the axes");
 		usePowersCheckBox.setSelected(graphingArea.useAxesPowers);
-		getContentPane().add(usePowersCheckBox);
+		contentPane.add(usePowersCheckBox);
 		customPowersCheckBox = new JCheckBox("Use Custom Powers On Axes");
 		customPowersCheckBox.setToolTipText("When checked, how many powers of ten to take from each axes is determined by the fields below instead of it being automatically determined");
 		customPowersCheckBox.setSelected(graphingArea.userDefinedAxesPowers);
-		getContentPane().add(customPowersCheckBox);
+		contentPane.add(customPowersCheckBox);
 		xPowerLabel = new JLabel("X Axis Power");
-		getContentPane().add(xPowerLabel);
+		contentPane.add(xPowerLabel);
 		xPowerField = new JTextField();
 		xPowerField.setText("" + graphingArea.xAxisPower);
-		getContentPane().add(xPowerField);
+		contentPane.add(xPowerField);
 		xPowerField.addFocusListener(onlyNumbers);
 		yPowerLabel = new JLabel("Y Axis Power");
-		getContentPane().add(yPowerLabel);
+		contentPane.add(yPowerLabel);
 		yPowerField = new JTextField();
 		yPowerField.setText("" + graphingArea.yAxisPower);
-		getContentPane().add(yPowerField);
+		contentPane.add(yPowerField);
 		yPowerField.addFocusListener(onlyNumbers);
 		
 		customAxesCheckBox = new JCheckBox("Use Custom Axes Sizes");
 		customAxesCheckBox.setToolTipText("When checked, the axes starts and ends are determines by the fields below instead of being automatically determined");
 		customAxesCheckBox.setSelected(graphingArea.userDefinedAxes);
-		getContentPane().add(customAxesCheckBox);
+		contentPane.add(customAxesCheckBox);
 		
 		displayResultsOnGraphCheckBox = new JCheckBox("Display Results on the Graph");
 		displayResultsOnGraphCheckBox.setToolTipText("When checked, the slope and intercept of fits are displayed on the graph and will be exported along with the graph");
 		displayResultsOnGraphCheckBox.setSelected(graphingArea.resultsAreDisplayedOnGraph);
-		getContentPane().add(displayResultsOnGraphCheckBox);
+		contentPane.add(displayResultsOnGraphCheckBox);
 		xResultsLocationLabel = new JLabel("X pos. of results");
-		getContentPane().add(xResultsLocationLabel);
+		contentPane.add(xResultsLocationLabel);
 		xResultsLocationField = new JTextField();
 		xResultsLocationField.setText("" + graphingArea.resultsPositionX);
-		getContentPane().add(xResultsLocationField);
+		contentPane.add(xResultsLocationField);
 		xResultsLocationField.addFocusListener(onlyNumbers);
 		yResultsLocationLabel = new JLabel("Y pos. of results");
-		getContentPane().add(yResultsLocationLabel);
+		contentPane.add(yResultsLocationLabel);
 		yResultsLocationField = new JTextField();
 		yResultsLocationField.setText("" + graphingArea.resultsPositionY);
-		getContentPane().add(yResultsLocationField);
+		contentPane.add(yResultsLocationField);
 		yResultsLocationField.addFocusListener(onlyNumbers);
 		
 		decimalsInResultsLabel = new JLabel("Decimals in Results");
-		getContentPane().add(decimalsInResultsLabel);
+		contentPane.add(decimalsInResultsLabel);
 		decimalsInResultsField = new JTextField();
 	    decimalsInResultsField.setText("" + graphingArea.resultsDecimalPlaces);
-		getContentPane().add(decimalsInResultsField);
+		contentPane.add(decimalsInResultsField);
 		decimalsInResultsField.addFocusListener(onlyNumbers);
 		
 		xAxisDecimalPlacesLabel = new JLabel("Decimals on X Axis");
-		getContentPane().add(xAxisDecimalPlacesLabel);
+		contentPane.add(xAxisDecimalPlacesLabel);
 		xAxisDecimalPlacesField = new JTextField();
 	    xAxisDecimalPlacesField.setText("" + graphingArea.xAxisDecimalPlaces);
-		getContentPane().add(xAxisDecimalPlacesField);	    
+		contentPane.add(xAxisDecimalPlacesField);	    
 		xAxisDecimalPlacesField.addFocusListener(onlyNumbers);
 		yAxisDecimalPlacesLabel = new JLabel("Decimals on Y Axis");
-		getContentPane().add(yAxisDecimalPlacesLabel);
+		contentPane.add(yAxisDecimalPlacesLabel);
 		yAxisDecimalPlacesField = new JTextField();
 		yAxisDecimalPlacesField.setText("" + graphingArea.yAxisDecimalPlaces);
-		getContentPane().add(yAxisDecimalPlacesField);	
+		contentPane.add(yAxisDecimalPlacesField);	
 		yAxisDecimalPlacesField.addFocusListener(onlyNumbers);
-		
-		
-	    LaTexSizeLabel = new JLabel("LaTex Export Size (in cm)");
-	    LaTexSizeLabel.setFont(new Font("Verdana", Font.BOLD, 12));
-	    getContentPane().add(LaTexSizeLabel);
-	    LaTexWidthField = new JTextField();
-	    LaTexWidthField.setText("" + ioHandler.exportIO.laTexGraphWidthInCm);
-	    getContentPane().add(LaTexWidthField);
-	    LaTexWidthField.addFocusListener(onlyNumbers);
-		LaTexTimesSymbol = new JLabel("x");
-		LaTexTimesSymbol.setFont(new Font("Verdana", Font.BOLD, 12));
-		getContentPane().add(LaTexTimesSymbol);
-		LaTexHeightField = new JTextField();
-	    LaTexHeightField.setText("" + ioHandler.exportIO.laTexGraphHeightInCm);
-		getContentPane().add(LaTexHeightField);
-		LaTexHeightField.addFocusListener(onlyNumbers);
-		exportFontSizeLabel = new JLabel("Exporting Font Size");		
-		getContentPane().add(exportFontSizeLabel);
-		SpinnerNumberModel laTexSpinnerModel = new SpinnerNumberModel(ioHandler.exportIO.exportFontSize, 4.0, 32.0, 0.5);
-		exportFontSize = new JSpinner(laTexSpinnerModel);
-		JSpinner.NumberEditor numberEditor = new JSpinner.NumberEditor(exportFontSize, "0.0");
-		exportFontSize.setEditor(numberEditor);
-		getContentPane().add(exportFontSize);
 		
 		useScientificNotationInResultsCheckBox = new JCheckBox("Results Use Scientific Notation");
 		useScientificNotationInResultsCheckBox.setToolTipText("When checked, powers of ten are taken out of the result and they are displayed in scientific notation");
 		useScientificNotationInResultsCheckBox.setSelected(graphingArea.resultsUseScientificNotation);
-		getContentPane().add(useScientificNotationInResultsCheckBox);
+		contentPane.add(useScientificNotationInResultsCheckBox);
 
 		fitAlgorithmLabel = new JLabel("Fit Algortithm:");
-		getContentPane().add(fitAlgorithmLabel);
+		contentPane.add(fitAlgorithmLabel);
 		fitAlgorithmFactoryComboBox = new JComboBox<LinearFitFactory>();
 		for(int i = 0; i < LinearFitFactory.fitAlgorithmFactories.length; i++)
 		{
 			fitAlgorithmFactoryComboBox.addItem(LinearFitFactory.fitAlgorithmFactories[i]);
 		}
 		fitAlgorithmFactoryComboBox.setSelectedItem(LineFit.currentFitAlgorithmFactory);
-		getContentPane().add(fitAlgorithmFactoryComboBox);
+		contentPane.add(fitAlgorithmFactoryComboBox);
 		
 		whatIsFixedGroupLabel = new JLabel("Fix the Following Value:");
-		getContentPane().add(whatIsFixedGroupLabel);
+		contentPane.add(whatIsFixedGroupLabel);
 		whichGraphSetLabel = new JLabel("For");
-		getContentPane().add(whichGraphSetLabel);
+		contentPane.add(whichGraphSetLabel);
 		whichGraphSetComboBox = new JComboBox<DataSet>();
 		currentGraphSetIndex = graphingArea.dataSetSelector.getSelectedIndex();
 		graphSetsTempWhatFixed = new FixedVariable[graphingArea.dataSetSelector.getItemCount()];
@@ -555,27 +484,26 @@ class GraphOptionsMenu extends JFrame
 			graphSetsTempFixedValues[i] = ((DataSet) graphingArea.dataSetSelector.getItemAt(i)).linearFitStrategy.getFixedValue();
 		}
 		whichGraphSetComboBox.setSelectedIndex(currentGraphSetIndex);
-		getContentPane().add(whichGraphSetComboBox);
+		contentPane.add(whichGraphSetComboBox);
 		
 		whatIsFixedButtonGroup = new ButtonGroup();
 		DataSet fitData = ((DataSet) graphingArea.dataSetSelector.getItemAt(currentGraphSetIndex));
 	    noneFixedRadio = new JRadioButton("None", fitData.linearFitStrategy.getWhatIsFixed() == FixedVariable.NONE);
 	    whatIsFixedButtonGroup.add(noneFixedRadio);
-		getContentPane().add(noneFixedRadio);
+		contentPane.add(noneFixedRadio);
 	    slopeFixedRadio = new JRadioButton("Slope", fitData.linearFitStrategy.getWhatIsFixed() == FixedVariable.SLOPE);
 	    whatIsFixedButtonGroup.add(slopeFixedRadio);
-		getContentPane().add(slopeFixedRadio);
+		contentPane.add(slopeFixedRadio);
 	    interceptFixedRadio = new JRadioButton("Intercept", fitData.linearFitStrategy.getWhatIsFixed() == FixedVariable.INTERCEPT);
 	    whatIsFixedButtonGroup.add(interceptFixedRadio);
-		getContentPane().add(interceptFixedRadio);
+		contentPane.add(interceptFixedRadio);
 		
 		fixedValueLabel = new JLabel("Fixed Value");
-		getContentPane().add(fixedValueLabel);
+		contentPane.add(fixedValueLabel);
 		fixedValueField = new JTextField("" + fitData.linearFitStrategy.getFixedValue());
-		getContentPane().add(fixedValueField);
+		contentPane.add(fixedValueField);
 		fixedValueField.addFocusListener(onlyNumbers);
 		
-
 		updateFixValueForCurrDataSet();
 		setTickLabelEnabledStatus();		
 		setPowersEnabledStatus();	
@@ -584,12 +512,9 @@ class GraphOptionsMenu extends JFrame
 		setFixedValueEnabledStatus();
 		setDataSetCanFixValueEnabledStatus();
 
-		setSize(getPreferredSize());
-
 		ActionListener optionsListener = new GraphOptionsListener();
 		applyButton.addActionListener(optionsListener);
 		applyCloseButton.addActionListener(optionsListener);
-		//pdfDefaultsButton.addActionListener(optionsListener);
 		defaultsButton.addActionListener(optionsListener);
 		xShowTicksCheckBox.addActionListener(optionsListener);
 		xShowTicksNumberLabelsCheckBox.addActionListener(optionsListener);
@@ -604,9 +529,13 @@ class GraphOptionsMenu extends JFrame
 		interceptFixedRadio.addActionListener(optionsListener);
 		fitAlgorithmFactoryComboBox.addActionListener(optionsListener);
 		whichGraphSetComboBox.addActionListener(optionsListener);
+		
+		//create the export options gui elements
+		ioHandler.exportIO.createOptionsGuiElements(contentPane);
 
-		this.setVisible(true);
 		setTabStops();
+		setSize(getPreferredSize());
+		this.setVisible(true);
 	}
 	
 	/** Closes this instance of the graph options frame */
@@ -618,7 +547,8 @@ class GraphOptionsMenu extends JFrame
 	/** Sets the order of the items when using the tabs key and other traversal keys */
     private void setTabStops() 
     {
-    	MyFocusTraversalPolicy policy = new MyFocusTraversalPolicy();
+    	TabsFocusTraversalPolicy policy = new TabsFocusTraversalPolicy();
+    	
     	policy.addComponentToTabsList(graphNameField);
     	policy.addComponentToTabsList(xAxisNameField);
     	policy.addComponentToTabsList(yAxisNameField);
@@ -631,8 +561,6 @@ class GraphOptionsMenu extends JFrame
     	policy.addComponentToTabsList(customPowersCheckBox);
     	policy.addComponentToTabsList(xPowerField);
     	policy.addComponentToTabsList(yPowerField);
-    	policy.addComponentToTabsList(pdfWidthField);
-    	policy.addComponentToTabsList(pdfHeightField);
     	policy.addComponentToTabsList(xShowTicksCheckBox);
     	policy.addComponentToTabsList(xShowTicksNumberLabelsCheckBox);
     	policy.addComponentToTabsList(xNumberOfTicksField);
@@ -641,14 +569,15 @@ class GraphOptionsMenu extends JFrame
     	policy.addComponentToTabsList(yNumberOfTicksField);
     	policy.addComponentToTabsList(xAxisDecimalPlacesField);
     	policy.addComponentToTabsList(yAxisDecimalPlacesField);
-    	policy.addComponentToTabsList(LaTexWidthField);
-    	policy.addComponentToTabsList(LaTexHeightField);
-    	policy.addComponentToTabsList(exportFontSize);
     	policy.addComponentToTabsList(displayResultsOnGraphCheckBox);
     	policy.addComponentToTabsList(xResultsLocationField);
     	policy.addComponentToTabsList(yResultsLocationField);
     	policy.addComponentToTabsList(decimalsInResultsField);
     	policy.addComponentToTabsList(useScientificNotationInResultsCheckBox);
+    	
+    	//add the export items to the tab order
+    	ioHandler.exportIO.addOptionsGuiElementsToTabs(policy);
+    	
     	policy.addComponentToTabsList(fitAlgorithmFactoryComboBox);
     	policy.addComponentToTabsList(whichGraphSetComboBox);
     	policy.addComponentToTabsList(noneFixedRadio);
@@ -659,6 +588,7 @@ class GraphOptionsMenu extends JFrame
     	policy.addComponentToTabsList(applyCloseButton);
     	policy.addComponentToTabsList(applyButton);
     	policy.addComponentToTabsList(defaultsButton);
+    	
     	setFocusTraversalPolicy(policy);	
     }
     
@@ -909,8 +839,6 @@ class GraphOptionsMenu extends JFrame
 			graphingArea.refreshAllSetsThirdColumn();
 		}
 		
-		changePDFSize(Double.parseDouble(pdfWidthField.getText()),Double.parseDouble(pdfHeightField.getText()));
-		
 		graphingArea.xAxisNumberOfTickMarks = Integer.parseInt(xNumberOfTicksField.getText());
 		graphingArea.yAxisNumberOfTickMarks = Integer.parseInt(yNumberOfTicksField.getText());
 		graphingArea.xAxisHasTickMarks = xShowTicksCheckBox.isSelected();
@@ -942,10 +870,6 @@ class GraphOptionsMenu extends JFrame
 			xPowerField.setText("0");
 			yPowerField.setText("0");
 		}
-			
-		ioHandler.exportIO.laTexGraphWidthInCm = Double.parseDouble(LaTexWidthField.getText());
-		ioHandler.exportIO.laTexGraphHeightInCm = Double.parseDouble(LaTexHeightField.getText());	
-		ioHandler.exportIO.exportFontSize = ((Double) exportFontSize.getValue()).floatValue();
 		
 		graphingArea.resultsAreDisplayedOnGraph = displayResultsOnGraphCheckBox.isSelected();
 
@@ -1001,96 +925,14 @@ class GraphOptionsMenu extends JFrame
 	    		}
 			}
 		}
+		
+		//apply the export options as well
+		ioHandler.exportIO.applyValuesInOptionsGuiElements();
+		
 		graphingArea.repaint();	
 	}
 	
-    /** Allows us to change the the size of the PDF export 
-     * @param width The desired width of the PDF export image size 
-     * @param height The desire height of the PDF export image size */
-	private void changePDFSize(double width, double height) 
-	{
-		ioHandler.exportIO.pdfPageWidth = width;
-		ioHandler.exportIO.pdfPageHeight = height;
-		pdfWidthField.setText("" + ioHandler.exportIO.pdfPageWidth);
-		pdfHeightField.setText("" + ioHandler.exportIO.pdfPageHeight);
-	}
-	
 	//check the fitalgorithm switching
-	
-	//private classes
-	/** This String keeps track of what value was in the currently selected field at the moment it was first selected. This lets us revert the field to its previous value if an invalid number string is inputed. This is only used for places where only numbers are allowed */
-	private String inputFieldValueOnFocused; 
-	
-	/** 
-	 * A private Listener class that implements FocusListener so that we can save the value when the field is first focused
-	 * on so that we can return it to the field's preselected value if the input was not a valid number String.
-	 * 
-	 * @author Keith Rice
-	 * @version	1.0
-	 * @since 	&lt;0.98.0
-	 */
-	private class OnlyAllowNumbersListener implements FocusListener 
-	{
-		@Override
-		/** Saves the current value of the field in another location so we can revert back to it if we want later
-		 * 
-		 * @param passedFocusEvent The Focus Event that is passed to this function by the system when the field is focused on
-		 */
-		public void focusGained(FocusEvent passedFocusEvent) 
-		{
-			try 
-			{
-				JTextField focusedField = (JTextField)passedFocusEvent.getSource();
-				inputFieldValueOnFocused = focusedField.getText();
-			} 
-			catch (ClassCastException cce) 
-			{
-				inputFieldValueOnFocused = "0";
-			}
-		}
-
-		@Override
-		/** Checks when we lose the focus to see if the input was a valid number String ans if not then it will revert it back to the original String
-		 * 
-		 * @param passedFocusEvent The FocusEvent that is passed to this funtion by the system when the field loses the focus
-		 */
-		public void focusLost(FocusEvent passedFocusEvent) 
-		{
-			try 
-			{
-				JTextField focusedField = (JTextField)passedFocusEvent.getSource();
-				if(!doesFieldContainValidDoubleString(focusedField))
-				{
-					focusedField.setText(inputFieldValueOnFocused);
-				}
-			}
-			catch (ClassCastException cce) {}
-		}
-	}
-	
-	/**
-	 * Checks the String value in the given field to see if it contains a valid double as a String
-	 * 
-	 * @param fieldToCheckForNumber The text field that will be checked to see whether or not it contains a double number as a String
-	 * @return A boolean of whether or not the passed TextField has a valid double as a String in it
-	 */
-	private boolean doesFieldContainValidDoubleString(JTextField fieldToCheckForNumber) 
-	{
-		try 
-		{
-			Double.parseDouble(fieldToCheckForNumber.getText());
-			//also check for d and f at the end since it will parse it as doubles and floats respectively
-			if(fieldToCheckForNumber.getText().toLowerCase().endsWith("d") || fieldToCheckForNumber.getText().toLowerCase().endsWith("f"))
-			{
-				return false;
-			}
-			return true;
-		} 
-		catch (NumberFormatException nfe) 
-		{
-			return false;
-		}
-	}
 
 	/**
 	 * A generic listener class that picks up any button or checkbox event and handles it properly, either saving and closing or 
@@ -1142,82 +984,40 @@ class GraphOptionsMenu extends JFrame
 		setDataSetCanFixValueEnabledStatus();
 	}
 	
-	/** 
-	 * A listener that is called when the user hits the tabs key that sets the order through which the options in the options menu 
-	 * are focused in
-	 * 
-	 * @author Keith Rice
-	 * @version	1.0
-	 * @since 	&lt;0.98.0
-	 */
-	private class MyFocusTraversalPolicy extends FocusTraversalPolicy 
-	{
-		/** The list of components that can be focused on in the Graph Options menu */
-		private ArrayList<Component> components = new ArrayList<Component>();
-
-		/**
-		 * Adds the passed component into the list of components that can be focused on with the tabs key
-		 * 
-		 * @param component The component to add to the lists of components to be highlighted by tabs 
-		 */
-		void addComponentToTabsList(Component component) 
-		{
-			components.add(component);
-		}
-
-		/**
-		 * Find the next component in the list of the components that is not disables to be selected by the Tab key
-		 */
-		public Component getComponentAfter(Container aContainer, Component aComponent) 
-		{
-			int atIndex = components.indexOf(aComponent);
-			int nextIndex = (atIndex + 1) % components.size();
-			while(!components.get(nextIndex).isEnabled())
-			{
-				nextIndex = (nextIndex + 1) % components.size();
-			}
-			return components.get(nextIndex);
-		}
-
-		/**
-		 * Finds the component that is before this one that is not disabled in the list to be selected by Shift+Tab
-		 */
-		public Component getComponentBefore(Container aContainer, Component aComponent) 
-		{
-			int currentIndex = components.indexOf(aComponent);
-			int nextIndex = (currentIndex + components.size() - 1) % components.size();
-			while(!components.get(nextIndex).isEnabled())
-			{
-				nextIndex = (nextIndex - 1) % components.size();
-			}
-			return components.get(nextIndex);
-		}
-
-		/**
-		 * Gets the first component in the list of focusable components
-		 */
-		public Component getFirstComponent(Container aContainer) 
-		{
-			return components.get(0);
-		}
-
-		/**
-		 * Returns the default highlighted component, in this case the first one in the list
-		 */
-		public Component getDefaultComponent(Container arg0) 
-		{
-			return components.get(0);
-		}
-
-		/**
-		 * Gets the last component in the list of focusable components
-		 */
-		public Component getLastComponent(Container arg0) 
-		{
-			return components.get(components.size() - 1);
-		}
-	}
-	
+    public static void setElementBoundsIfVisible(Component element, Insets insets, int leftOffset, int topOffset,
+    		int width)
+    {
+    	if (element.isVisible()) 
+    	{
+    		element.setBounds(insets.left + leftOffset, insets.top + topOffset, width, 
+    				GraphOptionsMenu.STANDARD_ELEMENT_HEIGHT);
+    	}
+    }
+    
+    /**
+     * Allows us to position groups of options together and allows us to to deal with larger chunks 
+     * on the high level of building the graph options menu
+     * 
+     * @param componentsInGroup The list of components that make up this group
+     * @param xShiftOfGroup The y Location of the start of the group (from the top)
+     * @param yShiftOfGroup The x Location of the start of the group (from the left)
+     */    
+    public static void shiftElementGroup(ArrayList<Component> componentsInGroup, int xShiftOfGroup,
+    		int yShiftOfGroup) 
+    {
+    	Component currComponent = null;
+    	for(int i = 0; i < componentsInGroup.size(); i++) 
+    	{
+    		currComponent = componentsInGroup.get(i);
+    		if (currComponent.isVisible()) 
+    		{
+    			currComponent.setBounds(currComponent.getX() + xShiftOfGroup, 
+    					currComponent.getY() + yShiftOfGroup, currComponent.getWidth(),
+    					currComponent.getHeight());
+    		}
+    	}
+    }
+    
 	/** 
 	 * A Layout class that positions all the buttons and options in the frame
 	 * 
@@ -1253,25 +1053,6 @@ class GraphOptionsMenu extends JFrame
 			Dimension dim = new Dimension(100, 100);
 			return dim;
 	    }
-	    
-	    /**
-	     * Allows us to position groups of options together and allows us to to deal with larger chunks 
-	     * on the high level of building the graph options menu
-	     * 
-	     * @param componentsInGroup The list of components that make up this group
-	     * @param xShiftOfGroup The y Location of the start of the group (from the top)
-	     * @param yShiftOfGroup The x Location of the start of the group (from the left)
-	     */
-	    private void positionGroup(Component[] componentsInGroup, int xShiftOfGroup, int yShiftOfGroup) 
-	    {
-	    	for(int i = 0; i < componentsInGroup.length; i++) 
-	    	{
-	    		if (componentsInGroup[i].isVisible()) 
-	    		{
-	    			componentsInGroup[i].setBounds(componentsInGroup[i].getX() + xShiftOfGroup,componentsInGroup[i].getY() + yShiftOfGroup,componentsInGroup[i].getWidth(),componentsInGroup[i].getHeight());
-	    		}
-	    	}
-	    }
 
 	    /**
 	     * Describes the layout of the options within their groups as well as the positions of the groups in the frame
@@ -1279,196 +1060,176 @@ class GraphOptionsMenu extends JFrame
 	    public void layoutContainer(Container parent) 
 	    {
 			Insets insets = parent.getInsets();
-			final int componentHeight = 28;
 			final int acButtonWidth = 144; 
 			final int applyButtonWidth = 76;
 			final int defaultsButtonWidth = 87; 
 
 			// Graph title and axis names
-			Component[] titleAxesGroup = new Component[6];
-			titleAxesGroup[0] = graphNameLabel;
-			if (titleAxesGroup[0].isVisible()) {titleAxesGroup[0].setBounds(insets.left, insets.top, 208, componentHeight);}
-			titleAxesGroup[1] = graphNameField;
-			if (titleAxesGroup[1].isVisible()) {titleAxesGroup[1].setBounds(insets.left, insets.top + 20, 208, componentHeight);}
-			titleAxesGroup[2] = yAxisNameLabel;
-			if (titleAxesGroup[2].isVisible()) {titleAxesGroup[2].setBounds(insets.left, insets.top + 50, 208, componentHeight);}
-			titleAxesGroup[3] = yAxisNameField;
-			if (titleAxesGroup[3].isVisible()) {titleAxesGroup[3].setBounds(insets.left, insets.top + 70, 208, componentHeight);}
-			titleAxesGroup[4] = xAxisNameLabel;
-			if (titleAxesGroup[4].isVisible()) {titleAxesGroup[4].setBounds(insets.left, insets.top + 100, 208, componentHeight);}
-			titleAxesGroup[5] = xAxisNameField;
-			if (titleAxesGroup[5].isVisible()) {titleAxesGroup[5].setBounds(insets.left, insets.top + 120, 208, componentHeight);}
+			setElementBoundsIfVisible(graphNameLabel, insets, 0, 0, 208);
+			setElementBoundsIfVisible(graphNameField, insets, 0, 20, 208);
+			setElementBoundsIfVisible(yAxisNameLabel, insets, 0, 50, 208);
+			setElementBoundsIfVisible(yAxisNameField, insets, 0, 70, 208);
+			setElementBoundsIfVisible(xAxisNameLabel, insets, 0, 100, 208);
+			setElementBoundsIfVisible(xAxisNameField, insets, 0, 120, 208);
+			
+			ArrayList<Component> titleAxesGroup = new ArrayList<Component>();
+			titleAxesGroup.add(graphNameLabel);
+			titleAxesGroup.add(graphNameField);
+			titleAxesGroup.add(yAxisNameLabel);
+			titleAxesGroup.add(yAxisNameField);
+			titleAxesGroup.add(xAxisNameLabel);
+			titleAxesGroup.add(xAxisNameField);
 			
 			// X and Y Max and Min
-			Component[] maxMinGroup = new Component[9];	
-			maxMinGroup[0] = customAxesCheckBox;
-			if (maxMinGroup[0].isVisible()) {maxMinGroup[0].setBounds(insets.left, insets.top + 0, 184, componentHeight);}
-			maxMinGroup[1] = xMinLabel;
-			if (maxMinGroup[1].isVisible()) {maxMinGroup[1].setBounds(insets.left + 0, insets.top + 30, 80, componentHeight);}
-			maxMinGroup[2] = xMinField;
-			if (maxMinGroup[2].isVisible()) {maxMinGroup[2].setBounds(insets.left + 88, insets.top + 30, 104, componentHeight);}
-			maxMinGroup[3] = xMaxLabel;
-			if (maxMinGroup[3].isVisible()) {maxMinGroup[3].setBounds(insets.left + 0, insets.top + 62, 80, componentHeight);}
-			maxMinGroup[4] = xMaxField;
-			if (maxMinGroup[4].isVisible()) {maxMinGroup[4].setBounds(insets.left + 88, insets.top + 62, 104, componentHeight);}
-			maxMinGroup[5] = yMinLabel;
-			if (maxMinGroup[5].isVisible()) {maxMinGroup[5].setBounds(insets.left + 0, insets.top + 94, 80, componentHeight);}
-			maxMinGroup[6] = yMinField;
-			if (maxMinGroup[6].isVisible()) {maxMinGroup[6].setBounds(insets.left + 88, insets.top + 94, 104, componentHeight);}
-			maxMinGroup[7] = yMaxLabel;
-			if (maxMinGroup[7].isVisible()) {maxMinGroup[7].setBounds(insets.left + 0, insets.top + 126, 80, componentHeight);}
-			maxMinGroup[8] = yMaxField;
-			if (maxMinGroup[8].isVisible()) {maxMinGroup[8].setBounds(insets.left + 88, insets.top + 126, 104, componentHeight);}
-		    
+			setElementBoundsIfVisible(customAxesCheckBox, insets, 0, 0, 184);
+			setElementBoundsIfVisible(xMinLabel, insets, 0, 30, 80);
+			setElementBoundsIfVisible(xMinField, insets, 88, 30, 104);
+			setElementBoundsIfVisible(xMaxLabel, insets, 0, 62, 80);
+			setElementBoundsIfVisible(xMaxField, insets, 88, 62, 104);
+			setElementBoundsIfVisible(yMinLabel, insets, 0, 94, 80);
+			setElementBoundsIfVisible(yMinField, insets, 88, 94, 104);
+			setElementBoundsIfVisible(yMaxLabel, insets, 0, 126, 80);
+			setElementBoundsIfVisible(yMaxField, insets, 88, 126, 104);
+			
+			ArrayList<Component> maxMinGroup = new ArrayList<Component>();
+			maxMinGroup.add(customAxesCheckBox);
+			maxMinGroup.add(xMinLabel);
+			maxMinGroup.add(xMinField);
+			maxMinGroup.add(xMaxLabel);
+			maxMinGroup.add(xMaxField);
+			maxMinGroup.add(yMinLabel);
+			maxMinGroup.add(yMinField);
+			maxMinGroup.add(yMaxLabel);
+			maxMinGroup.add(yMaxField);
+			
 			//Powers on the axes
-			Component[] customPowersGroup = new Component[6];
-			customPowersGroup[0] = usePowersCheckBox;
-			if (customPowersGroup[0].isVisible()) {customPowersGroup[0].setBounds(insets.left, insets.top, 200, componentHeight);}
-			customPowersGroup[1] = customPowersCheckBox;
-			if (customPowersGroup[1].isVisible()) {customPowersGroup[1].setBounds(insets.left, insets.top + 30, 230, componentHeight);}
-			customPowersGroup[2] = xPowerLabel;
-			if (customPowersGroup[2].isVisible()) {customPowersGroup[2].setBounds(insets.left + 4, insets.top + 60, 100, componentHeight);}
-			customPowersGroup[3] = xPowerField;
-			if (customPowersGroup[3].isVisible()) {customPowersGroup[3].setBounds(insets.left + 129, insets.top + 60, 60, componentHeight);}
-			customPowersGroup[4] = yPowerLabel;	
-			if (customPowersGroup[4].isVisible()) {customPowersGroup[4].setBounds(insets.left + 4, insets.top + 92, 100, componentHeight);}
-			customPowersGroup[5] = yPowerField;
-			if (customPowersGroup[5].isVisible()) {customPowersGroup[5].setBounds(insets.left + 129, insets.top + 92, 60, componentHeight);}
+			setElementBoundsIfVisible(usePowersCheckBox, insets, 0, 0, 200);
+			setElementBoundsIfVisible(customPowersCheckBox, insets, 0, 30, 230);
+			setElementBoundsIfVisible(xPowerLabel, insets, 4, 60, 100);
+			setElementBoundsIfVisible(xPowerField, insets, 129, 60, 60);
+			setElementBoundsIfVisible(yPowerLabel, insets, 4, 92, 100);
+			setElementBoundsIfVisible(yPowerField, insets, 129, 92, 60);
+			
+			ArrayList<Component> customPowersGroup = new ArrayList<Component>();
+			customPowersGroup.add(usePowersCheckBox);
+			customPowersGroup.add(customPowersCheckBox);
+			customPowersGroup.add(xPowerLabel);
+			customPowersGroup.add(xPowerField);
+			customPowersGroup.add(yPowerLabel);
+			customPowersGroup.add(yPowerField);
 			
 			// "Apply and Close" Button and "Apply" Button
-			Component[] applyButtonGroup = new Component[3];
-			applyButtonGroup[0] = applyCloseButton;
-			if (applyButtonGroup[0].isVisible()) {applyButtonGroup[0].setBounds(insets.left, insets.top, acButtonWidth, componentHeight);}
-			applyButtonGroup[1] = applyButton;
-			if (applyButtonGroup[1].isVisible()) {applyButtonGroup[1].setBounds(insets.left + acButtonWidth + 6, insets.top, applyButtonWidth, componentHeight);}
-			applyButtonGroup[2] = defaultsButton;
-			if (applyButtonGroup[2].isVisible()) {applyButtonGroup[2].setBounds(insets.left + acButtonWidth + 6 + applyButtonWidth + 6, insets.top, defaultsButtonWidth, componentHeight);}
-	
-			// PDF Size with default button
-			Component[] PDFSizeGroup = new Component[4];
-			PDFSizeGroup[0] = pdfSizeLabel;
-			if (PDFSizeGroup[0].isVisible()) {PDFSizeGroup[0].setBounds(insets.left, insets.top, 208, componentHeight);}
-			PDFSizeGroup[1] = pdfWidthField;
-			if (PDFSizeGroup[1].isVisible()) {PDFSizeGroup[1].setBounds(insets.left, insets.top + 35, 60, componentHeight);}
-			PDFSizeGroup[2] = pdfTimesLabel;
-			if (PDFSizeGroup[2].isVisible()) {PDFSizeGroup[2].setBounds(insets.left + 70, insets.top + 35, 20, componentHeight);}
-			PDFSizeGroup[3] = pdfHeightField;
-			if (PDFSizeGroup[3].isVisible()) {PDFSizeGroup[3].setBounds(insets.left + 89, insets.top + 35, 60, componentHeight);}
-			//PDFSizeGroup[4] = pdfDefaultsButton;
-			//if (PDFSizeGroup[4].isVisible()) {PDFSizeGroup[4].setBounds(insets.left + 36, insets.top + 67, defaultButtonWidth, componentHeight);}
-		    
-			//Tick Marks and Labeling
-			Component[] tickMarkAndLabelGroup = new Component[14];
-			tickMarkAndLabelGroup[0] = xAxisTickMarksSectionLabel;
-			if (tickMarkAndLabelGroup[0].isVisible()) {tickMarkAndLabelGroup[0].setBounds(insets.left + 4, insets.top, 100, componentHeight);}
-			tickMarkAndLabelGroup[1] = xShowTicksCheckBox;
-			if (tickMarkAndLabelGroup[1].isVisible()) {tickMarkAndLabelGroup[1].setBounds(insets.left, insets.top + 21, 200, componentHeight);}
-			tickMarkAndLabelGroup[2] = xNumberOfTicksLabel;
-			if (tickMarkAndLabelGroup[2].isVisible()) {tickMarkAndLabelGroup[2].setBounds(insets.left + 4 , insets.top + 51, 120, componentHeight);}
-			tickMarkAndLabelGroup[3] = xNumberOfTicksField;
-			if (tickMarkAndLabelGroup[3].isVisible()) {tickMarkAndLabelGroup[3].setBounds(insets.left + 129, insets.top + 51, 60, componentHeight);}
-			tickMarkAndLabelGroup[4] = xShowTicksNumberLabelsCheckBox;
-			if (tickMarkAndLabelGroup[4].isVisible()) {tickMarkAndLabelGroup[4].setBounds(insets.left, insets.top + 81, 200, componentHeight);}
-			tickMarkAndLabelGroup[5] = xAxisDecimalPlacesLabel;
-			if (tickMarkAndLabelGroup[5].isVisible()) {tickMarkAndLabelGroup[5].setBounds(insets.left + 4, insets.top + 111, 125, componentHeight);}
-			tickMarkAndLabelGroup[6] = xAxisDecimalPlacesField;
-			if (tickMarkAndLabelGroup[6].isVisible()) {tickMarkAndLabelGroup[6].setBounds(insets.left + 129, insets.top + 111, 60, componentHeight);}
-			tickMarkAndLabelGroup[7] = yAxisTickMarksSectionLabel;
-			if (tickMarkAndLabelGroup[7].isVisible()) {tickMarkAndLabelGroup[7].setBounds(insets.left + 4, insets.top + 136, 100, componentHeight);}
-			tickMarkAndLabelGroup[8] = yShowTicksCheckBox;
-			if (tickMarkAndLabelGroup[8].isVisible()) {tickMarkAndLabelGroup[8].setBounds(insets.left, insets.top + 157, 200, componentHeight);}
-			tickMarkAndLabelGroup[9] = yNumberOfTicksLabel;
-			if (tickMarkAndLabelGroup[9].isVisible()) {tickMarkAndLabelGroup[9].setBounds(insets.left + 4, insets.top + 187, 120, componentHeight);}
-			tickMarkAndLabelGroup[10] = yNumberOfTicksField;
-			if (tickMarkAndLabelGroup[10].isVisible()) {tickMarkAndLabelGroup[10].setBounds(insets.left + 129, insets.top + 187, 60, componentHeight);}
-			tickMarkAndLabelGroup[11] = yShowTicksNumberLabelsCheckBox;
-			if (tickMarkAndLabelGroup[11].isVisible()) {tickMarkAndLabelGroup[11].setBounds(insets.left, insets.top + 217, 200, componentHeight);}
-			tickMarkAndLabelGroup[12] = yAxisDecimalPlacesLabel;
-			if (tickMarkAndLabelGroup[12].isVisible()) {tickMarkAndLabelGroup[12].setBounds(insets.left + 4, insets.top + 247, 125, componentHeight);}
-			tickMarkAndLabelGroup[13] = yAxisDecimalPlacesField;
-			if (tickMarkAndLabelGroup[13].isVisible()) {tickMarkAndLabelGroup[13].setBounds(insets.left + 129, insets.top + 247, 60, componentHeight);}
+			setElementBoundsIfVisible(applyCloseButton, insets, 0, 0, acButtonWidth);
+			setElementBoundsIfVisible(applyButton, insets, acButtonWidth + 6, 0, applyButtonWidth);
+			setElementBoundsIfVisible(defaultsButton, insets, acButtonWidth + 6 + applyButtonWidth + 6, 0, defaultsButtonWidth);
 			
-			//Export size for LaTex
-			Component[] LaTexExportSizeGroup = new Component[6];
-			LaTexExportSizeGroup[0] = LaTexSizeLabel;
-			if (LaTexExportSizeGroup[0].isVisible()) {LaTexExportSizeGroup[0].setBounds(insets.left, insets.top, 200, componentHeight);}
-			LaTexExportSizeGroup[1] = LaTexWidthField;
-			if (LaTexExportSizeGroup[1].isVisible()) {LaTexExportSizeGroup[1].setBounds(insets.left + 4, insets.top + 30, 60, componentHeight);}
-			LaTexExportSizeGroup[2] = LaTexTimesSymbol;
-			if (LaTexExportSizeGroup[2].isVisible()) {LaTexExportSizeGroup[2].setBounds(insets.left + 74, insets.top + 30, 20, componentHeight);}
-			LaTexExportSizeGroup[3] = LaTexHeightField;
-			if (LaTexExportSizeGroup[3].isVisible()) {LaTexExportSizeGroup[3].setBounds(insets.left + 94, insets.top + 30, 60, componentHeight);}
-			LaTexExportSizeGroup[4] = exportFontSizeLabel;
-			if (LaTexExportSizeGroup[4].isVisible()) {LaTexExportSizeGroup[4].setBounds(insets.left + 4, insets.top + 62, 142, componentHeight);}
-			LaTexExportSizeGroup[5] = exportFontSize;
-			if (LaTexExportSizeGroup[5].isVisible()) {LaTexExportSizeGroup[5].setBounds(insets.left + 155, insets.top + 62, 50, componentHeight);}
+			ArrayList<Component> applyButtonGroup = new ArrayList<Component>();
+			applyButtonGroup.add(applyCloseButton);
+			applyButtonGroup.add(applyButton);
+			applyButtonGroup.add(defaultsButton);
+			
+			//Tick Marks and Labeling
+			setElementBoundsIfVisible(xAxisTickMarksSectionLabel, insets, 4, 0, 100);
+			setElementBoundsIfVisible(xShowTicksCheckBox, insets, 0, 21, 200);
+			setElementBoundsIfVisible(xNumberOfTicksLabel, insets, 4, 51, 120);
+			setElementBoundsIfVisible(xNumberOfTicksField, insets, 129, 51, 60);
+			setElementBoundsIfVisible(xShowTicksNumberLabelsCheckBox, insets, 0, 81, 200);
+			setElementBoundsIfVisible(xAxisDecimalPlacesLabel, insets, 4, 111, 125);
+			setElementBoundsIfVisible(xAxisDecimalPlacesField, insets, 129, 111, 60);
+			setElementBoundsIfVisible(yAxisTickMarksSectionLabel, insets, 4, 136, 100);
+			setElementBoundsIfVisible(yShowTicksCheckBox, insets, 0, 157, 200);
+			setElementBoundsIfVisible(yNumberOfTicksLabel, insets, 4, 187, 120);
+			setElementBoundsIfVisible(yNumberOfTicksField, insets, 129, 187, 60);
+			setElementBoundsIfVisible(yShowTicksNumberLabelsCheckBox, insets, 0, 217, 200);
+			setElementBoundsIfVisible(yAxisDecimalPlacesLabel, insets, 4, 247, 125);
+			setElementBoundsIfVisible(yAxisDecimalPlacesField, insets, 129, 247, 60);
+
+			ArrayList<Component> tickMarkAndLabelGroup = new ArrayList<Component>();
+			tickMarkAndLabelGroup.add(xAxisTickMarksSectionLabel);
+			tickMarkAndLabelGroup.add(xShowTicksCheckBox);
+			tickMarkAndLabelGroup.add(xNumberOfTicksLabel);
+			tickMarkAndLabelGroup.add(xNumberOfTicksField);
+			tickMarkAndLabelGroup.add(xShowTicksNumberLabelsCheckBox);
+			tickMarkAndLabelGroup.add(xAxisDecimalPlacesLabel);
+			tickMarkAndLabelGroup.add(xAxisDecimalPlacesField);
+			tickMarkAndLabelGroup.add(yAxisTickMarksSectionLabel);
+			tickMarkAndLabelGroup.add(yShowTicksCheckBox);
+			tickMarkAndLabelGroup.add(yNumberOfTicksLabel);
+			tickMarkAndLabelGroup.add(yNumberOfTicksField);
+			tickMarkAndLabelGroup.add(yShowTicksNumberLabelsCheckBox);
+			tickMarkAndLabelGroup.add(yAxisDecimalPlacesLabel);
+			tickMarkAndLabelGroup.add(yAxisDecimalPlacesField);
 			
 			//Where the results are displayed on the graph
-			Component[] resultOnGraphGroup = new Component[5];
-			resultOnGraphGroup[0] = displayResultsOnGraphCheckBox;
-			if (resultOnGraphGroup[0].isVisible()) {resultOnGraphGroup[0].setBounds(insets.left, insets.top, 250, componentHeight);}
-			resultOnGraphGroup[1] = xResultsLocationLabel;
-			if (resultOnGraphGroup[1].isVisible()) {resultOnGraphGroup[1].setBounds(insets.left + 4, insets.top + 30, 142, componentHeight);}
-			resultOnGraphGroup[2] = xResultsLocationField;
-			if (resultOnGraphGroup[2].isVisible()) {resultOnGraphGroup[2].setBounds(insets.left + 145, insets.top + 30, 60, componentHeight);}
-			resultOnGraphGroup[3] = yResultsLocationLabel;
-			if (resultOnGraphGroup[3].isVisible()) {resultOnGraphGroup[3].setBounds(insets.left + 4, insets.top + 62, 142, componentHeight);}
-			resultOnGraphGroup[4] = yResultsLocationField;
-			if (resultOnGraphGroup[4].isVisible()) {resultOnGraphGroup[4].setBounds(insets.left + 145, insets.top + 62, 60, componentHeight);}
-
-			//How many places to round the answers to
-			Component[] resultDecGroup = new Component[3];
-			resultDecGroup[0] = decimalsInResultsLabel;
-			if (resultDecGroup[0].isVisible()) {resultDecGroup[0].setBounds(insets.left + 4, insets.top, 142, componentHeight);}
-			resultDecGroup[1] = decimalsInResultsField;
-			if (resultDecGroup[1].isVisible()) {resultDecGroup[1].setBounds(insets.left + 145, insets.top, 60, componentHeight);}
-			resultDecGroup[2] = useScientificNotationInResultsCheckBox;
-			if (resultDecGroup[2].isVisible()) {resultDecGroup[2].setBounds(insets.left, insets.top + 30, 220, componentHeight);}
-
-			//allows to select fitting alorithm
-			Component[] algorithmGroup = new Component[2];
-			algorithmGroup[0] = fitAlgorithmLabel;
-			if (algorithmGroup[0].isVisible()) {algorithmGroup[0].setBounds(insets.left + 4, insets.top, 200, componentHeight);}
-			algorithmGroup[1] = fitAlgorithmFactoryComboBox;
-			if (algorithmGroup[1].isVisible()) {algorithmGroup[1].setBounds(insets.left + 4, insets.top + 32, 200, componentHeight);}
+			setElementBoundsIfVisible(displayResultsOnGraphCheckBox, insets, 0, 0, 250);
+			setElementBoundsIfVisible(xResultsLocationLabel, insets, 4, 30, 142);
+			setElementBoundsIfVisible(xResultsLocationField, insets, 145, 30, 60);
+			setElementBoundsIfVisible(yResultsLocationLabel, insets, 4, 62, 142);
+			setElementBoundsIfVisible(yResultsLocationField, insets, 145, 62, 60);
 			
-			//Fixes the slope or the intercept or none
-			Component[] fixedGroup = new Component[8];
-			fixedGroup[0] = whatIsFixedGroupLabel;
-			if (fixedGroup[0].isVisible()) {fixedGroup[0].setBounds(insets.left + 4, insets.top, 200, componentHeight);}
-			fixedGroup[1] = whichGraphSetLabel;
-			if (fixedGroup[1].isVisible()) {fixedGroup[1].setBounds(insets.left + 4, insets.top + 32, 100, componentHeight);}
-			fixedGroup[2] = whichGraphSetComboBox;
-			if (fixedGroup[2].isVisible()) {fixedGroup[2].setBounds(insets.left + 88, insets.top + 32, 120, componentHeight);}
-			fixedGroup[3] = noneFixedRadio;
-			if (fixedGroup[3].isVisible()) {fixedGroup[3].setBounds(insets.left, insets.top + 64, 64, componentHeight);}
-			fixedGroup[4] = slopeFixedRadio;
-			if (fixedGroup[4].isVisible()) {fixedGroup[4].setBounds(insets.left + 60, insets.top + 64, 68, componentHeight);}
-			fixedGroup[5] = interceptFixedRadio;
-			if (fixedGroup[5].isVisible()) {fixedGroup[5].setBounds(insets.left + 124, insets.top + 64, 90, componentHeight);}
-			fixedGroup[6] = fixedValueLabel; 
-			if (fixedGroup[6].isVisible()) {fixedGroup[6].setBounds(insets.left + 4, insets.top + 92, 80, componentHeight);}
-			fixedGroup[7] = fixedValueField;
-			if (fixedGroup[7].isVisible()) {fixedGroup[7].setBounds(insets.left + 88, insets.top + 92, 120, componentHeight);}
+			ArrayList<Component> resultOnGraphGroup = new ArrayList<Component>();
+			resultOnGraphGroup.add(displayResultsOnGraphCheckBox);
+			resultOnGraphGroup.add(xResultsLocationLabel);
+			resultOnGraphGroup.add(xResultsLocationField);
+			resultOnGraphGroup.add(yResultsLocationLabel);
+			resultOnGraphGroup.add(yResultsLocationField);
+			
+			//How many places to round the answers to
+			setElementBoundsIfVisible(decimalsInResultsLabel, insets, 4, 0, 142);
+			setElementBoundsIfVisible(decimalsInResultsField, insets, 145, 0, 60);
+			setElementBoundsIfVisible(useScientificNotationInResultsCheckBox, insets, 0, 30, 220);
+			
+			ArrayList<Component> resultDecGroup = new ArrayList<Component>();
+			resultDecGroup.add(decimalsInResultsLabel);
+			resultDecGroup.add(decimalsInResultsField);
+			resultDecGroup.add(useScientificNotationInResultsCheckBox);
+			
+			//allows to select fitting algorithm
+			setElementBoundsIfVisible(fitAlgorithmLabel, insets, 4, 0, 200);
+			setElementBoundsIfVisible(fitAlgorithmFactoryComboBox, insets, 4, 32, 200);
+			
+			ArrayList<Component> algorithmGroup = new ArrayList<Component>();
+			algorithmGroup.add(fitAlgorithmLabel);
+			algorithmGroup.add(fitAlgorithmFactoryComboBox);
 
+			//Fixes the slope or the intercept or none
+			setElementBoundsIfVisible(whatIsFixedGroupLabel, insets, 4, 0, 200);
+			setElementBoundsIfVisible(whichGraphSetLabel, insets, 4, 32, 100);
+			setElementBoundsIfVisible(whichGraphSetComboBox, insets, 88, 32, 120);
+			setElementBoundsIfVisible(noneFixedRadio, insets, 0, 64, 64);
+			setElementBoundsIfVisible(slopeFixedRadio, insets, 60, 64, 68);
+			setElementBoundsIfVisible(interceptFixedRadio, insets, 124, 64, 90);
+			setElementBoundsIfVisible(fixedValueLabel, insets, 4, 92, 80);
+			setElementBoundsIfVisible(fixedValueField, insets, 88, 92, 120);
+			
+			ArrayList<Component> fixedGroup = new ArrayList<Component>();
+			fixedGroup.add(whatIsFixedGroupLabel);
+			fixedGroup.add(whichGraphSetLabel);
+			fixedGroup.add(whichGraphSetComboBox);
+			fixedGroup.add(noneFixedRadio);
+			fixedGroup.add(slopeFixedRadio);
+			fixedGroup.add(interceptFixedRadio);
+			fixedGroup.add(fixedValueLabel);
+			fixedGroup.add(fixedValueField);
+			
 			// X errors only and Y errors only
-			Component[] errorsGroup = new Component[1];
-			errorsGroup[0] = xErrorsOnlyCheckBox;
-			if (errorsGroup[0].isVisible()) {errorsGroup[0].setBounds(insets.left, insets.top, 150, componentHeight);}
-		
+			setElementBoundsIfVisible(xErrorsOnlyCheckBox, insets, 0, 0, 150);
+			
+			ArrayList<Component> errorsGroup = new ArrayList<Component>();
+			errorsGroup.add(xErrorsOnlyCheckBox);
+
 			//Positions each group on the frame
-			positionGroup(titleAxesGroup,24,5);
-			positionGroup(maxMinGroup,24,159);
-			positionGroup(customPowersGroup,20,320);	
-			positionGroup(applyButtonGroup,20,462);	
-			positionGroup(tickMarkAndLabelGroup,260,5);
-			positionGroup(resultOnGraphGroup,260,295);
-			positionGroup(resultDecGroup,260,395);
-			positionGroup(PDFSizeGroup,484,5);	
-			positionGroup(LaTexExportSizeGroup, 484, 70);
-			positionGroup(algorithmGroup,480,180);	
-			positionGroup(fixedGroup,480,255);
-			positionGroup(errorsGroup,480,420);
+			shiftElementGroup(titleAxesGroup, 24, 5);
+			shiftElementGroup(maxMinGroup, 24, 159);
+			shiftElementGroup(customPowersGroup, 20, 320);	
+			shiftElementGroup(applyButtonGroup, 20, 462);	
+			shiftElementGroup(tickMarkAndLabelGroup, 260, 5);
+			shiftElementGroup(resultOnGraphGroup, 260, 295);
+			shiftElementGroup(resultDecGroup, 260, 395);
+			shiftElementGroup(ioHandler.exportIO.positionOptionsGuiElements(insets), 484, 5);	
+			shiftElementGroup(algorithmGroup, 480, 180);	
+			shiftElementGroup(fixedGroup, 480, 255);
+			shiftElementGroup(errorsGroup, 480, 420);
 		}
 	}
 }

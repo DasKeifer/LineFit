@@ -491,7 +491,7 @@ public class GraphArea extends JPanel
 	}
 	
 	/** Calculates and places the correct values in the spacing variables in order to space them correctly base on how big the font is
-	 * @param fontSize The size of the fon to be drawn on the graph to find the correct spacing for
+	 * @param fontSize The size of the font to be drawn on the graph to find the correct spacing for
 	 * @param spaceForCursorLocation Whether or not to calculate leaving space for the cursor location to be drawn at the top on the GraphArea
 	 */
 	void calculatePaddingForGraphArea(double fontSize, boolean spaceForCursorLocation)
@@ -571,7 +571,7 @@ public class GraphArea extends JPanel
 		currentFontMeasurements = graphGraphics.getFontMetrics();
 
 		//populate the padding variables with the correct sizes
-		//have to do this so that we dont draw the Jpanel with different sized font when we change the export Font size
+		//have to do this so that we don't draw the Jpanel with different sized font when we change the export Font size
 		double fontSize = graphGraphics.getFont().getSize();
 		calculatePaddingForGraphArea(fontSize, leaveSpaceForCursorLocation);
 

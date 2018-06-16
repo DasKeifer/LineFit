@@ -1,11 +1,15 @@
 package linefit.IO;
 
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
+import java.awt.Insets;
 import java.awt.Polygon;
+import java.awt.event.FocusListener;
 import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -17,7 +21,11 @@ import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JSpinner;
+import javax.swing.JTextField;
+import javax.swing.SpinnerNumberModel;
 
 import com.itextpdf.awt.PdfGraphics2D;
 import com.itextpdf.text.Document;
@@ -26,12 +34,16 @@ import com.itextpdf.text.pdf.PdfWriter;
 
 import linefit.DataSet;
 import linefit.GraphArea;
+import linefit.OnlyAllowNumbersListener;
 import linefit.GraphArea.GraphAxesPowers;
 import linefit.GraphArea.GraphAxesRanges;
 import linefit.GraphArea.GraphMetaData;
 import linefit.GraphArea.ResultsDisplayData;
+import linefit.HasOptionsGuiElements;
 import linefit.ScientificNotation;
+import linefit.TabsFocusTraversalPolicy;
 import linefit.FitAlgorithms.FitType;
+import linefit.GraphOptionsMenu;
 
 /**
  * This class Handles all of the IO functionality of LineFit. This is a static class and keeps track of the export and save variables
@@ -44,7 +56,7 @@ import linefit.FitAlgorithms.FitType;
  * @version	1.0
  * @since 	1.0
  */
-public class ExportIO 
+public class ExportIO implements HasOptionsGuiElements
 {	
 	/** The LineFit instance that this ExportIO is linked to */
 	private JFrame toCenterOn;
@@ -57,21 +69,47 @@ public class ExportIO
 	/** The default height in inches when exporting to a PDF image */
 	public final static double DEFAULT_PDF_HEIGHT = 8.5;
 	/** The width of the PDF image when exported */
-	public double pdfPageWidth = DEFAULT_PDF_WIDTH;
+	private double pdfPageWidth = DEFAULT_PDF_WIDTH;
 	/** The height of the PDF image when exported */
-	public double pdfPageHeight = DEFAULT_PDF_HEIGHT;
+	private double pdfPageHeight = DEFAULT_PDF_HEIGHT;
 	
 	/** The LaTex Export spacing in cm of */
 	public final static double LATEX_EXPORT_SPACING_IN_CM = 0.35;
 
 	//Exporting Variables
 	/** The desired width of the graph when it is exported to LaTex */
-	public double laTexGraphWidthInCm = 15;
+	private double laTexGraphWidthInCm = 15;
 	/** The desired height of the graph when it is exported to LaTex */
-	public double laTexGraphHeightInCm = 15;
+	private double laTexGraphHeightInCm = 15;
 	
 	/** Allows the user to change the font size on any exported image of the graph */
-	public float exportFontSize = 12;
+	private float exportFontSize = 12;
+	
+
+    //Variables for displaying export options in options panel
+    //PDF sizing variables
+    /** The label for the PDF export size TextFields */
+    private JLabel pdfSizeLabel;
+    /** The label for the multiplication mark between the PDF export size textFields */
+    private JLabel pdfTimesLabel;
+    /** The TextField for the PDF export width in inches */
+    private JTextField pdfWidthField;
+    /** The TextField for the  PDF export height in inches */
+    private JTextField pdfHeightField;
+    
+    //LaTex export option variables
+    /** The label for the The LaTex export size TextFields */
+    private JLabel LaTexSizeLabel;
+    /** The TextField for the LaTex export width in cm */
+    private JTextField LaTexWidthField;
+    /** The label for the LaTex export multiplication sign between the two TextField */
+    private JLabel LaTexTimesSymbol;
+    /** The TextField for the LaTex export height in cm */
+    private JTextField LaTexHeightField;
+    /** The label for the export font size to use */
+    private JLabel exportFontSizeLabel;
+    /** The Spinner that allows the user to change the export font size with */
+    private JSpinner exportFontSizeSpinner;
 
 	public ExportIO(GeneralIO parentIO, JFrame frameToCenterOn, GraphArea graphToExport)
 	{
@@ -120,7 +158,115 @@ public class ExportIO
 		variableValues.add(Float.toString(exportFontSize));
 	}
 	
-	//For tick marks and PDF dimensions
+	public void resetOptionsGuiElementsToDefaultValues()
+	{
+		pdfWidthField.setText("8.50");
+		pdfHeightField.setText("8.50");
+
+		LaTexWidthField.setText("15.0");
+		LaTexHeightField.setText("15.0");
+		exportFontSizeSpinner.setValue(12.0);
+	}
+    
+	public void createOptionsGuiElements(Container contentPane)
+	{
+		FocusListener onlyNumbers = new OnlyAllowNumbersListener();
+		
+		pdfSizeLabel = new JLabel("PDF Export Size (in inches)");
+		pdfSizeLabel.setFont(new Font("Verdana", Font.BOLD, 12));
+		contentPane.add(pdfSizeLabel);
+		pdfWidthField = new JTextField("");
+		pdfWidthField.setText("" + pdfPageWidth);
+		contentPane.add(pdfWidthField);
+		pdfWidthField.addFocusListener(onlyNumbers);
+		pdfTimesLabel = new JLabel("x");
+		pdfTimesLabel.setFont(new Font("Verdana", Font.BOLD, 12));
+		contentPane.add(pdfTimesLabel);
+		pdfHeightField = new JTextField("");
+		pdfHeightField.setText("" + pdfPageHeight);
+		contentPane.add(pdfHeightField);
+		pdfHeightField.addFocusListener(onlyNumbers);
+		
+	    LaTexSizeLabel = new JLabel("LaTex Export Size (in cm)");
+	    LaTexSizeLabel.setFont(new Font("Verdana", Font.BOLD, 12));
+	    contentPane.add(LaTexSizeLabel);
+	    LaTexWidthField = new JTextField();
+	    LaTexWidthField.setText("" + laTexGraphWidthInCm);
+	    contentPane.add(LaTexWidthField);
+	    LaTexWidthField.addFocusListener(onlyNumbers);
+		LaTexTimesSymbol = new JLabel("x");
+		LaTexTimesSymbol.setFont(new Font("Verdana", Font.BOLD, 12));
+		contentPane.add(LaTexTimesSymbol);
+		LaTexHeightField = new JTextField();
+	    LaTexHeightField.setText("" + laTexGraphHeightInCm);
+	    contentPane.add(LaTexHeightField);
+		LaTexHeightField.addFocusListener(onlyNumbers);
+		exportFontSizeLabel = new JLabel("Exporting Font Size");		
+		contentPane.add(exportFontSizeLabel);
+		SpinnerNumberModel laTexSpinnerModel = new SpinnerNumberModel(exportFontSize, 4.0, 32.0, 0.5);
+		exportFontSizeSpinner = new JSpinner(laTexSpinnerModel);
+		JSpinner.NumberEditor numberEditor = new JSpinner.NumberEditor(exportFontSizeSpinner, "0.0");
+		exportFontSizeSpinner.setEditor(numberEditor);
+		contentPane.add(exportFontSizeSpinner);
+	}
+
+	public ArrayList<Component> positionOptionsGuiElements(Insets insets)
+	{
+		// PDF Sizes
+		GraphOptionsMenu.setElementBoundsIfVisible(pdfSizeLabel, insets, 0, 0, 208);
+		GraphOptionsMenu.setElementBoundsIfVisible(pdfWidthField, insets, 0, 35, 60);
+		GraphOptionsMenu.setElementBoundsIfVisible(pdfTimesLabel, insets, 70, 35, 20);
+		GraphOptionsMenu.setElementBoundsIfVisible(pdfHeightField, insets, 89, 35, 60);
+		
+		ArrayList<Component> elementsGroup = new ArrayList<Component>();
+		elementsGroup.add(pdfSizeLabel);
+		elementsGroup.add(pdfWidthField);
+		elementsGroup.add(pdfTimesLabel);
+		elementsGroup.add(pdfHeightField);
+		
+		//Export sizes for LaTex
+		GraphOptionsMenu.setElementBoundsIfVisible(LaTexSizeLabel, insets, 0, 0, 200);
+		GraphOptionsMenu.setElementBoundsIfVisible(LaTexWidthField, insets, 4, 30, 60);
+		GraphOptionsMenu.setElementBoundsIfVisible(LaTexTimesSymbol, insets, 74, 30, 20);
+		GraphOptionsMenu.setElementBoundsIfVisible(LaTexHeightField, insets, 94, 30, 60);
+		GraphOptionsMenu.setElementBoundsIfVisible(exportFontSizeLabel, insets, 4, 62, 142);
+		GraphOptionsMenu.setElementBoundsIfVisible(exportFontSizeSpinner, insets, 155, 62, 50);
+
+		ArrayList<Component> LaTexExportSizeGroup = new ArrayList<Component>();
+		LaTexExportSizeGroup.add(LaTexSizeLabel);
+		LaTexExportSizeGroup.add(LaTexWidthField);
+		LaTexExportSizeGroup.add(LaTexTimesSymbol);
+		LaTexExportSizeGroup.add(LaTexHeightField);
+		LaTexExportSizeGroup.add(exportFontSizeLabel);
+		LaTexExportSizeGroup.add(exportFontSizeSpinner);
+		
+		GraphOptionsMenu.shiftElementGroup(LaTexExportSizeGroup, 0, 65);
+		elementsGroup.addAll(LaTexExportSizeGroup);
+		
+		return elementsGroup;
+	}
+	
+	public void addOptionsGuiElementsToTabs(TabsFocusTraversalPolicy policy)
+	{
+		policy.addComponentToTabsList(pdfWidthField);
+    	policy.addComponentToTabsList(pdfHeightField);
+    	policy.addComponentToTabsList(LaTexWidthField);
+    	policy.addComponentToTabsList(LaTexHeightField);
+    	policy.addComponentToTabsList(exportFontSizeSpinner);
+	}
+
+	public void applyValuesInOptionsGuiElements()
+	{
+		pdfPageWidth = Double.parseDouble(pdfWidthField.getText());
+		pdfPageHeight = Double.parseDouble(pdfHeightField.getText());
+		//TODO: remove or explain this
+		pdfWidthField.setText("" + pdfPageWidth);
+		pdfHeightField.setText("" + pdfPageHeight);
+		
+		laTexGraphWidthInCm = Double.parseDouble(LaTexWidthField.getText());
+		laTexGraphHeightInCm = Double.parseDouble(LaTexHeightField.getText());	
+		exportFontSize = ((Double) exportFontSizeSpinner.getValue()).floatValue();
+	}
 	
 	/** Creates the linefit.sty file for the user to use for LaTex exports 
 	 * @param destinationFolderPath The File path to create the .sty file at. This must contain the ending "\\" to denote a folder

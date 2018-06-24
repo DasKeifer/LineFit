@@ -39,7 +39,7 @@ import linefit.GraphArea.GraphAxesPowers;
 import linefit.GraphArea.GraphAxesRanges;
 import linefit.GraphArea.GraphMetaData;
 import linefit.GraphArea.ResultsDisplayData;
-import linefit.HasOptionsGuiElements;
+import linefit.HasOptionsToDisplay;
 import linefit.ScientificNotation;
 import linefit.TabsFocusTraversalPolicy;
 import linefit.FitAlgorithms.FitType;
@@ -54,9 +54,9 @@ import linefit.GraphOptionsMenu;
  * 
  * @author	Das Keifer
  * @version	1.0
- * @since 	1.0
+ * @since 	0.99.0
  */
-public class ExportIO implements HasOptionsGuiElements
+public class ExportIO implements HasOptionsToSave, HasOptionsToDisplay
 {	
 	/** The LineFit instance that this ExportIO is linked to */
 	private JFrame toCenterOn;
@@ -64,6 +64,7 @@ public class ExportIO implements HasOptionsGuiElements
 	private GeneralIO generalIO;
 	
 	//PDF display and exporting variables
+	private static int INCH_TO_PIXELS = 72;
 	/** The default width in inches when exporting to a PDF image */
 	public final static double DEFAULT_PDF_WIDTH = 8.5;
 	/** The default height in inches when exporting to a PDF image */
@@ -118,7 +119,7 @@ public class ExportIO implements HasOptionsGuiElements
 		graphingArea = graphToExport;
 	}
 
-	boolean readInSetting(String lineRead)
+	public boolean readInOption(String lineRead)
 	{
 		//split the input into the two parts
 		//we can't use split because it will mess up on names
@@ -148,7 +149,7 @@ public class ExportIO implements HasOptionsGuiElements
 		return found;
 	}
 	
-	void retrieveAllSettings(ArrayList<String> variableNames, ArrayList<String> variableValues)
+	public void retrieveAllOptions(ArrayList<String> variableNames, ArrayList<String> variableValues)
 	{
 		variableNames.add("PDFPageWidth");
 		variableValues.add(Double.toString(pdfPageWidth));
@@ -271,7 +272,7 @@ public class ExportIO implements HasOptionsGuiElements
 	/** Creates the linefit.sty file for the user to use for LaTex exports 
 	 * @param destinationFolderPath The File path to create the .sty file at. This must contain the ending "\\" to denote a folder
 	 */
-	void createLineFitStyFile(String destinationFolderPath) 
+	public void createLineFitStyFile(String destinationFolderPath) 
 	{
 		generalIO.copyResourceFileToContainingFolder("linefit.sty", destinationFolderPath);
 	}
@@ -391,7 +392,7 @@ public class ExportIO implements HasOptionsGuiElements
 	 * Continues to recursively export to a LaTEx File. This saves the Graph Area and below
 	 * @param output The StringBuilder that is building the output for the LaTex files
 	 */
-	void recursivelyGenerateLaTexExportString(StringBuilder output)
+	private void recursivelyGenerateLaTexExportString(StringBuilder output)
 	{				
 		//if our values are too small than LaTex will handle them poorly so we adjust them so it draws them like they are bigger
 		//and label them so they are small again;
@@ -610,14 +611,6 @@ public class ExportIO implements HasOptionsGuiElements
 								{
 									kStr = "$_{" + (k + 1) + "}$";
 								}
-								//String xPosStr = ScientificNotation.WithNoErrorAndZeroPower(getXLaTexResultsPos());
-//
-//								BufferedImage bufferedImage = new BufferedImage(200, 200, BufferedImage.TYPE_INT_RGB);
-//								Graphics2D graphGraphics = bufferedImage.createGraphics();
-//								Font fontBase = new Font(graphGraphics.getFont().getName(), Font.PLAIN, 12);//12 just because we have to give it some height
-//								Font newFont = fontBase.deriveFont(exportFontSize);
-//								graphGraphics.setFont(newFont);
-//								currentFontMeasurements = graphGraphics.getFontMetrics();
 								
 								double defaultResultsLength = currentFontMeasurements.stringWidth("m = 0.0000");
 								double currentResultsLength = graphingArea.getLongestResultsLength();
@@ -831,17 +824,8 @@ public class ExportIO implements HasOptionsGuiElements
 	/** Converts the given length in inches to pixel length - used to determine the size of PDF when we export it
 	 * @param inchesToConvert The number of inches to convert to equivalent amount of pixels
 	 * @return The number of pixels that are equivalent to the inputed number of inches */
-	public static int inchesToPixels(double inchesToConvert) 
+	private static int inchesToPixels(double inchesToConvert) 
 	{
-		double converter = 72;
-		return (int)(converter * inchesToConvert);
-	}
-	
-	/** Converts the given length in centimeters to pixel length - used to determine the size of PDF when we export it
-	 * @param centimetersToConvert The number of centimeters to convert to equivalent amount of pixels
-	 * @return The number of pixels that are equivalent to the inputed number of centimeters */
-	public static int cmToPixels(double centimetersToConvert)
-	{
-		return inchesToPixels(centimetersToConvert / 2.54);
+		return (int)(INCH_TO_PIXELS * inchesToConvert);
 	}
 }

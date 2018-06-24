@@ -40,7 +40,7 @@ import linefit.IO.*;
  * @version	1.1.0
  * @since 	&lt;0.98.0
  */
-public class LineFit extends JFrame 
+public class LineFit extends JFrame implements HasOptionsToSave
 {
 	/** Main - This is the method that starts up the instance of LineFit. If a File path is inputed in the args,
 	 * it will try to load the file at the specified location on startup
@@ -599,14 +599,14 @@ public class LineFit extends JFrame
 	 * @param importSettings Whether or not to read in the graph settings/options along with the DataSets from the passed BufferedReader containing the input file's data
 	 * @throws IOException throws any IO exceptions to be dealt with at a higher level
 	 */
-	public boolean readInGraphSetting(String line) 
+	public boolean readInOption(String line) 
 	{
-		return graphingArea.readInSetting(line);
+		return graphingArea.readInOption(line);
 	}
 	
-	public boolean readInDataSetLine(String line, boolean newDataSet) 
+	public boolean readInData(String line, boolean newDataSet) 
 	{
-		return graphingArea.readInDataSetLine(line, newDataSet);
+		return graphingArea.readInDataAndDataOptions(line, newDataSet);
 	}
 	
 	public void refreshGraph()
@@ -619,16 +619,16 @@ public class LineFit extends JFrame
 	/** Recursively saves the LineFit file to a text document by calling GraphArea's recursivelySave function which calls the DataSets' recursivelySave function 
 	 * @param outputFormatter The Formatter that is being used to save the LineFit file
 	 */
-	public void retrieveAllGraphSettings(ArrayList<String> variableNames, ArrayList<String> variableValues)
+	public void retrieveAllOptions(ArrayList<String> variableNames, ArrayList<String> variableValues)
 	{
 		//do a recursive save so we don't have to access graph area - it can take care of itself
-		graphingArea.retrieveAllSettings(variableNames, variableValues);
+		graphingArea.retrieveAllOptions(variableNames, variableValues);
 	}
 	
-	public void retrieveAllDataSetVariables(ArrayList<String> variableNames, ArrayList<String> variableValues)
+	public void retrieveAllData(ArrayList<String> variableNames, ArrayList<String> variableValues)
 	{
 		//do a recursive save so we don't have to access graph area - it can take care of itself
-		graphingArea.retrieveAllDataSetVariables(variableNames, variableValues);
+		graphingArea.retrieveAllDataAndDataOptions(variableNames, variableValues);
 	}
 
 	/**

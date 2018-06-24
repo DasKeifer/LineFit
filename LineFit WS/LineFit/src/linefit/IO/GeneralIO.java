@@ -28,7 +28,7 @@ import linefit.IO.CloseDialogException;
  * 
  * @author	Das Keifer
  * @version	1.0
- * @since 	0.98.1
+ * @since 	0.99.0
  */
 public class GeneralIO 
 {
@@ -149,7 +149,7 @@ public class GeneralIO
 	 * @param fileName The name of the resource to copy to the folder that the jar is in
 	 * @param destinationFolderPath The path to put the created resource at. This must contain the ending "\\" to denote a folder
 	 */
-	void copyResourceFileToContainingFolder(String fileName, String destinationFolderPath)
+	public void copyResourceFileToContainingFolder(String fileName, String destinationFolderPath)
 	{
 		File file = new File(destinationFolderPath + fileName);
 		try
@@ -184,7 +184,7 @@ public class GeneralIO
 	 * @return The File that this LineFit's data will be saved to
 	 * @throws CloseDialogException throws this error if the save dialog was closed out of
 	 */
-	File showSaveFileDialog(String extensionToPutOnFile) throws CloseDialogException 
+	public File showSaveFileDialog(String extensionToPutOnFile) throws CloseDialogException 
 	{
 		File fileToOpen; 
 		fileChooser = new JFileChooser(getMostRecentDirectory());
@@ -236,7 +236,7 @@ public class GeneralIO
 	 * @param extensionToPutOnFile The extension to force onto the File
 	 * @return The File with the extension forced on it
 	 */
-	File forceExtension(File fileToForceExtensionOn, String extensionToPutOnFile) 
+	public File forceExtension(File fileToForceExtensionOn, String extensionToPutOnFile) 
 	{
 		if (fileToForceExtensionOn.getName().endsWith(extensionToPutOnFile)) 
 		{
@@ -304,7 +304,7 @@ public class GeneralIO
 	}
 	
 	/** Stores the current directory the user is in for the file chooser so we do not have to navigate from scratch each time */
-	void storeDirectoryOfChooser(JFileChooser chooser) 
+	public void storeDirectoryOfChooser(JFileChooser chooser) 
 	{
 		String currentDirectory = null;
 		try 
@@ -326,7 +326,7 @@ public class GeneralIO
 
 	/** Gets the folder that the user was last in so we can start our file chooser there
 	 * @return A String containing the last used directory's file path */
-	String getMostRecentDirectory() 
+	public String getMostRecentDirectory() 
 	{
 		String mostRecentDirectory;
 		if (storedOSisCurrentOS()) 
@@ -384,7 +384,7 @@ public class GeneralIO
 	 * @param extensionToPutOnFile The extension that the file will be saved with
 	 * @return The file that the user has selected or null if the operation was canceled
 	 */
-	File promptUserToSelectFileForSaving(String extensionToPutOnFile)
+	public File promptUserToSelectFileForSaving(String extensionToPutOnFile)
 	{
 		try
 		{

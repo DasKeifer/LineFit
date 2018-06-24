@@ -15,15 +15,13 @@ import linefit.LineFit;
 import linefit.Version;
 
 /**
- * This class Handles all of the IO functionality of LineFit. This is a static class and keeps track of the export and save variables
- * such as the export size of a PDF file. No functionality that reads directly with IO should be handled elsewhere and any IO errors
- * should be thrown up to this class to handle. The saving and exporting done below this should only be on output Strings or Graphics2D
- * and not directly dealing with the file, only formatting and creating what will be outputted to the file here. The Opening of files
- * has to deal with the reader, but should throw errors.
+ * This class Handles reading and saving LineFit data files so that the rest of the code
+ * does not need to know the precise format of the data file. Each class that has data to
+ * save must provide functionality for retrieving and setting the data.
  * 
  * @author	Das Keifer
  * @version	1.0
- * @since 	1.0
+ * @since 	0.99.0
  */
 public class DataFileIO 
 {
@@ -40,7 +38,7 @@ public class DataFileIO
 	private static final String saveFileExtension = ".txt";
 
 
-	DataFileIO(GeneralIO parentIO, LineFit lineFitToAssociateWith)
+	public DataFileIO(GeneralIO parentIO, LineFit lineFitToAssociateWith)
 	{
 		generalIO = parentIO;
 		lineFit = lineFitToAssociateWith;
@@ -179,12 +177,12 @@ public class DataFileIO
 			            	{
 			            		//first see if it is an export parameter and if it wasn't check
 			            		//if it was a graph setting
-			            		boolean found = generalIO.exportIO.readInSetting(trimmedLine);
+			            		boolean found = generalIO.exportIO.readInOption(trimmedLine);
 			            		
 			            		//if it wasn't an export setting try loading it as a graph setting
 			            		if (!found)
 			            		{
-			            			found = lineFit.readInGraphSetting(trimmedLine);
+			            			found = lineFit.readInOption(trimmedLine);
 			            		}
 			            		
 			            		//if it wasn't either then print a warning and continue - it may 
@@ -203,7 +201,7 @@ public class DataFileIO
 			            	
 			            	//if we didn't find it as valid setting give a warning an continue -
 			            	//it may just be a currently unsupported setting
-			            	if(!lineFit.readInDataSetLine(trimmedLine, newDataSet))
+			            	if(!lineFit.readInData(trimmedLine, newDataSet))
 			            	{
 			            		System.err.println("Error reading in DataSet - Continuing: " + lineRead);
 			            	}
@@ -347,7 +345,7 @@ public class DataFileIO
 		//get and save all the graph settings data
 		ArrayList<String> lineNames = new ArrayList<String>();
 		ArrayList<String> lineValues = new ArrayList<String>();
-		lineFit.retrieveAllGraphSettings(lineNames, lineValues);
+		lineFit.retrieveAllOptions(lineNames, lineValues);
 		for(int i = 0; i < lineNames.size(); i++)
 		{
 			output.format("# %s %s%s", lineNames.get(i), lineValues.get(i), System.getProperty("line.separator"));
@@ -358,7 +356,7 @@ public class DataFileIO
 		output.format(System.getProperty("line.separator"));
 		lineNames.clear();
 		lineValues.clear();
-		generalIO.exportIO.retrieveAllSettings(lineNames, lineValues);
+		generalIO.exportIO.retrieveAllOptions(lineNames, lineValues);
 		for(int i = 0; i < lineNames.size(); i++)
 		{
 			output.format("# %s %s%s", lineNames.get(i), lineValues.get(i), System.getProperty("line.separator"));
@@ -367,7 +365,7 @@ public class DataFileIO
 		//get and save all the datasets variables
 		lineNames.clear();
 		lineValues.clear();
-		lineFit.retrieveAllDataSetVariables(lineNames, lineValues);
+		lineFit.retrieveAllData(lineNames, lineValues);
 		for(int i = 0; i < lineNames.size(); i++)
 		{
 			//use the graph level line starter for new datasets and add a empty line for ease of readability

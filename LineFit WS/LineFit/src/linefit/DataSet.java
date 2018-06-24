@@ -29,6 +29,7 @@ import javax.swing.event.*;
 import linefit.FitAlgorithms.FixedVariable;
 import linefit.FitAlgorithms.LinearFitStrategy;
 import linefit.IO.ChangeTracker;
+import linefit.IO.HasDataToSave;
 import linefit.FitAlgorithms.FitType;
 
 /**
@@ -41,7 +42,7 @@ import linefit.FitAlgorithms.FitType;
  * @version	1.0
  * @since 	&lt;0.98.0
  */
-public class DataSet extends JScrollPane 
+public class DataSet extends JScrollPane implements HasDataToSave
 {
 	/** The Serial Version UID so that we know what version it is when we are using it.
 	 * See http://docs.oracle.com/javase/7/docs/api/java/io/Serializable.html for full 
@@ -759,7 +760,7 @@ public class DataSet extends JScrollPane
 		return customColorMenu;
 	}
 	
-	boolean readInLine(String line)
+	public boolean readInDataAndDataOptions(String line, boolean unused)
 	{
 		//now split the input into the two parts
 		//we can't use split because it will mess up on names as well as points since they have multiple spaces
@@ -927,7 +928,7 @@ public class DataSet extends JScrollPane
 	/** Recursively saves this DataSet's data into the Formatter file. 
 	 * Note: This should not be used independently of the other recursive save functions! 
 	 * @param output The formatter that is being used to write the file */
-	void retrieveAllData(ArrayList<String> variableNames, ArrayList<String> variableValues)
+	public void retrieveAllDataAndDataOptions(ArrayList<String> variableNames, ArrayList<String> variableValues)
 	{
 		if(dataTableModel.hasData())
 		{

@@ -17,8 +17,9 @@ along with this program.  If not, see http://www.gnu.org/licenses/.
 package linefit.IO;
 
 /**
- * a class that keeps track of whether or not the current graph information has been saved
- * it is dirty when changes have been made after the last time it was saved (unsaved changes)
+ * A class that keeps track of whether or not the file has been modified in such a
+ * way that the save file would be different then when it was last saved (i.e. are
+ * there unsaved changes)
  * 
  * @author	Don Petcher
  * @version	1.0
@@ -26,31 +27,27 @@ package linefit.IO;
  */
 public class ChangeTracker 
 {	
-	/**The boolean that keeps track of whether or not all the changes have been saved&#46; 
-	 * Dirty means that there are unsaved changes */
+	/** The boolean that keeps track of whether or not all the changes have been saved */
 	private boolean modifiedBit = false;
 	
-	/**
-	 * Sets the dirty bit to dirty, meaning that there are unsaved changes
-	 */
+	/** Tells the tracker that the file has been modified such that the saved file no 
+	 * longer matches what is displayed/set */
 	public void setFileModified() 
 	{
 		modifiedBit = true;
 	}
 	
-	/**
-	 * Sets the dirty bit to clean, meaning that all changes have been saved
-	 */
-	void clearFileModified() 
+	/** Tells the tracker to disregard any previous modifications which is generally only
+	 * done when the file is saved */
+	public void clearFileModified() 
 	{
 		modifiedBit = false;
 	}
 	
-	/**
-	 * Returns whether or not LineFit is "dirty" meaning there are unsaved changes
-	 * @return Whether or not LineFit is "dirty". True means that there are unsaved changes that have been detected
+	/** Returns whether or not the file has unsaved changes
+	 * @return True means that there are unsaved changes
 	 */
-	boolean unsavedModifications()
+	public boolean unsavedModifications()
 	{
 		return modifiedBit;
 	}

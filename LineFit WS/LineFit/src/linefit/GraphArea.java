@@ -10,6 +10,8 @@ import javax.swing.*;
 import linefit.FitAlgorithms.FitType;
 import linefit.FitAlgorithms.LinearFitFactory;
 import linefit.IO.ChangeTracker;
+import linefit.IO.HasDataToSave;
+import linefit.IO.HasOptionsToSave;
 
 /**
  * The main interface of LineFit. This class is responsible for drawing and calculating the graph as well 
@@ -19,7 +21,7 @@ import linefit.IO.ChangeTracker;
  * @version	1.1.0
  * @since 	&lt;0.98.0
  */
-public class GraphArea extends JPanel 
+public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
 {
 	/** The current serial version UID that changes when the interface of the class is changed */
 	private final static long serialVersionUID = 42;
@@ -920,7 +922,7 @@ public class GraphArea extends JPanel
 		calculateAxesMinimumAndMaximumValues();
 	}
 	
-	boolean readInDataSetLine(String line, boolean newDataSet)
+	public boolean readInDataAndDataOptions(String line, boolean newDataSet)
 	{
 		//if this is a new dataset then see if the last one is a blank one
 		//and if it isn't then add one
@@ -930,7 +932,7 @@ public class GraphArea extends JPanel
 			DataSet readDataSet = new DataSet(this, changeTracker);
 			
 			//attempt to read in the setting and add it if it was successfully read
-			if (readDataSet.readInLine(line))
+			if (readDataSet.readInDataAndDataOptions(line, newDataSet))
 			{
 				//now add it to the drop down
 				registerDataSet(readDataSet);
@@ -945,7 +947,8 @@ public class GraphArea extends JPanel
 		else
 		{
 			//now actually process the line in the dataset
-			return this.dataSetSelector.getItemAt(dataSetSelector.getItemCount() - 2).readInLine(line);
+			return this.dataSetSelector.getItemAt(dataSetSelector.getItemCount() - 2)
+					.readInDataAndDataOptions(line, newDataSet);
 		}
 	}
 
@@ -953,7 +956,7 @@ public class GraphArea extends JPanel
 	 * Reads in the graph settings from the passed String and stores it in its proper value
 	 * @param lineRead The String that contains the line of data which contains a particular graph setting and its value
 	 */
-	boolean readInSetting(String lineRead) 
+	public boolean readInOption(String lineRead) 
 	{		
 		//split the input into the two parts
 		//we can't use split because it will mess up on names
@@ -1012,7 +1015,7 @@ public class GraphArea extends JPanel
 	 * Note: Not to be used independently of LineFit.RecursivelySaveLineFitFile()!
 	 * @param output The Formatter being used to write the file 
 	 * */
-	void retrieveAllSettings(ArrayList<String> variableNames, ArrayList<String> variableValues)
+	public void retrieveAllOptions(ArrayList<String> variableNames, ArrayList<String> variableValues)
 	{
 		variableNames.add("GraphName");
 		variableValues.add(getGraphName());
@@ -1079,7 +1082,7 @@ public class GraphArea extends JPanel
 	}
 	
 
-	void retrieveAllDataSetVariables(ArrayList<String> variableNames, ArrayList<String> variableValues)
+	public void retrieveAllDataAndDataOptions(ArrayList<String> variableNames, ArrayList<String> variableValues)
 	{
 		//pass it on to our datasets
 		for(int i = 0; i < dataSetSelector.getItemCount(); i++)
@@ -1092,7 +1095,7 @@ public class GraphArea extends JPanel
 				variableValues.add(Integer.toString(i + 1));
 				
 				//now add the dataset's data
-				dataSetSelector.getItemAt(i).retrieveAllData(variableNames, variableValues);
+				dataSetSelector.getItemAt(i).retrieveAllDataAndDataOptions(variableNames, variableValues);
 			}
 		}
 	}

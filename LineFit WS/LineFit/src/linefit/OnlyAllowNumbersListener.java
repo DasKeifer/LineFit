@@ -69,8 +69,8 @@ public class OnlyAllowNumbersListener implements FocusListener
         {
             Double.parseDouble(fieldToCheckForNumber.getText());
             // also check for d and f at the end since it will parse it as doubles and floats respectively
-            if (fieldToCheckForNumber.getText().toLowerCase().endsWith("d") ||
-                    fieldToCheckForNumber.getText().toLowerCase().endsWith("f"))
+            if (fieldToCheckForNumber.getText().toLowerCase().endsWith("d") || fieldToCheckForNumber.getText()
+                    .toLowerCase().endsWith("f"))
             {
                 return false;
             }

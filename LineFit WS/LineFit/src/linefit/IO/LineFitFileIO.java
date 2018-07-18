@@ -65,9 +65,9 @@ public class LineFitFileIO
             generalIO.storeDirectoryOfChooser(fileChooser);
             if (fileToOpen != null && !fileToOpen.getName().endsWith(saveFileExtension))
             {
-                int confirm = JOptionPane.showConfirmDialog(lineFit,
-                        "File is not a recognized lineFit " + saveFileExtension + " file. Continue opening?",
-                        "Unsupported File Type", JOptionPane.OK_CANCEL_OPTION);
+                int confirm = JOptionPane.showConfirmDialog(lineFit, "File is not a recognized lineFit " +
+                        saveFileExtension + " file. Continue opening?", "Unsupported File Type",
+                        JOptionPane.OK_CANCEL_OPTION);
                 if (confirm == JOptionPane.OK_OPTION)
                 {
                     return fileToOpen;
@@ -136,8 +136,8 @@ public class LineFitFileIO
                 if (offerChoiceToNotReadInGraphSettings)
                 {
                     int importSettingsRes = JOptionPane.showOptionDialog(lineFit, "Import the graph settings as well?",
-                            "Import", JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE, null,
-                            new Object[] { "Yes", "No" }, "No");
+                            "Import", JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE, null, new Object[] {
+                                    "Yes", "No" }, "No");
 
                     if (importSettingsRes != 0)
                     {
@@ -292,8 +292,8 @@ public class LineFitFileIO
                         int confirm = JOptionPane.showConfirmDialog(lineFit,
                                 "This File was created with a newer LineFit file format protocol." +
                                         " Because of this, data could be missed or read in incorrectly. " +
-                                        "Continue loading data from it?",
-                                "Time Traveling File", JOptionPane.OK_CANCEL_OPTION);
+                                        "Continue loading data from it?", "Time Traveling File",
+                                JOptionPane.OK_CANCEL_OPTION);
                         if (confirm != JOptionPane.OK_OPTION)
                         {
                             // if they don't than close us of and return
@@ -354,11 +354,10 @@ public class LineFitFileIO
                 }
                 else
                 {
-                    JOptionPane.showMessageDialog(lineFit,
-                            "File may not have been saved correctly - Make sure the " +
-                                    "file contains data and if it does not try:\n\n\tSaving the file again " +
-                                    "and if it does not work then try\n\t" +
-                                    "Copying and pasting the data into a new LineFit and saving it",
+                    JOptionPane.showMessageDialog(lineFit, "File may not have been saved correctly - Make sure the " +
+                            "file contains data and if it does not try:\n\n\tSaving the file again " +
+                            "and if it does not work then try\n\t" +
+                            "Copying and pasting the data into a new LineFit and saving it",
                             "Problem Saving LineFit File", JOptionPane.WARNING_MESSAGE);
                 }
             }
@@ -379,8 +378,8 @@ public class LineFitFileIO
     private void outputDataToFile(Formatter output)
     {
         // save the current linefit file version number and then an additional space
-        output.format("FileFormatVersion %s%s%s", Version.LINEFIT_FILE_FORMAT_VERSION,
-                System.getProperty("line.separator"), System.getProperty("line.separator"));
+        output.format("FileFormatVersion %s%s%s", Version.LINEFIT_FILE_FORMAT_VERSION, System.getProperty(
+                "line.separator"), System.getProperty("line.separator"));
 
         // get and save all the graph settings data
         ArrayList<String> lineNames = new ArrayList<String>();

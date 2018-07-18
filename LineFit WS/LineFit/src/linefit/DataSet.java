@@ -836,8 +836,8 @@ public class DataSet extends JScrollPane implements HasDataToSave
                 }
 
                 case "fixedvalue":
-                    linearFitStrategy.setWhatIsFixed(linearFitStrategy.getWhatIsFixed(),
-                            Double.parseDouble(valueForField));
+                    linearFitStrategy.setWhatIsFixed(linearFitStrategy.getWhatIsFixed(), Double.parseDouble(
+                            valueForField));
                     break;
                 case "visible":
                     visibleGraph = valueForField.toLowerCase().equals("true");
@@ -1037,8 +1037,8 @@ public class DataSet extends JScrollPane implements HasDataToSave
      * @return The Chi squared as a double */
     public double getChiSquared()
     {
-        return this.linearFitStrategy.calculateChiSquared(this.linearFitStrategy.getSlope(),
-                this.linearFitStrategy.getIntercept());
+        return this.linearFitStrategy.calculateChiSquared(this.linearFitStrategy.getSlope(), this.linearFitStrategy
+                .getIntercept());
     }
 
     /** Gets the shape this DataSet as a String is using when being draw to the GraphArea

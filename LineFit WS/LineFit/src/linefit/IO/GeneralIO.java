@@ -265,9 +265,8 @@ public class GeneralIO
         String[] dialogOptions = { "Save", "Don't Save", "Cancel" };
         saveBeforeClosingDialogChoice = JOptionPane.showOptionDialog(lineFit,
                 "Do you want to save the changes you made to the graph \"" + lineFit.getGraphName() +
-                        "\"?\nYour changes will be lost if you don\'t save.",
-                "Save changes?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, dialogOptions,
-                dialogOptions[0]);
+                        "\"?\nYour changes will be lost if you don\'t save.", "Save changes?",
+                JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, dialogOptions, dialogOptions[0]);
 
         switch (saveBeforeClosingDialogChoice)
         {

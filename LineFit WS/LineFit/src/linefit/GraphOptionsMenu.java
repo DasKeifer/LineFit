@@ -1,9 +1,14 @@
-/* Copyright (C) 2013 Covenant College Physics Department This program is free software: you can redistribute it and/or
- * modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation,
- * either version 3 of the License, or (at your option) any later version. This program is distributed in the hope that
- * it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
- * PARTICULAR PURPOSE. See the GNU Affero General Public License for more details. You should have received a copy of
- * the GNU Affero General Public License along with this program. If not, see http://www.gnu.org/licenses/. */
+/* Copyright (C) 2013 Covenant College Physics Department
+ * 
+ * This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+ * Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General License along with this program. If not, see
+ * http://www.gnu.org/licenses/. */
 
 package linefit;
 
@@ -375,8 +380,8 @@ public class GraphOptionsMenu extends JFrame
         contentPane.add(xShowTicksCheckBox);
 
         xShowTicksNumberLabelsCheckBox = new JCheckBox("Show Tick Mark Numbers");
-        xShowTicksNumberLabelsCheckBox
-                .setToolTipText("When checked, puts the location labels below the ticks on the X-axis");
+        xShowTicksNumberLabelsCheckBox.setToolTipText(
+                "When checked, puts the location labels below the ticks on the X-axis");
         xShowTicksNumberLabelsCheckBox.setSelected(graphingArea.xAxisHasTickMarkLabels);
         contentPane.add(xShowTicksNumberLabelsCheckBox);
 
@@ -386,8 +391,8 @@ public class GraphOptionsMenu extends JFrame
         contentPane.add(yShowTicksCheckBox);
 
         yShowTicksNumberLabelsCheckBox = new JCheckBox("Show Tick Mark Numbers");
-        yShowTicksNumberLabelsCheckBox
-                .setToolTipText("When checked, puts the location labels below the ticks on the Y-axis");
+        yShowTicksNumberLabelsCheckBox.setToolTipText(
+                "When checked, puts the location labels below the ticks on the Y-axis");
         yShowTicksNumberLabelsCheckBox.setSelected(graphingArea.yAxisHasTickMarkLabels);
         contentPane.add(yShowTicksNumberLabelsCheckBox);
 
@@ -493,10 +498,10 @@ public class GraphOptionsMenu extends JFrame
                                                                                   // dataset option
         {
             whichGraphSetComboBox.addItem(graphingArea.dataSetSelector.getItemAt(i));
-            graphSetsTempWhatFixed[i] =
-                    ((DataSet) graphingArea.dataSetSelector.getItemAt(i)).linearFitStrategy.getWhatIsFixed();
-            graphSetsTempFixedValues[i] =
-                    ((DataSet) graphingArea.dataSetSelector.getItemAt(i)).linearFitStrategy.getFixedValue();
+            graphSetsTempWhatFixed[i] = ((DataSet) graphingArea.dataSetSelector.getItemAt(i)).linearFitStrategy
+                    .getWhatIsFixed();
+            graphSetsTempFixedValues[i] = ((DataSet) graphingArea.dataSetSelector.getItemAt(i)).linearFitStrategy
+                    .getFixedValue();
         }
         whichGraphSetComboBox.setSelectedIndex(currentGraphSetIndex);
         contentPane.add(whichGraphSetComboBox);
@@ -509,8 +514,8 @@ public class GraphOptionsMenu extends JFrame
         slopeFixedRadio = new JRadioButton("Slope", fitData.linearFitStrategy.getWhatIsFixed() == FixedVariable.SLOPE);
         whatIsFixedButtonGroup.add(slopeFixedRadio);
         contentPane.add(slopeFixedRadio);
-        interceptFixedRadio =
-                new JRadioButton("Intercept", fitData.linearFitStrategy.getWhatIsFixed() == FixedVariable.INTERCEPT);
+        interceptFixedRadio = new JRadioButton("Intercept", fitData.linearFitStrategy
+                .getWhatIsFixed() == FixedVariable.INTERCEPT);
         whatIsFixedButtonGroup.add(interceptFixedRadio);
         contentPane.add(interceptFixedRadio);
 
@@ -939,18 +944,18 @@ public class GraphOptionsMenu extends JFrame
             {
                 if (noneFixedRadio.isSelected())
                 {
-                    currentlyProcessingDataSet.linearFitStrategy.setWhatIsFixed(FixedVariable.NONE,
-                            Double.parseDouble(fixedValueField.getText()));
+                    currentlyProcessingDataSet.linearFitStrategy.setWhatIsFixed(FixedVariable.NONE, Double.parseDouble(
+                            fixedValueField.getText()));
                 }
                 else if (slopeFixedRadio.isSelected())
                 {
-                    currentlyProcessingDataSet.linearFitStrategy.setWhatIsFixed(FixedVariable.SLOPE,
-                            Double.parseDouble(fixedValueField.getText()));
+                    currentlyProcessingDataSet.linearFitStrategy.setWhatIsFixed(FixedVariable.SLOPE, Double.parseDouble(
+                            fixedValueField.getText()));
                 }
                 else
                 {
-                    currentlyProcessingDataSet.linearFitStrategy.setWhatIsFixed(FixedVariable.INTERCEPT,
-                            Double.parseDouble(fixedValueField.getText()));
+                    currentlyProcessingDataSet.linearFitStrategy.setWhatIsFixed(FixedVariable.INTERCEPT, Double
+                            .parseDouble(fixedValueField.getText()));
                 }
             }
         }

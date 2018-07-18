@@ -1,3 +1,15 @@
+/* Copyright (C) 2013 Covenant College Physics Department
+ * 
+ * This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+ * Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General License along with this program. If not, see
+ * http://www.gnu.org/licenses/. */
+
 package linefit.IO;
 
 import java.awt.Color;
@@ -452,30 +464,30 @@ public class ExportIO implements HasOptionsToSave, HasOptionsToDisplay
         FontMetrics currentFontMeasurements = graphingArea.GetGraphFontMetrics();
 
         double xAdjForSmall = 0;
-        if (Math.abs(axesRanges.xAxisMaximumValue - axesRanges.xAxisMinimumValue) /
-                Math.pow(10, origAxesPowers.xAxisPower) < 0.1)
+        if (Math.abs(axesRanges.xAxisMaximumValue - axesRanges.xAxisMinimumValue) / Math.pow(10,
+                origAxesPowers.xAxisPower) < 0.1)
         {
             xAdjForSmall = axesRanges.xAxisMinimumValue;
             axesRanges.xAxisMaximumValue -= axesRanges.xAxisMinimumValue;
             axesRanges.xAxisMinimumValue = 0.0;
             axesPowers.xAxisPower = 0;
-            while (Math.abs(axesRanges.xAxisMaximumValue - axesRanges.xAxisMinimumValue) /
-                    Math.pow(10, axesPowers.xAxisPower) < 0.1)
+            while (Math.abs(axesRanges.xAxisMaximumValue - axesRanges.xAxisMinimumValue) / Math.pow(10,
+                    axesPowers.xAxisPower) < 0.1)
             {
                 axesPowers.xAxisPower--;
             }
         }
 
         double yAdjForSmall = 0;
-        if (Math.abs(axesRanges.yAxisMaximumValue - axesRanges.yAxisMinimumValue) /
-                Math.pow(10, origAxesPowers.yAxisPower) < 0.1)
+        if (Math.abs(axesRanges.yAxisMaximumValue - axesRanges.yAxisMinimumValue) / Math.pow(10,
+                origAxesPowers.yAxisPower) < 0.1)
         {
             yAdjForSmall = axesRanges.yAxisMinimumValue;
             axesRanges.yAxisMaximumValue -= axesRanges.yAxisMinimumValue;
             axesRanges.yAxisMinimumValue = 0.0;
             axesPowers.yAxisPower = 0;
-            while (Math.abs(axesRanges.yAxisMaximumValue - axesRanges.yAxisMinimumValue) /
-                    Math.pow(10, axesPowers.yAxisPower) < 0.1)
+            while (Math.abs(axesRanges.yAxisMaximumValue - axesRanges.yAxisMinimumValue) / Math.pow(10,
+                    axesPowers.yAxisPower) < 0.1)
             {
                 axesPowers.yAxisPower--;
             }
@@ -506,11 +518,11 @@ public class ExportIO implements HasOptionsToSave, HasOptionsToDisplay
 
         // begin the graph and tell it how numbers on our graph relate to cm
         output.append("\t\\linefitgraphbegin{");
-        output.append(
-                ScientificNotation.WithNoErrorAndZeroPower(laTexGraphWidthInCm / (xAxisSpan / xAxisPowerMultiplier)));
+        output.append(ScientificNotation.WithNoErrorAndZeroPower(laTexGraphWidthInCm / (xAxisSpan /
+                xAxisPowerMultiplier)));
         output.append("}{");
-        output.append(
-                ScientificNotation.WithNoErrorAndZeroPower(laTexGraphHeightInCm / (yAxisSpan / yAxisPowerMultiplier)));
+        output.append(ScientificNotation.WithNoErrorAndZeroPower(laTexGraphHeightInCm / (yAxisSpan /
+                yAxisPowerMultiplier)));
         output.append("}\n");
 
         // export our datasets and fits
@@ -548,8 +560,8 @@ public class ExportIO implements HasOptionsToSave, HasOptionsToDisplay
                     }
                     else
                     {
-                        output.append("\n\t\\color[RGB]{" + current.getColor().getRed() + "," +
-                                current.getColor().getGreen() + "," + current.getColor().getBlue() + "}\n");
+                        output.append("\n\t\\color[RGB]{" + current.getColor().getRed() + "," + current.getColor()
+                                .getGreen() + "," + current.getColor().getBlue() + "}\n");
                     }
 
                     if (current.xData != null && current.yData != null)
@@ -569,8 +581,8 @@ public class ExportIO implements HasOptionsToSave, HasOptionsToDisplay
 
                         if (current.xData.getNonNullDataSize() > 0 && current.yData.getNonNullDataSize() > 0)
                         {
-                            for (int l = 0;
-                                    l < Math.max(current.xData.getData().size(), current.yData.getData().size()); l++)
+                            for (int l = 0; l < Math.max(current.xData.getData().size(), current.yData.getData()
+                                    .size()); l++)
                             {
                                 if (!current.xData.isNull(l) && !current.yData.isNull(l))
                                 {
@@ -596,22 +608,19 @@ public class ExportIO implements HasOptionsToSave, HasOptionsToDisplay
 
                                     output.append(symbol);
                                     output.append("{");
-                                    output.append(ScientificNotation
-                                            .WithNoErrorAndZeroPower((current.xData.readDouble(l) - xAdjForSmall) /
-                                                    Math.pow(10, axesPowers.xAxisPower)));
+                                    output.append(ScientificNotation.WithNoErrorAndZeroPower((current.xData.readDouble(
+                                            l) - xAdjForSmall) / Math.pow(10, axesPowers.xAxisPower)));
                                     output.append("}{");
-                                    output.append(ScientificNotation
-                                            .WithNoErrorAndZeroPower((current.yData.readDouble(l) - yAdjForSmall) /
-                                                    Math.pow(10, axesPowers.yAxisPower)));
+                                    output.append(ScientificNotation.WithNoErrorAndZeroPower((current.yData.readDouble(
+                                            l) - yAdjForSmall) / Math.pow(10, axesPowers.yAxisPower)));
                                     output.append("}");
 
                                     if (current.xErrorData != null && !current.xErrorData.isNull(l) &&
                                             current.xErrorData.readDouble(l) != 0.0)
                                     {
                                         output.append("{");
-                                        output.append(ScientificNotation
-                                                .WithNoErrorAndZeroPower(current.xErrorData.readDouble(l) /
-                                                        Math.pow(10, axesPowers.xAxisPower)));
+                                        output.append(ScientificNotation.WithNoErrorAndZeroPower(current.xErrorData
+                                                .readDouble(l) / Math.pow(10, axesPowers.xAxisPower)));
                                         output.append("}");
                                     }
 
@@ -619,9 +628,8 @@ public class ExportIO implements HasOptionsToSave, HasOptionsToDisplay
                                             current.yErrorData.readDouble(l) != 0.0)
                                     {
                                         output.append("{");
-                                        output.append(ScientificNotation
-                                                .WithNoErrorAndZeroPower(current.yErrorData.readDouble(l) /
-                                                        Math.pow(10, axesPowers.yAxisPower)));
+                                        output.append(ScientificNotation.WithNoErrorAndZeroPower(current.yErrorData
+                                                .readDouble(l) / Math.pow(10, axesPowers.yAxisPower)));
                                         output.append("}");
                                     }
                                     output.append("\n");
@@ -642,8 +650,8 @@ public class ExportIO implements HasOptionsToSave, HasOptionsToDisplay
                                     yStart > origAxesRanges.yAxisMaximumValue / Math.pow(10, axesPowers.yAxisPower))
                             { // if its not on the graph then the other must be
                                 yStart = origAxesRanges.yAxisMinimumValue / Math.pow(10, axesPowers.yAxisPower);
-                                xStart = current.linearFitStrategy.getXOfYPoint(origAxesRanges.yAxisMinimumValue) /
-                                        Math.pow(10, axesPowers.xAxisPower);
+                                xStart = current.linearFitStrategy.getXOfYPoint(origAxesRanges.yAxisMinimumValue) / Math
+                                        .pow(10, axesPowers.xAxisPower);
                             }
 
                             double xEnd = (origAxesRanges.xAxisMaximumValue) / Math.pow(10, axesPowers.xAxisPower);
@@ -653,8 +661,8 @@ public class ExportIO implements HasOptionsToSave, HasOptionsToDisplay
                                     yEnd < origAxesRanges.yAxisMinimumValue / Math.pow(10, axesPowers.yAxisPower))
                             { // if its not on the graph then the other must be
                                 yEnd = origAxesRanges.yAxisMaximumValue / Math.pow(10, axesPowers.yAxisPower);
-                                xEnd = current.linearFitStrategy.getXOfYPoint(origAxesRanges.yAxisMaximumValue) /
-                                        Math.pow(10, axesPowers.xAxisPower);
+                                xEnd = current.linearFitStrategy.getXOfYPoint(origAxesRanges.yAxisMaximumValue) / Math
+                                        .pow(10, axesPowers.xAxisPower);
                                 if (xEnd > (origAxesRanges.xAxisMaximumValue) / Math.pow(10, axesPowers.xAxisPower) ||
                                         xEnd < (origAxesRanges.xAxisMinimumValue) / Math.pow(10, axesPowers.xAxisPower))
                                 {
@@ -677,17 +685,17 @@ public class ExportIO implements HasOptionsToSave, HasOptionsToDisplay
                             }
 
                             output.append("\t\\putline{");
-                            output.append(ScientificNotation
-                                    .WithNoErrorAndZeroPower(xStart - xAdjForSmall / yAxisPowerMultiplier));
+                            output.append(ScientificNotation.WithNoErrorAndZeroPower(xStart - xAdjForSmall /
+                                    yAxisPowerMultiplier));
                             output.append("}{");
-                            output.append(ScientificNotation
-                                    .WithNoErrorAndZeroPower(yStart - yAdjForSmall / yAxisPowerMultiplier));
+                            output.append(ScientificNotation.WithNoErrorAndZeroPower(yStart - yAdjForSmall /
+                                    yAxisPowerMultiplier));
                             output.append("}{");
-                            output.append(ScientificNotation
-                                    .WithNoErrorAndZeroPower(xEnd - xAdjForSmall / xAxisPowerMultiplier));
+                            output.append(ScientificNotation.WithNoErrorAndZeroPower(xEnd - xAdjForSmall /
+                                    xAxisPowerMultiplier));
                             output.append("}{");
-                            output.append(ScientificNotation
-                                    .WithNoErrorAndZeroPower(yEnd - yAdjForSmall / xAxisPowerMultiplier));
+                            output.append(ScientificNotation.WithNoErrorAndZeroPower(yEnd - yAdjForSmall /
+                                    xAxisPowerMultiplier));
                             output.append("}\n");
 
                             // do the result on graphs part if they are selected to be displayed
@@ -734,9 +742,9 @@ public class ExportIO implements HasOptionsToSave, HasOptionsToDisplay
                                 double yResPos = -yFontSizeInGraphUnits / 2 + (double) resultsDisplay.resultsPositionY /
                                         resultsDisplay.graphHeightAfterPadding * laTexGraphHeightInCm;
 
-                                String resultsSuffixString =
-                                        "}{" + axesRanges.xAxisMinimumValue / xAxisPowerMultiplier + "}{" +
-                                                axesRanges.yAxisMinimumValue / yAxisPowerMultiplier + "}\n";
+                                String resultsSuffixString = "}{" + axesRanges.xAxisMinimumValue /
+                                        xAxisPowerMultiplier + "}{" + axesRanges.yAxisMinimumValue /
+                                                yAxisPowerMultiplier + "}\n";
                                 output.append("\t\\putresults{y");
                                 output.append(kStr);
                                 output.append(" = m");
@@ -746,20 +754,20 @@ public class ExportIO implements HasOptionsToSave, HasOptionsToDisplay
                                 output.append("}{");
                                 output.append(xPosStr);
                                 output.append("}{");
-                                output.append(ScientificNotation
-                                        .WithNoErrorAndZeroPower(yResPos + yFontSizeInGraphUnits * 3));
+                                output.append(ScientificNotation.WithNoErrorAndZeroPower(yResPos +
+                                        yFontSizeInGraphUnits * 3));
                                 output.append(resultsSuffixString);
                                 output.append("\t\\putresults{m");
                                 output.append(kStr);
                                 output.append(" = ");
-                                output.append(
-                                        current.linearFitStrategy.getSlopeAsString(resultsDisplay.resultsDecimalPlaces,
-                                                resultsDisplay.resultsUseScientificNotation, true));
+                                output.append(current.linearFitStrategy.getSlopeAsString(
+                                        resultsDisplay.resultsDecimalPlaces,
+                                        resultsDisplay.resultsUseScientificNotation, true));
                                 output.append("}{");
                                 output.append(xPosStr);
                                 output.append("}{");
-                                output.append(ScientificNotation
-                                        .WithNoErrorAndZeroPower(yResPos + yFontSizeInGraphUnits * 2));
+                                output.append(ScientificNotation.WithNoErrorAndZeroPower(yResPos +
+                                        yFontSizeInGraphUnits * 2));
                                 output.append(resultsSuffixString);
                                 output.append("\t\\putresults{b");
                                 output.append(kStr);
@@ -770,8 +778,8 @@ public class ExportIO implements HasOptionsToSave, HasOptionsToDisplay
                                 output.append("}{");
                                 output.append(xPosStr);
                                 output.append("}{");
-                                output.append(
-                                        ScientificNotation.WithNoErrorAndZeroPower(yResPos + yFontSizeInGraphUnits));
+                                output.append(ScientificNotation.WithNoErrorAndZeroPower(yResPos +
+                                        yFontSizeInGraphUnits));
                                 output.append(resultsSuffixString);
                             }
                         }
@@ -836,30 +844,30 @@ public class ExportIO implements HasOptionsToSave, HasOptionsToDisplay
 
         output.append(ScientificNotation.WithNoErrorAndZeroPower(axesRanges.yAxisMinimumValue / yAxisPowerMultiplier));
         output.append("}{");
-        output.append(
-                ScientificNotation.WithNoErrorAndZeroPower(LATEX_EXPORT_SPACING_IN_CM + exportFontSize / 12 * 0.35)); // 0.35
-                                                                                                                      // is
-                                                                                                                      // the
-                                                                                                                      // spacing
-                                                                                                                      // from
-                                                                                                                      // the
-                                                                                                                      // axes
-                                                                                                                      // to
-                                                                                                                      // the
-                                                                                                                      // tick
-                                                                                                                      // labels,
-                                                                                                                      // 0.35
-                                                                                                                      // *
-                                                                                                                      // fontsize
-                                                                                                                      // is
-                                                                                                                      // for
-                                                                                                                      // the
-                                                                                                                      // labels
-                                                                                                                      // width
-                                                                                                                      // and
-                                                                                                                      // axes
-                                                                                                                      // name
-                                                                                                                      // label
+        output.append(ScientificNotation.WithNoErrorAndZeroPower(LATEX_EXPORT_SPACING_IN_CM + exportFontSize / 12 *
+                0.35)); // 0.35
+                        // is
+                        // the
+                        // spacing
+                        // from
+                        // the
+                        // axes
+                        // to
+                        // the
+                        // tick
+                        // labels,
+                        // 0.35
+                        // *
+                        // fontsize
+                        // is
+                        // for
+                        // the
+                        // labels
+                        // width
+                        // and
+                        // axes
+                        // name
+                        // label
         output.append("}\n");
 
         if (origAxesPowers.xAxisPower != 0)
@@ -868,11 +876,11 @@ public class ExportIO implements HasOptionsToSave, HasOptionsToDisplay
             output.append("$\\times10^{");
             output.append(origAxesPowers.xAxisPower);
             output.append("}$}{");
-            output.append(
-                    ScientificNotation.WithNoErrorAndZeroPower(axesRanges.xAxisMaximumValue / xAxisPowerMultiplier));
+            output.append(ScientificNotation.WithNoErrorAndZeroPower(axesRanges.xAxisMaximumValue /
+                    xAxisPowerMultiplier));
             output.append("}{");
-            output.append(
-                    ScientificNotation.WithNoErrorAndZeroPower(axesRanges.yAxisMinimumValue / yAxisPowerMultiplier));
+            output.append(ScientificNotation.WithNoErrorAndZeroPower(axesRanges.yAxisMinimumValue /
+                    yAxisPowerMultiplier));
             output.append("}{");
             output.append(LATEX_EXPORT_SPACING_IN_CM);
             output.append("}\n");
@@ -920,27 +928,26 @@ public class ExportIO implements HasOptionsToSave, HasOptionsToDisplay
         output.append("}{");
 
         double defaultLongestYStringLength = currentFontMeasurements.stringWidth("0.00");
-        double longestYStringLength = currentFontMeasurements.stringWidth(ScientificNotation
-                .withoutTimesTen(axesRanges.yAxisMaximumValue, axesPowers.yAxisPower, metaData.yAxisDecimalPlaces));
-        double yMinStringLength = currentFontMeasurements.stringWidth(ScientificNotation
-                .withoutTimesTen(axesRanges.yAxisMinimumValue, axesPowers.yAxisPower, metaData.yAxisDecimalPlaces));
+        double longestYStringLength = currentFontMeasurements.stringWidth(ScientificNotation.withoutTimesTen(
+                axesRanges.yAxisMaximumValue, axesPowers.yAxisPower, metaData.yAxisDecimalPlaces));
+        double yMinStringLength = currentFontMeasurements.stringWidth(ScientificNotation.withoutTimesTen(
+                axesRanges.yAxisMinimumValue, axesPowers.yAxisPower, metaData.yAxisDecimalPlaces));
         if (yMinStringLength > longestYStringLength)
         {
             longestYStringLength = yMinStringLength;
         }
 
-        output.append(
-                ScientificNotation.WithNoErrorAndZeroPower(LATEX_EXPORT_SPACING_IN_CM + exportFontSize / 12.0 * 0.10 +
-                        (exportFontSize / 12.0) * (longestYStringLength / defaultLongestYStringLength) * 0.65)); // this
-                                                                                                                 // spacing
-                                                                                                                 // was
-                                                                                                                 // just
-                                                                                                                 // figured
-                                                                                                                 // out
-                                                                                                                 // by
-                                                                                                                 // trial
-                                                                                                                 // and
-                                                                                                                 // error
+        output.append(ScientificNotation.WithNoErrorAndZeroPower(LATEX_EXPORT_SPACING_IN_CM + exportFontSize / 12.0 *
+                0.10 + (exportFontSize / 12.0) * (longestYStringLength / defaultLongestYStringLength) * 0.65)); // this
+                                                                                                                // spacing
+                                                                                                                // was
+                                                                                                                // just
+                                                                                                                // figured
+                                                                                                                // out
+                                                                                                                // by
+                                                                                                                // trial
+                                                                                                                // and
+                                                                                                                // error
         output.append("}\n");
 
         if (origAxesPowers.yAxisPower != 0)
@@ -949,11 +956,11 @@ public class ExportIO implements HasOptionsToSave, HasOptionsToDisplay
             output.append("$\\times10^{");
             output.append(origAxesPowers.yAxisPower);
             output.append("}$}{");
-            output.append(
-                    ScientificNotation.WithNoErrorAndZeroPower(axesRanges.xAxisMinimumValue / xAxisPowerMultiplier));
+            output.append(ScientificNotation.WithNoErrorAndZeroPower(axesRanges.xAxisMinimumValue /
+                    xAxisPowerMultiplier));
             output.append("}{");
-            output.append(
-                    ScientificNotation.WithNoErrorAndZeroPower(axesRanges.yAxisMaximumValue / yAxisPowerMultiplier));
+            output.append(ScientificNotation.WithNoErrorAndZeroPower(axesRanges.yAxisMaximumValue /
+                    yAxisPowerMultiplier));
             output.append("}{");
             output.append(LATEX_EXPORT_SPACING_IN_CM);
             output.append("}\n");

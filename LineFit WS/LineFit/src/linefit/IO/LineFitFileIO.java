@@ -55,7 +55,7 @@ public class LineFitFileIO
      * passed LineFit instance
      * 
      * @param parentIO The GeneralIO instance that this LineFitFileIO belongs to and uses for common IO related
-     * functionality
+     *        functionality
      * @param lineFitToAssociateWith The LineFit instance that this handles the file IO for */
     public LineFitFileIO(GeneralIO parentIO, LineFit lineFitToAssociateWith)
     {
@@ -104,7 +104,7 @@ public class LineFitFileIO
     /** Opens up a LineFit file in this instance of LineFit after allowing the user to choose which file to open
      * 
      * @param offerChoiceToNotReadInGraphSettings Whether or not the user can choose not to import the graph settings.
-     * This should only be false when opening a file on start up */
+     *        This should only be false when opening a file on start up */
     public void chooseAndOpenLineFitFile(boolean offerChoiceToNotReadInGraphSettings)
     {
         File toOpen = chooseLineFitFile();
@@ -118,7 +118,7 @@ public class LineFitFileIO
      * 
      * @param filePath the path to open the file up at
      * @param offerChoiceToNotReadInGraphSettings Whether or not the user can choose not to import the graph settings.
-     * This should only be false when opening a file on start up */
+     *        This should only be false when opening a file on start up */
     public void openLineFitFile(String filePath, boolean offerChoiceToNotReadInGraphSettings)
     {
         File fileToOpen = new File(filePath);
@@ -130,7 +130,7 @@ public class LineFitFileIO
      * 
      * @param fileToOpen The file to open containing the LineFit graph data
      * @param offerChoiceToNotReadInGraphSettings Whether of not the user is prompted id they want to read in the graph
-     * settings as well as the datasets. True means that the user is prompted */
+     *        settings as well as the datasets. True means that the user is prompted */
     public void openLineFitFile(File fileToOpen, boolean offerChoiceToNotReadInGraphSettings)
     {
         // make sure the file is actually there
@@ -160,10 +160,8 @@ public class LineFitFileIO
                 // now actually read in the data from the file now that we are all set up
                 try
                 {
-                    // read and determine which version of file we are using - we don't really do much with
-                    // because
-                    // right
-                    // now the versions are similar enough we handle all of them with the same read methods
+                    // read and determine which version of file we are using - we don't really do much with because
+                    // right now the versions are similar enough we handle all of them with the same read methods
                     readAndCheckVersion(inputReader);
 
                     // now keep reading in the file
@@ -178,7 +176,7 @@ public class LineFitFileIO
                             continue;
                         }
 
-                        // trim any whitespaces
+                        // trim any white spaces
                         lineRead = lineRead.trim().toLowerCase();
 
                         // if its a graph level line
@@ -189,7 +187,7 @@ public class LineFitFileIO
                             // trim off the #
                             String trimmedLine = lineRead.substring(1).trim();
 
-                            // if it is signalling the start of a dataset then set our state
+                            // if it is signaling the start of a dataset then set our state
                             // variables and continue - the next line will be the first line
                             // with actual dataset content - this line is just a switch
                             if (trimmedLine.startsWith("dataset"))
@@ -290,31 +288,25 @@ public class LineFitFileIO
             // if we found the version line then read it in
             if (versionLine.toLowerCase().startsWith("fileformatversion"))
             {
-                try
+                Version.VersionComparisonResult relationship = Version.checkLineFitFileFormatVersionString(versionLine
+                        .substring(versionLine.indexOf(' ') + 1));
+                // if the version in the file is a newer version than LineFit
+                if (relationship.isNewerVersion())
                 {
-                    // do some bounds checking here and handle appropriately
-                    String[] versionParts = versionLine.substring(versionLine.indexOf(' ') + 1).split("\\.");
-                    int majorVersion = Integer.parseInt(versionParts[0].trim());
-                    int minorVersion = Integer.parseInt(versionParts[1].trim());
-                    if (majorVersion > Version.LINEFIT_FILE_FORMAT_MAJOR_VERSION ||
-                            (majorVersion == Version.LINEFIT_FILE_FORMAT_MAJOR_VERSION &&
-                                    minorVersion > Version.LINEFIT_FILE_FORMAT_MINOR_VERSION))
+                    // ask them if they want to still try reading in the file
+                    int confirm = JOptionPane.showConfirmDialog(lineFit,
+                            "This File was created with a newer LineFit file format protocol." +
+                                    " Because of this, data could be missed or read in incorrectly. " +
+                                    "Continue loading data from it?", "Time Traveling File",
+                            JOptionPane.OK_CANCEL_OPTION);
+                    if (confirm != JOptionPane.OK_OPTION)
                     {
-                        // ask them if they want to still try reading in the file
-                        int confirm = JOptionPane.showConfirmDialog(lineFit,
-                                "This File was created with a newer LineFit file format protocol." +
-                                        " Because of this, data could be missed or read in incorrectly. " +
-                                        "Continue loading data from it?", "Time Traveling File",
-                                JOptionPane.OK_CANCEL_OPTION);
-                        if (confirm != JOptionPane.OK_OPTION)
-                        {
-                            // if they don't than close us of and return
-                            inputReader.close();
-                            return;
-                        }
+                        // if they don't than close us of and return
+                        inputReader.close();
+                        return;
                     }
                 }
-                catch (NumberFormatException nfe)
+                else if (relationship.isBadComparison())
                 {
                     JOptionPane.showMessageDialog(lineFit,
                             "Error determining file format version number. Continuing but Data may not be complete",

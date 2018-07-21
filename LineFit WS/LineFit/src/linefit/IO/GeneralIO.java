@@ -19,7 +19,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.Scanner;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
@@ -29,6 +32,7 @@ import javax.swing.JOptionPane;
 
 import linefit.GraphArea;
 import linefit.LineFit;
+import linefit.Version;
 
 
 /** This class Handles the general IO operations of LineFit so that the rest of the code does not need to worry about
@@ -88,6 +92,83 @@ public class GeneralIO
         exportIO = new ExportIO(this, lineFit, graphToExport);
     }
 
+    /** Checks to see if a newer version of LineFit is available and if so, prompts the user to download it
+     * 
+     * @param alwaysPopUpResult True if the result of the check should always be displayed (i.e. if the user initiated
+     *        it) */
+    public void isUpdateAvailable(boolean alwaysPopUpResult)
+    {
+        String versionText = "";
+        try
+        {
+            URL url = new URL("https://sourceforge.net/projects/linefit/files/LatestVersion.txt");
+            try (Scanner s = new Scanner(url.openStream()))
+            {
+                versionText = s.nextLine();
+            }
+            catch (IOException e)
+            {
+                // message handled later
+            }
+
+            // if we found the file at the url and successfully read it, then compare the version
+            if (!versionText.isEmpty())
+            {
+                Version.VersionComparisonResult relationship = Version.checkLineFitFileFormatVersionString(versionText);
+                if (relationship.isNewerVersion())
+                {
+                    JOptionPane.showMessageDialog(lineFit, "A newer version of LineFit is available!",
+                            "LineFit Update Check", JOptionPane.WARNING_MESSAGE);
+                }
+                else if (relationship.isBadComparison())
+                {
+                    if (alwaysPopUpResult)
+                    {
+                        JOptionPane.showMessageDialog(lineFit,
+                                "LineFit failed to determine the most recent version - Bad most recent version",
+                                "LineFit Update Check", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+                else if (relationship.isSameVersion())
+                {
+                    if (alwaysPopUpResult)
+                    {
+                        JOptionPane.showMessageDialog(lineFit, "LineFit is up to date!", "LineFit Update Check",
+                                JOptionPane.INFORMATION_MESSAGE);
+                    }
+                }
+                else // older version???
+                {
+                    if (alwaysPopUpResult)
+                    {
+                        JOptionPane.showMessageDialog(lineFit,
+                                "This version of LineFit has time travelled - It is newer than the most recent version!",
+                                "LineFit Update Check", JOptionPane.WARNING_MESSAGE);
+                    }
+                }
+            }
+            else
+            {
+                if (alwaysPopUpResult)
+                {
+                    JOptionPane.showMessageDialog(lineFit,
+                            "LineFit failed to determine the most recent version - Couldn't open or read most recent file from URL",
+                            "LineFit Update Check", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        }
+        catch (MalformedURLException e)
+        {
+            if (alwaysPopUpResult)
+            {
+                JOptionPane.showMessageDialog(lineFit,
+                        "LineFit failed to determine the most recent version - Malformed URL", "LineFit Update Check",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+
     /** Prompts the user for a LineFit file to open and then attempts to open it in a new LineFit instance
      * 
      * Note: This will only work if it is running from a JAR file */
@@ -105,7 +186,7 @@ public class GeneralIO
      * Note: This will only work if it is running from a JAR file
      * 
      * @throws NumberFormatException Throws this exception if it expected to find a number while parsing the file and
-     * found something else */
+     *         found something else */
     public void newLineFitInstance(String pathToFile)
     {
         // make sure we got a file
@@ -168,7 +249,7 @@ public class GeneralIO
      * 
      * @param fileName The name of the resource to copy to the folder that the jar is in
      * @param destinationFolderPath The path to put the created resource at. This must contain the ending "\\" to denote
-     * a folder */
+     *        a folder */
     public void copyResourceFileToContainingFolder(String fileName, String destinationFolderPath)
     {
         File file = new File(destinationFolderPath + fileName);

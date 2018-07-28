@@ -114,7 +114,7 @@ public class GeneralIO
             // if we found the file at the url and successfully read it, then compare the version
             if (!versionText.isEmpty())
             {
-                Version.VersionComparisonResult relationship = Version.checkLineFitFileFormatVersionString(versionText);
+                Version.VersionComparisonResult relationship = Version.checkLineFitVersionString(versionText);
                 if (relationship.isNewerVersion())
                 {
                     JOptionPane.showMessageDialog(lineFit, "A newer version of LineFit is available!",

@@ -119,9 +119,9 @@ public class Version
             int minorVersion = Integer.parseInt(versionParts[1].trim());
             int incrementVersion = Integer.parseInt(versionParts[2].trim());
 
-            if (majorVersion == LINEFIT_FILE_FORMAT_MAJOR_VERSION)
+            if (majorVersion == LINEFIT_MAJOR_VERSION)
             {
-                if (minorVersion == LINEFIT_FILE_FORMAT_MINOR_VERSION)
+                if (minorVersion == LINEFIT_MINOR_VERSION)
                 {
                     if (incrementVersion == LINEFIT_INCREMENT_VERSION)
                     {
@@ -136,7 +136,7 @@ public class Version
                         return VersionComparisonResult.INCREMENT_NEWER;
                     }
                 }
-                else if (minorVersion < LINEFIT_FILE_FORMAT_MINOR_VERSION)
+                else if (minorVersion < LINEFIT_MINOR_VERSION)
                 {
                     return VersionComparisonResult.MINOR_OLDER;
                 }
@@ -145,7 +145,7 @@ public class Version
                     return VersionComparisonResult.MAJOR_NEWER;
                 }
             }
-            else if (majorVersion < LINEFIT_FILE_FORMAT_MAJOR_VERSION)
+            else if (majorVersion < LINEFIT_MAJOR_VERSION)
             {
                 return VersionComparisonResult.MAJOR_OLDER;
             }

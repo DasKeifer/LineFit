@@ -16,15 +16,12 @@ package linefit;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridLayout;
-import java.awt.KeyEventDispatcher;
-import java.awt.KeyboardFocusManager;
 import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.Shape;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.geom.Ellipse2D;
@@ -44,6 +41,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.JTextArea;
+import javax.swing.KeyStroke;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SpringLayout;
 import javax.swing.border.TitledBorder;
@@ -142,25 +140,69 @@ public class LineFit extends JFrame implements HasOptionsToSave
 
     // Titles in the file drop down item on the menu bar
     /** The String to be displayed for the new file option in the menu bar drop down */
-    private static final String menuTitles_NewWindow = "New Window...           Ctrl+N";
-    /** The String to be displayed for the import file option in the menu bar drop down */
-    private static final String menuTitles_OpenFile = "Open...         Ctrl+O";
+    private static final String menuTitles_NewWindow = "New Window";
+    /** The keyboard shortcut for the new file option in the menu bar drop down */
+    private static final String menuTitles_NewWindow_Shortcut = "control N";
+
     /** The String to be displayed for the open file option in the menu bar drop down */
-    private static final String menuTitles_OpenFileNewWindow = "Open in New Window...    Ctrl+Shift+O";
-    /** The String to be displayed for the save file option in the menu bar drop down */
-    private static final String menuTitles_SaveFile = "Save...                     Ctrl+S";
+    private static final String menuTitles_OpenFile = "Open...";
+    /** The keyboard shortcut for the open file option in the menu bar drop down */
+    private static final String menuTitles_OpenFile_Shortcut = "control O";
+
+    /** The String to be displayed for the open file in a new window option in the menu bar drop down */
+    private static final String menuTitles_OpenFileNewWindow = "Open in New Window...";
+    /** The keyboard shortcut for the check for updates option in the menu bar drop down */
+    private static final String menuTitles_OpenFileNewWindow_Shortcut = "control shift O";
+
+    /** The String to be displayed for the open file in a new window option in the menu bar drop down */
+    private static final String menuTitles_SaveFile = "Save";
+    /** The keyboard shortcut for the check for updates option in the menu bar drop down */
+    private static final String menuTitles_SaveFile_Shortcut = "control S";
+
+    /** The String to be displayed for the new Data Set option in the menu bar drop down */
+    private static final String menuTitles_NewDataSet = "New Data Set";
+    /** The keyboard shortcut for the new Data Set option in the menu bar drop down */
+    private static final String menuTitles_NewDataSet_Shortcut = "control shift D";
+
+    /** The String to be displayed for the graph options option in the menu bar drop down */
+    private static final String menuTitles_GraphOptions = "Graph Options...";
+    /** The keyboard shortcut for the graph options option in the menu bar drop down */
+    private static final String menuTitles_GraphOptions_Shortcut = "control shift G";
+
     /** The String to be displayed for the export as a JPEG option in the menu bar drop down */
-    private static final String menuTitles_ExportJPG = "Export graph as JPEG...			Ctrl+J";
+    private static final String menuTitles_ExportJPG = "Export graph as JPEG...";
+    /** The keyboard shortcut for the export as a JPEG option in the menu bar drop down */
+    private static final String menuTitles_ExportJPG_Shortcut = "control shift J";
+
     /** The String to be displayed for the export as a PDF option in the menu bar drop down */
-    private static final String menuTitles_ExportPDF = "Export graph as PDF...     Ctrl+P";
+    private static final String menuTitles_ExportPDF = "Export graph as PDF...";
+    /** The keyboard shortcut for the export as a PDF option in the menu bar drop down */
+    private static final String menuTitles_ExportPDF_Shortcut = "control shift P";
+
     /** The String to be displayed for the export as a LaTex file option in the menu bar drop down */
-    private static final String menuTitles_ExportTex = "Export graph as LaTex...		Ctrl+L";
+    private static final String menuTitles_ExportTex = "Export graph as LaTex...";
+    /** The keyboard shortcut for the export as a LaTex option in the menu bar drop down */
+    private static final String menuTitles_ExportTex_Shortcut = "control shift L";
+
     /** The String to be displayed for the exit LineFit option in the menu bar drop down */
     private static final String menuTitles_Exit = "Exit";
-    /** The String to be displayed for the about LineFit option in the menu bar drop down */
-    private static final String menuTitles_AboutLineFit = "About LineFit...     F2";
+    /** The keyboard shortcut for the exit LineFit option in the menu bar drop down */
+    private static final String menuTitles_Exit_Shortcut = "ctrl E";
+
     /** The String to be displayed for the LineFit help option in the menu bar drop down */
-    private static final String menuTitles_LineFitHelp = "LineFit Help...        F1";
+    private static final String menuTitles_LineFitHelp = "LineFit Help";
+    /** The keyboard shortcut for the LineFit help option in the menu bar drop down */
+    private static final String menuTitles_LineFitHelp_Shortcut = "F1";
+
+    /** The String to be displayed for the about LineFit option in the menu bar drop down */
+    private static final String menuTitles_AboutLineFit = "About LineFit";
+    /** The keyboard shortcut for the about LineFit option in the menu bar drop down */
+    private static final String menuTitles_AboutLineFit_Shortcut = "F2";
+
+    /** The String to be displayed for the check for updates option in the menu bar drop down */
+    private static final String menuTitles_CheckForUpdates = "Check for newer version";
+    /** The keyboard shortcut for the check for updates option in the menu bar drop down */
+    private static final String menuTitles_CheckForUpdates_Shortcut = "F3";
 
     // Other variables
     private GeneralIO ioHandler;
@@ -207,10 +249,6 @@ public class LineFit extends JFrame implements HasOptionsToSave
         // Set up the layout of the entire program
         setupLayout();
 
-        // Allows us to use key combinations (e.g. ctrl + s)
-        KeyboardFocusManager manager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
-        manager.addKeyEventDispatcher(new KeyShortcutListener());
-
         // Change what we do when we are closed
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter()
@@ -223,6 +261,9 @@ public class LineFit extends JFrame implements HasOptionsToSave
 
         // So it pops up on the center of the screen
         this.centerOnScreen();
+
+        // check for the version
+        ioHandler.isUpdateAvailable(false);
     }
 
     /** Creates a new LineFit and then populates it with the data from the file at the specified file path
@@ -273,7 +314,7 @@ public class LineFit extends JFrame implements HasOptionsToSave
         dataSetSelector.addItem(currentDataSet);
         dataSetSelector.setSelectedIndex(0);
 
-        // create the new dataset option in the dataSet selector combo box
+        // create the new DataSet option in the dataSet selector combo box
         DataSet newDataSet = DataSet.createDropDownPlaceHolder("New DataSet");
         dataSetSelector.addItem(newDataSet);
 
@@ -324,23 +365,52 @@ public class LineFit extends JFrame implements HasOptionsToSave
 
         // Create Main Menus
         JMenu fileMenu = new JMenu("File");
-        // JMenu optionsMenu = new JMenu("Options");
         JMenu helpMenu = new JMenu("Help");
 
         // Add Main Menus to main Menu bar
         menuBar.add(fileMenu);
-        // menuBar.add(optionsMenu);
         menuBar.add(helpMenu);
 
-        // Create items to be placed in "File" menu
+        // Create items to be placed in "File" menu and add their shortcuts
         JMenuItem newWindowItem = new JMenuItem(menuTitles_NewWindow);
+        KeyStroke newWindowKS = KeyStroke.getKeyStroke(menuTitles_NewWindow_Shortcut);
+        newWindowItem.setAccelerator(newWindowKS);
+
         JMenuItem openFileItem = new JMenuItem(menuTitles_OpenFile);
+        KeyStroke openFileKS = KeyStroke.getKeyStroke(menuTitles_OpenFile_Shortcut);
+        openFileItem.setAccelerator(openFileKS);
+
         JMenuItem openFileNewWindowItem = new JMenuItem(menuTitles_OpenFileNewWindow);
+        KeyStroke OpenFileNewWindowKS = KeyStroke.getKeyStroke(menuTitles_OpenFileNewWindow_Shortcut);
+        openFileNewWindowItem.setAccelerator(OpenFileNewWindowKS);
+
         JMenuItem saveFileItem = new JMenuItem(menuTitles_SaveFile);
+        KeyStroke saveFileKS = KeyStroke.getKeyStroke(menuTitles_SaveFile_Shortcut);
+        saveFileItem.setAccelerator(saveFileKS);
+
+        JMenuItem newDataSetItem = new JMenuItem(menuTitles_NewDataSet);
+        KeyStroke newDataSetKS = KeyStroke.getKeyStroke(menuTitles_NewDataSet_Shortcut);
+        newDataSetItem.setAccelerator(newDataSetKS);
+
+        JMenuItem graphOptionsItem = new JMenuItem(menuTitles_GraphOptions);
+        KeyStroke graphOptionsKS = KeyStroke.getKeyStroke(menuTitles_GraphOptions_Shortcut);
+        graphOptionsItem.setAccelerator(graphOptionsKS);
+
         JMenuItem exportFileItem = new JMenuItem(menuTitles_ExportJPG);
+        KeyStroke exportFileKS = KeyStroke.getKeyStroke(menuTitles_ExportJPG_Shortcut);
+        exportFileItem.setAccelerator(exportFileKS);
+
         JMenuItem exportPDFItem = new JMenuItem(menuTitles_ExportPDF);
+        KeyStroke exportPDFKS = KeyStroke.getKeyStroke(menuTitles_ExportPDF_Shortcut);
+        exportPDFItem.setAccelerator(exportPDFKS);
+
         JMenuItem exportTexItem = new JMenuItem(menuTitles_ExportTex);
+        KeyStroke exportTexKS = KeyStroke.getKeyStroke(menuTitles_ExportTex_Shortcut);
+        exportTexItem.setAccelerator(exportTexKS);
+
         JMenuItem exitFileItem = new JMenuItem(menuTitles_Exit);
+        KeyStroke exitKS = KeyStroke.getKeyStroke(menuTitles_Exit_Shortcut);
+        exitFileItem.setAccelerator(exitKS);
 
         // add them in the order we want them with the separators
         fileMenu.add(newWindowItem);
@@ -350,7 +420,14 @@ public class LineFit extends JFrame implements HasOptionsToSave
         fileMenu.addSeparator();
 
         fileMenu.add(saveFileItem);
-        // fileMenu.add(saveTexFileItem);
+
+        fileMenu.addSeparator();
+
+        fileMenu.add(newDataSetItem);
+
+        fileMenu.addSeparator();
+
+        fileMenu.add(graphOptionsItem);
 
         fileMenu.addSeparator();
 
@@ -362,13 +439,26 @@ public class LineFit extends JFrame implements HasOptionsToSave
 
         fileMenu.add(exitFileItem);
 
-        // Create items to be placed in "Help" menu
+        // Create items to be placed in "Help" menu and add their shortcuts
         JMenuItem aboutLineFitItem = new JMenuItem(menuTitles_AboutLineFit);
+        KeyStroke aboutKS = KeyStroke.getKeyStroke(menuTitles_AboutLineFit_Shortcut);
+        aboutLineFitItem.setAccelerator(aboutKS);
+
         JMenuItem helpItem = new JMenuItem(menuTitles_LineFitHelp);
+        KeyStroke helpKS = KeyStroke.getKeyStroke(menuTitles_LineFitHelp_Shortcut);
+        helpItem.setAccelerator(helpKS);
+
+        JMenuItem updatesItem = new JMenuItem(menuTitles_CheckForUpdates);
+        KeyStroke updatesKS = KeyStroke.getKeyStroke(menuTitles_CheckForUpdates_Shortcut);
+        updatesItem.setAccelerator(updatesKS);
 
         // Add the above items to the "Help" menu
         helpMenu.add(helpItem);
         helpMenu.add(aboutLineFitItem);
+
+        helpMenu.addSeparator();
+
+        helpMenu.add(updatesItem);
 
         // Install the menu bar in the frame
         setJMenuBar(menuBar);
@@ -381,22 +471,16 @@ public class LineFit extends JFrame implements HasOptionsToSave
         openFileNewWindowItem.addActionListener(menuListener);
         openFileItem.addActionListener(menuListener);
         saveFileItem.addActionListener(menuListener);
-        // saveTexFileItem.addActionListener(this);
 
         exportFileItem.addActionListener(menuListener); // JPG export option
         exportPDFItem.addActionListener(menuListener);
         exportTexItem.addActionListener(menuListener);
         exitFileItem.addActionListener(menuListener);
 
-        // "Options" menu item listeners
-        // graphSettingsItem.addActionListener(menuListener);
-        // columnOptionsItem.addActionListener(this);
-        // newrowDataItem.addActionListener(this);
-        // newdatasetDataItem.addActionListener(menuListener);
-
         // "Help" menu item listeners
         aboutLineFitItem.addActionListener(menuListener);
         helpItem.addActionListener(menuListener);
+        updatesItem.addActionListener(menuListener);
     }
 
     /** Creates an initializes the QuickBar which contains things such as the current DataSet selector and the FitType
@@ -577,7 +661,7 @@ public class LineFit extends JFrame implements HasOptionsToSave
      * 
      * @param inputFileReader the BufferedReader that is being used to read in the LineFit file
      * @param importSettings Whether or not to read in the graph settings/options along with the DataSets from the
-     * passed BufferedReader containing the input file's data
+     *        passed BufferedReader containing the input file's data
      * @throws IOException throws any IO exceptions to be dealt with at a higher level */
     public boolean readInOption(String line)
     {
@@ -653,7 +737,6 @@ public class LineFit extends JFrame implements HasOptionsToSave
         @Override
         public void actionPerformed(ActionEvent e)
         {
-            // file drop down
             switch (e.getActionCommand())
             {
                 case menuTitles_NewWindow:
@@ -684,9 +767,10 @@ public class LineFit extends JFrame implements HasOptionsToSave
                     ioHandler.showPDFHelpFile();
                     break;
                 case menuTitles_AboutLineFit:
-                case "About linefit.LineFit":
-                case "About LineFit":
                     showAboutBox();
+                    break;
+                case menuTitles_CheckForUpdates:
+                    ioHandler.isUpdateAvailable(true);
                     break;
             }
         }
@@ -833,82 +917,6 @@ public class LineFit extends JFrame implements HasOptionsToSave
             JSpinner mySpinner = (JSpinner) (e.getSource());
             SpinnerNumberModel myModel = (SpinnerNumberModel) (mySpinner.getModel());
             setNumberOfVisibleColumns((Integer) myModel.getValue());
-        }
-    }
-
-    /** A Listener class that handles the key board key combination shortcuts such as F2 bringing up help
-     * 
-     * @author Unknown
-     * @version 1.0
-     * @since &lt;0.98.0 */
-    private class KeyShortcutListener implements KeyEventDispatcher
-    {
-        /** Allows the use keyboard shortcuts in LineFit */
-        public boolean dispatchKeyEvent(KeyEvent e)
-        {
-            if (e.getID() == KeyEvent.KEY_PRESSED)
-            {
-                // these are the keys that activate only if the ctrl key is currently being pressed
-                if (e.isControlDown())
-                {
-                    switch (e.getKeyCode())
-                    {
-                        case KeyEvent.VK_S:
-                            ioHandler.fileIO.saveLineFitFile();
-                            break;
-                        case KeyEvent.VK_G:
-                            DataSet current = (DataSet) dataSetSelector.getSelectedItem();
-                            new GraphOptionsMenu(graphingArea, current, ioHandler);
-                            break;
-                        case KeyEvent.VK_D:
-                            createNewDataSet();
-                            break;
-                        case KeyEvent.VK_N:
-                            ioHandler.newLineFitInstance();
-                            break;
-                        case KeyEvent.VK_O:
-                        {
-                            if (e.isShiftDown())
-                            {
-                                ioHandler.newLineFitInstancePromptForFile();
-                            }
-                            else
-                            {
-                                ioHandler.fileIO.chooseAndOpenLineFitFile(true);
-                            }
-                        }
-                            break;
-                        case KeyEvent.VK_L:
-                            ioHandler.exportIO.exportLaTex();
-                            break;
-                        case KeyEvent.VK_J:
-                            ioHandler.exportIO.exportJPG();
-                            break;
-                        case KeyEvent.VK_P:
-                            ioHandler.exportIO.exportPDF();
-                            break;
-                        default:
-                            return false; // return false if we didnt do anything with it
-                    }
-                }
-                else
-                {
-                    // this is for the f1-12 keys
-                    switch (e.getKeyCode())
-                    {
-                        case KeyEvent.VK_F1:
-                            ioHandler.showPDFHelpFile();
-                            break;
-                        case KeyEvent.VK_F2:
-                            showAboutBox();
-                            break;
-                        default:
-                            return false; // return false if we didnt do anything
-                    }
-                }
-                return true;
-            }
-            return false;
         }
     }
 }

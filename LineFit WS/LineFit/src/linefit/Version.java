@@ -36,6 +36,7 @@ public class Version
     public static final String LINEFIT_VERSION = LINEFIT_MAJOR_VERSION + "." + LINEFIT_MINOR_VERSION + "." +
             LINEFIT_INCREMENT_VERSION;
 
+
     /** The current LineFit file format's major version number that should only be updated when very significant changes
      * are made or backwards compatibility is broken &#46; It must be updated manually */
     public static final int LINEFIT_FILE_FORMAT_MAJOR_VERSION = 1;
@@ -46,4 +47,169 @@ public class Version
     /** The current LineFit file version */
     public static final String LINEFIT_FILE_FORMAT_VERSION = LINEFIT_FILE_FORMAT_MAJOR_VERSION + "." +
             LINEFIT_FILE_FORMAT_MINOR_VERSION;
+
+
+    /** Enum class for the return value of version comparisons */
+    public enum VersionComparisonResult
+    {
+        // Having these separate allow for finer granularity response if desired
+        INCREMENT_OLDER(-3), MINOR_OLDER(-2), MAJOR_OLDER(-1), SAME(0), MAJOR_NEWER(1), MINOR_NEWER(2), INCREMENT_NEWER(
+                3), BAD_VERSION(999);
+
+        /** The internal value of the enum */
+        private final int value;
+
+        /** Constructor for constructing the enum values
+         * 
+         * @param value value of the enum */
+        private VersionComparisonResult(int value)
+        {
+            this.value = value;
+        }
+
+        /** returns true if the result specifies the versions are the same
+         * 
+         * @return true if the versions were the same */
+        public boolean isSameVersion()
+        {
+            return value == SAME.value;
+        }
+
+        /** returns true if the result specifies the version compared to this LineFit's version was newer
+         * 
+         * @return true if the version compared to this LineFit's version was newer */
+        public boolean isNewerVersion()
+        {
+            return value > 0 && !isBadComparison();
+        }
+
+        /** returns true if the result specifies the version compared to this LineFit's version was older
+         * 
+         * @return true if the version compared to this LineFit's version was older */
+        public boolean isOlderVersion()
+        {
+            // currently bad are positive but its good practice in case another enum value is ever added or the bad
+            // values are changed to be negative
+            return value < 0 && !isBadComparison();
+        }
+
+        /** returns true if the result specifies the version compared to this LineFit's version was not a properly
+         * formatted version
+         * 
+         * @return true if the version compared to this LineFit's version was not a properly formatted version */
+        public boolean isBadComparison()
+        {
+            return value == BAD_VERSION.value;
+        }
+    }
+
+    /** Checks the passed LineFit version number string against the current LineFit version to see if it is the same,
+     * newer, or older.
+     * 
+     * @param version The string containing the version number as text
+     * @return int representing the relationship with negative meaning it is an older version, positive meaning a newer
+     *         version, and 0 meaning the same version. If the versions are not equal it will return the number that
+     *         does not match up (i.e. 2 (or -2) if the minor versions do not match) */
+    public static VersionComparisonResult checkLineFitVersionString(String version)
+    {
+        String[] versionParts = version.split("\\.");
+        try
+        {
+            int majorVersion = Integer.parseInt(versionParts[0].trim());
+            int minorVersion = Integer.parseInt(versionParts[1].trim());
+            int incrementVersion = Integer.parseInt(versionParts[2].trim());
+
+            if (majorVersion == LINEFIT_MAJOR_VERSION)
+            {
+                if (minorVersion == LINEFIT_MINOR_VERSION)
+                {
+                    if (incrementVersion == LINEFIT_INCREMENT_VERSION)
+                    {
+                        return VersionComparisonResult.SAME;
+                    }
+                    else if (incrementVersion < LINEFIT_INCREMENT_VERSION)
+                    {
+                        return VersionComparisonResult.INCREMENT_OLDER;
+                    }
+                    else
+                    {
+                        return VersionComparisonResult.INCREMENT_NEWER;
+                    }
+                }
+                else if (minorVersion < LINEFIT_MINOR_VERSION)
+                {
+                    return VersionComparisonResult.MINOR_OLDER;
+                }
+                else
+                {
+                    return VersionComparisonResult.MAJOR_NEWER;
+                }
+            }
+            else if (majorVersion < LINEFIT_MAJOR_VERSION)
+            {
+                return VersionComparisonResult.MAJOR_OLDER;
+            }
+            else
+            {
+                return VersionComparisonResult.MAJOR_NEWER;
+            }
+        }
+        catch (NumberFormatException nfe)
+        {
+            return VersionComparisonResult.BAD_VERSION;
+        }
+        catch (IndexOutOfBoundsException iobe)
+        {
+            return VersionComparisonResult.BAD_VERSION;
+        }
+    }
+
+    /** Checks the passed LineFit FileFormat version number string against the current LineFit File Format version to
+     * see if it is the same, newer, or older.
+     * 
+     * @param version The string containing the File Format version number as text
+     * @return int representing the relationship with negative meaning it is an older version, positive meaning a newer
+     *         version, and 0 meaning the same version. If the versions are not equal it will return the number that
+     *         does not match up (i.e. 2 (or -2) if the minor versions do not match) */
+    public static VersionComparisonResult checkLineFitFileFormatVersionString(String fileVersion)
+    {
+        String[] versionParts = fileVersion.split("\\.");
+        try
+        {
+            int majorVersion = Integer.parseInt(versionParts[0].trim());
+            int minorVersion = Integer.parseInt(versionParts[1].trim());
+
+            if (majorVersion == LINEFIT_FILE_FORMAT_MAJOR_VERSION)
+            {
+                if (minorVersion == LINEFIT_FILE_FORMAT_MINOR_VERSION)
+                {
+                    return VersionComparisonResult.SAME;
+                }
+                else if (minorVersion < LINEFIT_FILE_FORMAT_MINOR_VERSION)
+                {
+                    return VersionComparisonResult.MINOR_OLDER;
+                }
+                else
+                {
+                    return VersionComparisonResult.MINOR_NEWER;
+                }
+            }
+            else if (majorVersion < LINEFIT_FILE_FORMAT_MAJOR_VERSION)
+            {
+                return VersionComparisonResult.MAJOR_OLDER;
+            }
+            else
+            {
+                return VersionComparisonResult.MAJOR_NEWER;
+            }
+        }
+        catch (NumberFormatException nfe)
+        {
+            return VersionComparisonResult.BAD_VERSION;
+        }
+        catch (IndexOutOfBoundsException iobe)
+        {
+            return VersionComparisonResult.BAD_VERSION;
+        }
+    }
 }

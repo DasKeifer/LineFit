@@ -372,33 +372,33 @@ public class LineFit extends JFrame implements HasOptionsToSave
         // Create items to be placed in "File" menu and add their shortcuts
         ActionListener fileMenuListener = new FileMenuBarDropDownButtonsListener();
 
-        Utils.createAndAddMenuItem(fileMenu, menuTitles_NewWindow, menuTitles_NewWindow_Shortcut, fileMenuListener);
-        Utils.createAndAddMenuItem(fileMenu, menuTitles_OpenFile, menuTitles_OpenFile_Shortcut, fileMenuListener);
-        Utils.createAndAddMenuItem(fileMenu, menuTitles_OpenFileNewWindow, menuTitles_OpenFileNewWindow_Shortcut,
-                fileMenuListener);
+        Utils.createAndAddMenuItem(fileMenu, menuTitles_NewWindow, fileMenuListener, menuTitles_NewWindow_Shortcut);
+        Utils.createAndAddMenuItem(fileMenu, menuTitles_OpenFile, fileMenuListener, menuTitles_OpenFile_Shortcut);
+        Utils.createAndAddMenuItem(fileMenu, menuTitles_OpenFileNewWindow, fileMenuListener,
+                menuTitles_OpenFileNewWindow_Shortcut);
         fileMenu.addSeparator();
-        Utils.createAndAddMenuItem(fileMenu, menuTitles_SaveFile, menuTitles_SaveFile_Shortcut, fileMenuListener);
+        Utils.createAndAddMenuItem(fileMenu, menuTitles_SaveFile, fileMenuListener, menuTitles_SaveFile_Shortcut);
         fileMenu.addSeparator();
-        Utils.createAndAddMenuItem(fileMenu, menuTitles_NewDataSet, menuTitles_NewDataSet_Shortcut, fileMenuListener);
+        Utils.createAndAddMenuItem(fileMenu, menuTitles_NewDataSet, fileMenuListener, menuTitles_NewDataSet_Shortcut);
         fileMenu.addSeparator();
-        Utils.createAndAddMenuItem(fileMenu, menuTitles_GraphOptions, menuTitles_GraphOptions_Shortcut,
-                fileMenuListener);
+        Utils.createAndAddMenuItem(fileMenu, menuTitles_GraphOptions, fileMenuListener,
+                menuTitles_GraphOptions_Shortcut);
         fileMenu.addSeparator();
-        Utils.createAndAddMenuItem(fileMenu, menuTitles_ExportJPG, menuTitles_ExportJPG_Shortcut, fileMenuListener);
-        Utils.createAndAddMenuItem(fileMenu, menuTitles_ExportPDF, menuTitles_ExportPDF_Shortcut, fileMenuListener);
-        Utils.createAndAddMenuItem(fileMenu, menuTitles_ExportTex, menuTitles_ExportTex_Shortcut, fileMenuListener);
+        Utils.createAndAddMenuItem(fileMenu, menuTitles_ExportJPG, fileMenuListener, menuTitles_ExportJPG_Shortcut);
+        Utils.createAndAddMenuItem(fileMenu, menuTitles_ExportPDF, fileMenuListener, menuTitles_ExportPDF_Shortcut);
+        Utils.createAndAddMenuItem(fileMenu, menuTitles_ExportTex, fileMenuListener, menuTitles_ExportTex_Shortcut);
         fileMenu.addSeparator();
-        Utils.createAndAddMenuItem(fileMenu, menuTitles_Exit, menuTitles_Exit_Shortcut, fileMenuListener);
+        Utils.createAndAddMenuItem(fileMenu, menuTitles_Exit, fileMenuListener, menuTitles_Exit_Shortcut);
 
         // Create items to be placed in "Help" menu and add their shortcuts
         ActionListener helpMenuListener = new HelpMenuBarDropDownButtonsListener();
 
-        Utils.createAndAddMenuItem(helpMenu, menuTitles_AboutLineFit, menuTitles_AboutLineFit_Shortcut,
-                helpMenuListener);
-        Utils.createAndAddMenuItem(helpMenu, menuTitles_LineFitHelp, menuTitles_LineFitHelp_Shortcut, helpMenuListener);
+        Utils.createAndAddMenuItem(helpMenu, menuTitles_AboutLineFit, helpMenuListener,
+                menuTitles_AboutLineFit_Shortcut);
+        Utils.createAndAddMenuItem(helpMenu, menuTitles_LineFitHelp, helpMenuListener, menuTitles_LineFitHelp_Shortcut);
         helpMenu.addSeparator();
-        Utils.createAndAddMenuItem(helpMenu, menuTitles_CheckForUpdates, menuTitles_CheckForUpdates_Shortcut,
-                helpMenuListener);
+        Utils.createAndAddMenuItem(helpMenu, menuTitles_CheckForUpdates, helpMenuListener,
+                menuTitles_CheckForUpdates_Shortcut);
     }
 
     /** Creates an initializes the QuickBar which contains things such as the current DataSet selector and the FitType

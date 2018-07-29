@@ -36,12 +36,10 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.JTextArea;
-import javax.swing.KeyStroke;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SpringLayout;
 import javax.swing.border.TitledBorder;
@@ -372,115 +370,35 @@ public class LineFit extends JFrame implements HasOptionsToSave
         menuBar.add(helpMenu);
 
         // Create items to be placed in "File" menu and add their shortcuts
-        JMenuItem newWindowItem = new JMenuItem(menuTitles_NewWindow);
-        KeyStroke newWindowKS = KeyStroke.getKeyStroke(menuTitles_NewWindow_Shortcut);
-        newWindowItem.setAccelerator(newWindowKS);
+        ActionListener fileMenuListener = new FileMenuBarDropDownButtonsListener();
 
-        JMenuItem openFileItem = new JMenuItem(menuTitles_OpenFile);
-        KeyStroke openFileKS = KeyStroke.getKeyStroke(menuTitles_OpenFile_Shortcut);
-        openFileItem.setAccelerator(openFileKS);
-
-        JMenuItem openFileNewWindowItem = new JMenuItem(menuTitles_OpenFileNewWindow);
-        KeyStroke OpenFileNewWindowKS = KeyStroke.getKeyStroke(menuTitles_OpenFileNewWindow_Shortcut);
-        openFileNewWindowItem.setAccelerator(OpenFileNewWindowKS);
-
-        JMenuItem saveFileItem = new JMenuItem(menuTitles_SaveFile);
-        KeyStroke saveFileKS = KeyStroke.getKeyStroke(menuTitles_SaveFile_Shortcut);
-        saveFileItem.setAccelerator(saveFileKS);
-
-        JMenuItem newDataSetItem = new JMenuItem(menuTitles_NewDataSet);
-        KeyStroke newDataSetKS = KeyStroke.getKeyStroke(menuTitles_NewDataSet_Shortcut);
-        newDataSetItem.setAccelerator(newDataSetKS);
-
-        JMenuItem graphOptionsItem = new JMenuItem(menuTitles_GraphOptions);
-        KeyStroke graphOptionsKS = KeyStroke.getKeyStroke(menuTitles_GraphOptions_Shortcut);
-        graphOptionsItem.setAccelerator(graphOptionsKS);
-
-        JMenuItem exportFileItem = new JMenuItem(menuTitles_ExportJPG);
-        KeyStroke exportFileKS = KeyStroke.getKeyStroke(menuTitles_ExportJPG_Shortcut);
-        exportFileItem.setAccelerator(exportFileKS);
-
-        JMenuItem exportPDFItem = new JMenuItem(menuTitles_ExportPDF);
-        KeyStroke exportPDFKS = KeyStroke.getKeyStroke(menuTitles_ExportPDF_Shortcut);
-        exportPDFItem.setAccelerator(exportPDFKS);
-
-        JMenuItem exportTexItem = new JMenuItem(menuTitles_ExportTex);
-        KeyStroke exportTexKS = KeyStroke.getKeyStroke(menuTitles_ExportTex_Shortcut);
-        exportTexItem.setAccelerator(exportTexKS);
-
-        JMenuItem exitFileItem = new JMenuItem(menuTitles_Exit);
-        KeyStroke exitKS = KeyStroke.getKeyStroke(menuTitles_Exit_Shortcut);
-        exitFileItem.setAccelerator(exitKS);
-
-        // add them in the order we want them with the separators
-        fileMenu.add(newWindowItem);
-        fileMenu.add(openFileItem);
-        fileMenu.add(openFileNewWindowItem);
-
+        Utils.createAndAddMenuItem(fileMenu, menuTitles_NewWindow, fileMenuListener, menuTitles_NewWindow_Shortcut);
+        Utils.createAndAddMenuItem(fileMenu, menuTitles_OpenFile, fileMenuListener, menuTitles_OpenFile_Shortcut);
+        Utils.createAndAddMenuItem(fileMenu, menuTitles_OpenFileNewWindow, fileMenuListener,
+                menuTitles_OpenFileNewWindow_Shortcut);
         fileMenu.addSeparator();
-
-        fileMenu.add(saveFileItem);
-
+        Utils.createAndAddMenuItem(fileMenu, menuTitles_SaveFile, fileMenuListener, menuTitles_SaveFile_Shortcut);
         fileMenu.addSeparator();
-
-        fileMenu.add(newDataSetItem);
-
+        Utils.createAndAddMenuItem(fileMenu, menuTitles_NewDataSet, fileMenuListener, menuTitles_NewDataSet_Shortcut);
         fileMenu.addSeparator();
-
-        fileMenu.add(graphOptionsItem);
-
+        Utils.createAndAddMenuItem(fileMenu, menuTitles_GraphOptions, fileMenuListener,
+                menuTitles_GraphOptions_Shortcut);
         fileMenu.addSeparator();
-
-        fileMenu.add(exportFileItem); // JPG export option //DNP temp
-        fileMenu.add(exportPDFItem);
-        fileMenu.add(exportTexItem);
-
+        Utils.createAndAddMenuItem(fileMenu, menuTitles_ExportJPG, fileMenuListener, menuTitles_ExportJPG_Shortcut);
+        Utils.createAndAddMenuItem(fileMenu, menuTitles_ExportPDF, fileMenuListener, menuTitles_ExportPDF_Shortcut);
+        Utils.createAndAddMenuItem(fileMenu, menuTitles_ExportTex, fileMenuListener, menuTitles_ExportTex_Shortcut);
         fileMenu.addSeparator();
-
-        fileMenu.add(exitFileItem);
+        Utils.createAndAddMenuItem(fileMenu, menuTitles_Exit, fileMenuListener, menuTitles_Exit_Shortcut);
 
         // Create items to be placed in "Help" menu and add their shortcuts
-        JMenuItem aboutLineFitItem = new JMenuItem(menuTitles_AboutLineFit);
-        KeyStroke aboutKS = KeyStroke.getKeyStroke(menuTitles_AboutLineFit_Shortcut);
-        aboutLineFitItem.setAccelerator(aboutKS);
+        ActionListener helpMenuListener = new HelpMenuBarDropDownButtonsListener();
 
-        JMenuItem helpItem = new JMenuItem(menuTitles_LineFitHelp);
-        KeyStroke helpKS = KeyStroke.getKeyStroke(menuTitles_LineFitHelp_Shortcut);
-        helpItem.setAccelerator(helpKS);
-
-        JMenuItem updatesItem = new JMenuItem(menuTitles_CheckForUpdates);
-        KeyStroke updatesKS = KeyStroke.getKeyStroke(menuTitles_CheckForUpdates_Shortcut);
-        updatesItem.setAccelerator(updatesKS);
-
-        // Add the above items to the "Help" menu
-        helpMenu.add(helpItem);
-        helpMenu.add(aboutLineFitItem);
-
+        Utils.createAndAddMenuItem(helpMenu, menuTitles_AboutLineFit, helpMenuListener,
+                menuTitles_AboutLineFit_Shortcut);
+        Utils.createAndAddMenuItem(helpMenu, menuTitles_LineFitHelp, helpMenuListener, menuTitles_LineFitHelp_Shortcut);
         helpMenu.addSeparator();
-
-        helpMenu.add(updatesItem);
-
-        // Install the menu bar in the frame
-        setJMenuBar(menuBar);
-
-        // Begin Listeners for Menu Items
-
-        // "File" menu item listeners
-        ActionListener menuListener = new MenuBarDropDownButtonsListener();
-        newWindowItem.addActionListener(menuListener);
-        openFileNewWindowItem.addActionListener(menuListener);
-        openFileItem.addActionListener(menuListener);
-        saveFileItem.addActionListener(menuListener);
-
-        exportFileItem.addActionListener(menuListener); // JPG export option
-        exportPDFItem.addActionListener(menuListener);
-        exportTexItem.addActionListener(menuListener);
-        exitFileItem.addActionListener(menuListener);
-
-        // "Help" menu item listeners
-        aboutLineFitItem.addActionListener(menuListener);
-        helpItem.addActionListener(menuListener);
-        updatesItem.addActionListener(menuListener);
+        Utils.createAndAddMenuItem(helpMenu, menuTitles_CheckForUpdates, helpMenuListener,
+                menuTitles_CheckForUpdates_Shortcut);
     }
 
     /** Creates an initializes the QuickBar which contains things such as the current DataSet selector and the FitType
@@ -493,63 +411,15 @@ public class LineFit extends JFrame implements HasOptionsToSave
 
         quickBar.setLayout(springLayout);
 
-        // Constraints on columnSelector
-        springLayout.putConstraint(SpringLayout.EAST, columnSelector, -8, SpringLayout.EAST, quickBar);
-        springLayout.putConstraint(SpringLayout.WEST, columnSelector, -50, SpringLayout.EAST, quickBar);
-        springLayout.putConstraint(SpringLayout.SOUTH, columnSelector, -4, SpringLayout.SOUTH, quickBar);
-        springLayout.putConstraint(SpringLayout.NORTH, columnSelector, 4, SpringLayout.NORTH, quickBar);
-
-        // Constraints on columnLabel
-        springLayout.putConstraint(SpringLayout.EAST, columnLabel, -4, SpringLayout.WEST, columnSelector);
-        springLayout.putConstraint(SpringLayout.WEST, columnLabel, -70, SpringLayout.WEST, columnSelector);
-        springLayout.putConstraint(SpringLayout.SOUTH, columnLabel, -4, SpringLayout.SOUTH, quickBar);
-        springLayout.putConstraint(SpringLayout.NORTH, columnLabel, 4, SpringLayout.NORTH, quickBar);
-
-        // Constraints on setSelector
-        springLayout.putConstraint(SpringLayout.EAST, dataSetSelector, -4, SpringLayout.WEST, columnLabel);
-        springLayout.putConstraint(SpringLayout.WEST, dataSetSelector, -120, SpringLayout.WEST, columnLabel);
-        springLayout.putConstraint(SpringLayout.SOUTH, dataSetSelector, -4, SpringLayout.SOUTH, quickBar);
-        springLayout.putConstraint(SpringLayout.NORTH, dataSetSelector, 4, SpringLayout.NORTH, quickBar);
-
-        // Constraints on colorSelector
-        springLayout.putConstraint(SpringLayout.EAST, colorSelector, -4, SpringLayout.WEST, dataSetSelector);
-        springLayout.putConstraint(SpringLayout.WEST, colorSelector, -80, SpringLayout.WEST, dataSetSelector);
-        springLayout.putConstraint(SpringLayout.SOUTH, colorSelector, -4, SpringLayout.SOUTH, quickBar);
-        springLayout.putConstraint(SpringLayout.NORTH, colorSelector, 4, SpringLayout.NORTH, quickBar);
-
-        // Constraints on shapeSelector
-        springLayout.putConstraint(SpringLayout.EAST, shapeSelector, -4, SpringLayout.WEST, colorSelector);
-        springLayout.putConstraint(SpringLayout.WEST, shapeSelector, -50, SpringLayout.WEST, colorSelector);
-        springLayout.putConstraint(SpringLayout.SOUTH, shapeSelector, -4, SpringLayout.SOUTH, quickBar);
-        springLayout.putConstraint(SpringLayout.NORTH, shapeSelector, 4, SpringLayout.NORTH, quickBar);
-
-        // Constraints on fitSelector
-        springLayout.putConstraint(SpringLayout.EAST, fitSelector, -4, SpringLayout.WEST, shapeSelector);
-        springLayout.putConstraint(SpringLayout.WEST, fitSelector, -120, SpringLayout.WEST, shapeSelector);
-        springLayout.putConstraint(SpringLayout.SOUTH, fitSelector, -4, SpringLayout.SOUTH, quickBar);
-        springLayout.putConstraint(SpringLayout.NORTH, fitSelector, 4, SpringLayout.NORTH, quickBar);
-
-        // Constraints on visibleCheck
-        springLayout.putConstraint(SpringLayout.EAST, visibleCheckBox, -4, SpringLayout.WEST, fitSelector);
-        springLayout.putConstraint(SpringLayout.WEST, visibleCheckBox, -80, SpringLayout.WEST, fitSelector);
-        springLayout.putConstraint(SpringLayout.SOUTH, visibleCheckBox, -4, SpringLayout.SOUTH, quickBar);
-        springLayout.putConstraint(SpringLayout.NORTH, visibleCheckBox, 4, SpringLayout.NORTH, quickBar);
-
-        // Constraints on Graph Options
-        springLayout.putConstraint(SpringLayout.EAST, graphOptionsButton, 138, SpringLayout.WEST, quickBar);
-        springLayout.putConstraint(SpringLayout.WEST, graphOptionsButton, 8, SpringLayout.WEST, quickBar);
-        springLayout.putConstraint(SpringLayout.SOUTH, graphOptionsButton, -4, SpringLayout.SOUTH, quickBar);
-        springLayout.putConstraint(SpringLayout.NORTH, graphOptionsButton, 4, SpringLayout.NORTH, quickBar);
-
-        // Add all components to TopBar
-        quickBar.add(visibleCheckBox);
-        quickBar.add(columnLabel);
-        quickBar.add(columnSelector);
-        quickBar.add(dataSetSelector);
-        quickBar.add(shapeSelector);
-        quickBar.add(colorSelector);
-        quickBar.add(fitSelector);
-        quickBar.add(graphOptionsButton);
+        // Constraints items in the quickbar
+        Utils.inlayGuiItem(springLayout, quickBar, columnSelector, false, quickBar, -50, -8, 4, -4);
+        Utils.inlayGuiItem(springLayout, quickBar, columnLabel, true, columnSelector, -70, -4, 4, -4);
+        Utils.inlayGuiItem(springLayout, quickBar, dataSetSelector, true, columnLabel, -120, -4, 4, -4);
+        Utils.inlayGuiItem(springLayout, quickBar, colorSelector, true, dataSetSelector, -80, -4, 4, -4);
+        Utils.inlayGuiItem(springLayout, quickBar, shapeSelector, true, colorSelector, -50, -4, 4, -4);
+        Utils.inlayGuiItem(springLayout, quickBar, fitSelector, true, shapeSelector, -120, -4, 4, -4);
+        Utils.inlayGuiItem(springLayout, quickBar, visibleCheckBox, true, fitSelector, -80, -4, 4, -4);
+        Utils.inlayGuiItem(springLayout, quickBar, graphOptionsButton, true, quickBar, 8, 138, 4, -4);
     }
 
     /** Sets up the layout of LineFit and places each panel in the right spot */
@@ -561,20 +431,20 @@ public class LineFit extends JFrame implements HasOptionsToSave
 
         mainDisplayPanel.setLayout(layout);
 
-        layout.putConstraint(SpringLayout.EAST, quickBar, 0, SpringLayout.EAST, mainDisplayPanel);
         layout.putConstraint(SpringLayout.WEST, quickBar, 0, SpringLayout.WEST, mainDisplayPanel);
-        layout.putConstraint(SpringLayout.SOUTH, quickBar, QUICK_BAR_HEIGHT, SpringLayout.NORTH, mainDisplayPanel);
+        layout.putConstraint(SpringLayout.EAST, quickBar, 0, SpringLayout.EAST, mainDisplayPanel);
         layout.putConstraint(SpringLayout.NORTH, quickBar, 0, SpringLayout.NORTH, mainDisplayPanel);
+        layout.putConstraint(SpringLayout.SOUTH, quickBar, QUICK_BAR_HEIGHT, SpringLayout.NORTH, mainDisplayPanel);
 
-        layout.putConstraint(SpringLayout.EAST, rightSideBar, 0, SpringLayout.EAST, mainDisplayPanel);
         layout.putConstraint(SpringLayout.WEST, rightSideBar, -dataSetTableWidth, SpringLayout.EAST, mainDisplayPanel);
-        layout.putConstraint(SpringLayout.SOUTH, rightSideBar, 0, SpringLayout.SOUTH, mainDisplayPanel);
+        layout.putConstraint(SpringLayout.EAST, rightSideBar, 0, SpringLayout.EAST, mainDisplayPanel);
         layout.putConstraint(SpringLayout.NORTH, rightSideBar, QUICK_BAR_HEIGHT, SpringLayout.NORTH, mainDisplayPanel);
+        layout.putConstraint(SpringLayout.SOUTH, rightSideBar, 0, SpringLayout.SOUTH, mainDisplayPanel);
 
-        layout.putConstraint(SpringLayout.EAST, graphingArea, 0, SpringLayout.WEST, rightSideBar);
         layout.putConstraint(SpringLayout.WEST, graphingArea, 0, SpringLayout.WEST, mainDisplayPanel);
-        layout.putConstraint(SpringLayout.SOUTH, graphingArea, 0, SpringLayout.SOUTH, mainDisplayPanel);
+        layout.putConstraint(SpringLayout.EAST, graphingArea, 0, SpringLayout.WEST, rightSideBar);
         layout.putConstraint(SpringLayout.NORTH, graphingArea, QUICK_BAR_HEIGHT, SpringLayout.NORTH, mainDisplayPanel);
+        layout.putConstraint(SpringLayout.SOUTH, graphingArea, 0, SpringLayout.SOUTH, mainDisplayPanel);
 
         mainDisplayPanel.add(quickBar);
         mainDisplayPanel.add(rightSideBar);
@@ -725,13 +595,13 @@ public class LineFit extends JFrame implements HasOptionsToSave
     }
 
     // Private Classes
-    /** A Listener class that is used for the buttons in the drop down menus from the menu bar at the top of the LineFit
-     * window
+    /** A Listener class that is used for the buttons in the "File" drop down menu from the menu bar at the top of the
+     * LineFit window
      * 
      * @author Keith Rice
      * @version 1.0
-     * @since &lt;0.98.0 */
-    private class MenuBarDropDownButtonsListener implements ActionListener
+     * @since 0.99.0 */
+    private class FileMenuBarDropDownButtonsListener implements ActionListener
     {
         /** Handles the action and determines which of the menu buttons was clicked and then acts accordingly */
         @Override
@@ -763,6 +633,24 @@ public class LineFit extends JFrame implements HasOptionsToSave
                 case menuTitles_Exit:
                     ioHandler.closeApplication();
                     break;
+            }
+        }
+    }
+
+    /** A Listener class that is used for the buttons in the "Help" drop down menu from the menu bar at the top of the
+     * LineFit window
+     * 
+     * @author Keith Rice
+     * @version 1.0
+     * @since 0.99.0 */
+    private class HelpMenuBarDropDownButtonsListener implements ActionListener
+    {
+        /** Handles the action and determines which of the menu buttons was clicked and then acts accordingly */
+        @Override
+        public void actionPerformed(ActionEvent e)
+        {
+            switch (e.getActionCommand())
+            {
                 case menuTitles_LineFitHelp:
                     ioHandler.showPDFHelpFile();
                     break;

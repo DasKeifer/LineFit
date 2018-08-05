@@ -15,6 +15,7 @@ package linefit;
 import java.awt.Color;
 import java.awt.Polygon;
 import java.awt.Shape;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
@@ -107,7 +108,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
     /** Creates a new empty DataSet that is linked to the GraphArea
      * 
      * @param parentGraphArea The GraphArea that this DataSet belongs to and will be drawn to */
-    DataSet(GraphArea parentGraphArea, ChangeTracker parentsChangeTracker)
+    DataSet(GraphArea parentGraphArea, ChangeTracker parentsChangeTracker, ActionListener fitTypeSelectionAction)
     {
         changeTracker = parentsChangeTracker;
 
@@ -134,6 +135,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
         setViewportView(tableContainingData);
         graphArea = parentGraphArea;
         fitTypeSelector = new JComboBox<FitType>();
+        fitTypeSelector.addActionListener(fitTypeSelectionAction);
 
         for (int i = 0; i < DEFAULT_NUMBER_OF_COLUMNS; i++)
         {
@@ -324,7 +326,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
      * to determine if we can do a fit with y errors/uncertainties
      * 
      * @return True if all the points of this DataSet have a y error/uncertainty associated with them and false
-     * otherwise */
+     *         otherwise */
     private boolean checkAllYHaveErrors()
     {
         if (yErrorData != null)
@@ -374,7 +376,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
      * to determine if we can do a fit with x errors/uncertainties
      * 
      * @return True if all the points of this DataSet have a x error/uncertainty associated with them and false
-     * otherwise */
+     *         otherwise */
     private boolean checkAllXHaveErrors()
     {
         if (xErrorData != null)
@@ -750,7 +752,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
      * focuses on that CustomColorMenu
      * 
      * @return Returns the CustomColorMenu that is associated with this DataSet whether it is newly created or already
-     * existed */
+     *         existed */
     CustomColorMenu createOrFocusOnCustomColorMenu()
     {
         // if we have one bring it up, otherwise make one
@@ -1195,7 +1197,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
     /** Returns whether or not this DataSet's Fit Selector is currently locked
      * 
      * @return Whether or not the fit is currently locked so that it cannot be changed automatically by listeners. True
-     * means it is currently locked */
+     *         means it is currently locked */
     public boolean isFitLocked()
     {
         return fitLock;

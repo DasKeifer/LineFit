@@ -117,6 +117,8 @@ public class LineFit extends JFrame implements HasOptionsToSave
 
     // Variables for the drop downs and options on the quick bar
     /** The drop down menu that contains the DataSets as well as the currently selected DataSet */
+    private QuickBarListener quickBarListener = new QuickBarListener();
+    /** The drop down menu that contains the DataSets as well as the currently selected DataSet */
     private JComboBox<DataSet> dataSetSelector;
     /** The drop down box that allows the user to select the FitType of the current DataSet */
     private JComboBox<FitType> fitSelector;
@@ -204,9 +206,6 @@ public class LineFit extends JFrame implements HasOptionsToSave
 
     // Other variables
     private GeneralIO ioHandler;
-    /** A lock that allows us to prevent the DataSets from updating so we can change things automatically with less
-     * computational overhead */
-    private boolean setLock = false;
 
     /** The default FitAlgorithm to use when creating linear fits for the DataSets */
     static LinearFitFactory currentFitAlgorithmFactory = LinearFitFactory.fitAlgorithmFactories[0];
@@ -236,7 +235,7 @@ public class LineFit extends JFrame implements HasOptionsToSave
         ioHandler.InitializeExportIO(graphingArea);
 
         // and then make an empty dataset to start
-        currentDataSet = new DataSet(graphingArea, ioHandler.changeTracker);
+        currentDataSet = new DataSet(graphingArea, ioHandler.changeTracker, quickBarListener);
 
         // create our panels and menu bars
         mainDisplayPanel = new JPanel();
@@ -288,7 +287,7 @@ public class LineFit extends JFrame implements HasOptionsToSave
         rightSideBar.add(fitDataPanel);
 
         // Add Default Number of Columns
-        createDefaultNumberOfColumns();
+        setNumberOfVisibleColumnsToDefault();
     }
 
     /** Creates and initializes the quick bar at the top of the LineFit below the menu bar that allows us to change
@@ -390,6 +389,9 @@ public class LineFit extends JFrame implements HasOptionsToSave
         fileMenu.addSeparator();
         Utils.createAndAddMenuItem(fileMenu, menuTitles_Exit, fileMenuListener, menuTitles_Exit_Shortcut);
 
+        // Install the menu bar in the frame
+        setJMenuBar(menuBar);
+
         // Create items to be placed in "Help" menu and add their shortcuts
         ActionListener helpMenuListener = new HelpMenuBarDropDownButtonsListener();
 
@@ -455,45 +457,64 @@ public class LineFit extends JFrame implements HasOptionsToSave
     }
 
     /** Creates a new DataSet and makes it the currently selected DataSet */
-    private void createNewDataSet()
+    private DataSet createNewDataSet()
     {
-        setLock = true;
-        rightSideBar.removeAll();
+        // create a new dataset
+        DataSet current = new DataSet(graphingArea, ioHandler.changeTracker, quickBarListener);
 
-        // create a new dataset but keep the new DataSet option at the end of the list
-        DataSet current = new DataSet(graphingArea, ioHandler.changeTracker);
+        // Register it with the graphing area which will keep the new DataSet option at the end of the list and select
+        // it which will then trigger the listener to update the GUI with the new dataset
         graphingArea.registerDataSet(current);
 
-        rightSideBar.add(current);
-        rightSideBar.add(fitDataPanel);
-        current.updateFits();
-        // fitSelector.removeActionListener(this);
-        fitSelector = current.fitTypeSelector;
-        fitSelector.addActionListener(new QuickBarListener());
-        setupQuickBar();
-        dataSetTableWidth = current.visibleDataColumns.size() * DATA_COLUMN_WIDTH;
-
-        Color currentColor = current.getColor();
-        Shape currentShape = current.getShape();
-
-        colorSelector.setSelectedItem(currentColor);
-        shapeSelector.setSelectedItem(currentShape);
-
-        visibleCheckBox.setSelected(current.visibleGraph);
-
-        columnSelector.setValue(current.visibleDataColumns.size());
-
-        // Add default number of columns to each data set
-        createDefaultNumberOfColumns();
-
-        updateCellFormattingInDataSetColumns(current);
-
-        setupLayout();
-        setLock = false;
+        return current;
     }
 
-    /** Creates and displays the default number of columns for a DataSet */
-    private void createDefaultNumberOfColumns()
+    private void setDataSetDisplayed(DataSet toSet)
+    {
+        // remove all and then add the dataset we are displaying the table for and the fit data panel
+        rightSideBar.removeAll();
+        rightSideBar.add(toSet);
+        rightSideBar.add(fitDataPanel);
+
+        // update the type of fits this dataset can use
+        toSet.updateFits();
+
+        // remove the listener from the old set and put it on the new one
+        // fitSelector.removeActionListener(quickBarListener);
+        fitSelector = toSet.fitTypeSelector;
+        // fitSelector.addActionListener(quickBarListener);
+
+        setupQuickBar();
+
+        dataSetTableWidth = toSet.visibleDataColumns.size() * DATA_COLUMN_WIDTH;
+        updateCellFormattingInDataSetColumns(toSet);
+
+        colorSelector.setSelectedItem(toSet.getColor());
+
+        Shape currentShape = toSet.getShape();
+        shapeSelector.setSelectedItem(currentShape);
+
+        // for whatever reason it does not like setSelectedItem to a Polygon so we have to do this so it
+        // gets the triangle shape drop down
+        if (currentShape.getClass() == new Polygon().getClass())
+        {
+            shapeSelector.setSelectedIndex(2);
+        }
+        visibleCheckBox.setSelected(toSet.visibleGraph);
+
+
+        // update column selector when a new dataset is selected
+        // since the column selector has a listener, it will automatically fire which will cause the correct number of
+        // columns to be displayed
+        columnSelector.setValue(toSet.visibleDataColumns.size());
+
+        setupLayout();
+        graphingArea.repaint();
+    }
+
+    /** Makes it so that the number of columns in the current DataSet is equal to the default number of visible
+     * columns */
+    private void setNumberOfVisibleColumnsToDefault()
     {
         setNumberOfVisibleColumns(DataSet.DEFAULT_NUMBER_OF_COLUMNS);
     }
@@ -621,6 +642,13 @@ public class LineFit extends JFrame implements HasOptionsToSave
                 case menuTitles_SaveFile:
                     ioHandler.fileIO.saveLineFitFile();
                     break;
+                case menuTitles_NewDataSet:
+                    createNewDataSet();
+                    break;
+                case menuTitles_GraphOptions:
+                    DataSet current = (DataSet) dataSetSelector.getSelectedItem();
+                    new GraphOptionsMenu(graphingArea, current, ioHandler);
+                    break;
                 case menuTitles_ExportJPG:
                     ioHandler.exportIO.exportJPG();
                     break;
@@ -685,50 +713,16 @@ public class LineFit extends JFrame implements HasOptionsToSave
             }
             else if (e.getSource() == dataSetSelector)
             {
-                if (!setLock)
+                DataSet current = (DataSet) dataSetSelector.getSelectedItem();
+                if (current.getName().equals("New DataSet"))
                 {
-                    DataSet current = (DataSet) dataSetSelector.getSelectedItem();
-                    if (current.getName().equals("New DataSet"))
-                    {
-                        createNewDataSet();
-                        current = (DataSet) dataSetSelector.getSelectedItem();
-                    }
-
-                    Color currentColor = current.getColor();
-                    Shape currentShape = current.getShape();
-                    rightSideBar.removeAll();
-
-                    rightSideBar.add(current);
-                    rightSideBar.add(fitDataPanel);
-
-                    current.updateFits();
-
-                    // remove the listener from the old set and put it on the new one
-                    fitSelector.removeActionListener(this);
-                    fitSelector = current.fitTypeSelector;
-                    fitSelector.addActionListener(this);
-
-                    setupQuickBar();
-                    dataSetTableWidth = current.visibleDataColumns.size() * DATA_COLUMN_WIDTH;
-                    updateCellFormattingInDataSetColumns(current);
-
-                    colorSelector.setSelectedItem(currentColor);
-                    shapeSelector.setSelectedItem(currentShape);
-                    // for whatever reason it does not like setSelectedItem to a Polygon so we have to do this so it
-                    // gets the triangle shape drop down
-                    if (currentShape.getClass() == new Polygon().getClass())
-                    {
-                        shapeSelector.setSelectedIndex(2);
-                    }
-                    visibleCheckBox.setSelected(current.visibleGraph);
-
-
-                    // update column selector when a new dataset is selected
-                    columnSelector.setValue(current.visibleDataColumns.size());
-
-                    setupLayout();
-                    graphingArea.repaint();
+                    // create the new dataset which will also select it. We still need to refresh the GUI here though
+                    // because the listener is disabled while it is being executed to help avoid endless loops
+                    current = createNewDataSet();
                 }
+
+                // refresh all the needed components for this dataset
+                setDataSetDisplayed(current);
             }
             else if (e.getSource() == colorSelector)
             {

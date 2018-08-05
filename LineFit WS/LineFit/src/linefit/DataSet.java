@@ -15,14 +15,12 @@ package linefit;
 import java.awt.Color;
 import java.awt.Polygon;
 import java.awt.Shape;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import javax.swing.JComboBox;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -73,9 +71,6 @@ public class DataSet extends JScrollPane implements HasDataToSave
     private String dataSetName;
     /** If the current GraphDataSet is visible and should be drawn to the GraphArea */
     public boolean visibleGraph;
-    /** Whether or not the linearFit should be updated automatically. This allows us to disable updates on it when we
-     * are modifying the data to save some unnecessary computation */
-    private boolean fitLock = false;
 
     /** The list of all the visible DataColumns in this DataSet */
     ArrayList<DataColumn> visibleDataColumns;
@@ -91,12 +86,10 @@ public class DataSet extends JScrollPane implements HasDataToSave
     public DataColumn xErrorData;
     /** The DataColumn that keeps track of the y error/uncertainty data for this DataSet */
     public DataColumn yErrorData;
-    /** The currently selected FitType of this DataSet (i.e. no fit, x error fit) */
-    private FitType currentFitType;
-    /** The drop down box that allows the user to specify the type of linear fit to use (i.e. no fit, x error fit) */
-    JComboBox<FitType> fitTypeSelector;
     /** The FitAlgrorithm we are using to fit this DataSet that also keeps track of the fit's data */
     public LinearFitStrategy linearFitStrategy; // TODO: encapsulate
+    /** The currently selected FitType of this DataSet (i.e. no fit, x error fit) */
+    private FitType dataSetFitType;
     /** The color of this DataSet when drawn to the GraphArea */
     private Color dataSetColor;
     /** The shape of this DataSet when drawn to the GraphArea */
@@ -108,11 +101,11 @@ public class DataSet extends JScrollPane implements HasDataToSave
     /** Creates a new empty DataSet that is linked to the GraphArea
      * 
      * @param parentGraphArea The GraphArea that this DataSet belongs to and will be drawn to */
-    DataSet(GraphArea parentGraphArea, ChangeTracker parentsChangeTracker, ActionListener fitTypeSelectionAction)
+    DataSet(GraphArea parentGraphArea, ChangeTracker parentsChangeTracker)
     {
         changeTracker = parentsChangeTracker;
 
-        currentFitType = FitType.NONE;
+        dataSetFitType = FitType.NONE;
         visibleGraph = true;
 
         linearFitStrategy = LineFit.currentFitAlgorithmFactory.createNewLinearFitStartegy(this);
@@ -134,8 +127,6 @@ public class DataSet extends JScrollPane implements HasDataToSave
 
         setViewportView(tableContainingData);
         graphArea = parentGraphArea;
-        fitTypeSelector = new JComboBox<FitType>();
-        fitTypeSelector.addActionListener(fitTypeSelectionAction);
 
         for (int i = 0; i < DEFAULT_NUMBER_OF_COLUMNS; i++)
         {
@@ -176,79 +167,32 @@ public class DataSet extends JScrollPane implements HasDataToSave
         return placeHolder;
     }
 
-    /** Resets this DataSet to an empty one as if it had just been created */
-    void resetToNew()
-    {
-        currentFitType = FitType.NONE;
-        visibleGraph = true;
-
-        linearFitStrategy = LineFit.currentFitAlgorithmFactory.createNewLinearFitStartegy(this);
-
-        visibleDataColumns = new ArrayList<DataColumn>();
-        invisibleDataColumns = new ArrayList<DataColumn>();
-        dataTableModel = new DataSetTableModel();
-        tableContainingData = new JTable(dataTableModel);
-        tableContainingData.setGridColor(Color.gray);
-
-        tableContainingData.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
-        tableContainingData.setRowSelectionAllowed(true);
-        tableContainingData.setColumnSelectionAllowed(true);
-        tableContainingData.setCellSelectionEnabled(true);
-        tableContainingData.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
-
-        setViewportView(tableContainingData);
-
-        for (int i = 0; i < DEFAULT_NUMBER_OF_COLUMNS; i++)
-        {
-            addColumn();
-        }
-
-        for (int i = 0; i < DEFAULT_NUMBER_OF_ROWS; i++)
-        {
-            // System.out.println("add a row");
-            dataTableModel.insertRow(dataTableModel.getRowCount(), new Object[visibleDataColumns.size()]);
-        }
-
-        dataTableModel.addTableModelListener(new GraphSetListener());
-
-        // dataTable.getActionMap().put("MY_CUSTOM_ACTION", action);
-        tableContainingData.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_R, 0, false), "MY_CUSTOM_ACTION");
-        dataSetColor = Color.BLACK;
-        dataSetShape = new Rectangle2D.Double();
-
-        // Add our table listener for this DataSet
-        new SpreadSheetAdapter(tableContainingData);
-    }
-
     /** Updates the available FitTypes we can use on this DataSet based on the amount of data in them */
-    void updateFits()
+    ArrayList<FitType> getAllowableFits()
     {
-        // Checks which types of fit types should be offered,
-        // and then rebuilds fitSelector
-        fitLock = true;
+        ArrayList<FitType> fits = new ArrayList<FitType>();
 
-        fitTypeSelector.removeAllItems();
-        fitTypeSelector.addItem(FitType.NONE);
+        fits.add(FitType.NONE);
         if (getNumberOfValidPoints() > 1)
         {
-            fitTypeSelector.addItem(FitType.REGULAR);
+            fits.add(FitType.REGULAR);
 
             checkForZeroErrorValues();
             if (checkAllXHaveErrors())
             {
-                fitTypeSelector.addItem(FitType.X_ERROR);
+                fits.add(FitType.X_ERROR);
             }
             if (checkAllYHaveErrors())
             {
-                fitTypeSelector.addItem(FitType.Y_ERROR);
+                fits.add(FitType.Y_ERROR);
             }
             if (checkAllXHaveErrors() && checkAllYHaveErrors())
             {
-                fitTypeSelector.addItem(FitType.BOTH_ERRORS);
+                fits.add(FitType.BOTH_ERRORS);
             }
         }
-        fitLock = false;
-        fitTypeSelector.setSelectedItem(currentFitType);
+
+        return fits;
     }
 
     /** Recalculates the FitData with our current FitType and data */
@@ -463,6 +407,11 @@ public class DataSet extends JScrollPane implements HasDataToSave
      * @param desiredColumns The desired number of DataColumns that this DataSet should have */
     void changeNumVisibleColumns(int desiredColumns)
     {
+        // TODO: Come back to this
+        // I want it so that the 3rd column if present without the fourth will be whichever error is selected but if a
+        // fourth column exists then it chooses which column to display based on which is selected (x or y)
+
+
         // Either add or remove columns based on user input
         changeTracker.setFileModified();
 
@@ -479,10 +428,9 @@ public class DataSet extends JScrollPane implements HasDataToSave
             // We want to remove columns!
             for (int i = visibleDataColumns.size(); i > desiredColumns; i--)
             {
-                this.removeColumn();
+                this.hideColumn();
             }
         }
-        // numVisibleColumns = desiredColumns;
     }
 
     /** Adds a column to our current DataSet. If there are invisible columns than it will make them visible instead of
@@ -503,9 +451,22 @@ public class DataSet extends JScrollPane implements HasDataToSave
      * created */
     private void addNewColumn()
     {
+        visibleDataColumns.add(new DataColumn(changeTracker));
+        UpdateGraphColumnAssociations();
+        updateColumnNames();
+        dataTableModel.addColumn((visibleDataColumns.get(visibleDataColumns.size() - 1)).getName());
+    }
+
+    /** Makes the first invisible column into a visible one */
+    private void unhideColumn()
+    {
         if (graphArea.xErrorsOnly)
         {
-            visibleDataColumns.add(new DataColumn(visibleDataColumns.size()));
+            // move the column
+            visibleDataColumns.add(invisibleDataColumns.get(0));
+            invisibleDataColumns.remove(0);
+
+            // update columns
             UpdateGraphColumnAssociations();
             updateColumnNames();
             dataTableModel.addColumn((visibleDataColumns.get(visibleDataColumns.size() - 1)).getName());
@@ -514,75 +475,8 @@ public class DataSet extends JScrollPane implements HasDataToSave
         {
             if (visibleDataColumns.size() == 3)
             {
-                FitType fitBeforeChange = currentFitType;
-                visibleDataColumns.add(2, new DataColumn(changeTracker));
-                UpdateGraphColumnAssociations();
-                updateColumnNames();
-                dataTableModel.removeColumn(2);
-                dataTableModel.addColumn((visibleDataColumns.get(2).getName()));
-                dataTableModel.addColumn((visibleDataColumns.get(3).getName()));
-                currentFitType = fitBeforeChange;
-            }
-            else
-            {
-                visibleDataColumns.add(new DataColumn(changeTracker));
-                UpdateGraphColumnAssociations();
-                updateColumnNames();
-                dataTableModel.addColumn((visibleDataColumns.get(visibleDataColumns.size() - 1)).getName());
-            }
-        }
-        updateFits();
-    }
-
-    /** Makes the first invisible column into a visible one */
-    private void unhideColumn()
-    {
-        if (graphArea.xErrorsOnly)
-        {
-            if (visibleDataColumns.size() == 3)
-            {
-                if (invisibleDataColumns.size() > 0)
-                {
-                    visibleDataColumns.add(invisibleDataColumns.get(0));
-                    invisibleDataColumns.remove(0);
-                }
-                else
-                {
-                    visibleDataColumns.add(new DataColumn(visibleDataColumns.size()));
-                }
-                UpdateGraphColumnAssociations();
-                updateColumnNames();
-                dataTableModel.addColumn((visibleDataColumns.get(visibleDataColumns.size() - 1)).getName());
-            }
-            else if (visibleDataColumns.size() == 2)
-            {
-                if (invisibleDataColumns.size() > 0)
-                {
-                    visibleDataColumns.add(invisibleDataColumns.get(0));
-                    invisibleDataColumns.remove(0);
-                }
-                else
-                {
-                    visibleDataColumns.add(new DataColumn(visibleDataColumns.size()));
-                }
-                UpdateGraphColumnAssociations();
-                updateColumnNames();
-                dataTableModel.addColumn((visibleDataColumns.get(visibleDataColumns.size() - 1)).getName());
-            }
-        }
-        else
-        {
-            if (visibleDataColumns.size() == 3)
-            {
-                if (invisibleDataColumns.size() > 0)
-                {
-                    visibleDataColumns.add(2, invisibleDataColumns.get(0));
-                    invisibleDataColumns.remove(0);
-                }
-                else
-                {
-                    visibleDataColumns.add(2, new DataColumn(visibleDataColumns.size()));
-                }
+                visibleDataColumns.add(2, invisibleDataColumns.get(0));
+                invisibleDataColumns.remove(0);
                 UpdateGraphColumnAssociations();
                 updateColumnNames();
                 dataTableModel.removeColumn(2);
@@ -596,14 +490,10 @@ public class DataSet extends JScrollPane implements HasDataToSave
                     visibleDataColumns.add(invisibleDataColumns.get(1));
                     invisibleDataColumns.remove(1);
                 }
-                else if (invisibleDataColumns.size() > 0)
+                else
                 {
                     visibleDataColumns.add(invisibleDataColumns.get(0));
                     invisibleDataColumns.remove(0);
-                }
-                else
-                {
-                    visibleDataColumns.add(new DataColumn(visibleDataColumns.size()));
                 }
                 UpdateGraphColumnAssociations();
                 updateColumnNames();
@@ -614,12 +504,11 @@ public class DataSet extends JScrollPane implements HasDataToSave
 
     /** Makes the last visible column invisible so it is no longer displayed but the data is still kept in case we want
      * it later */
-    private void removeColumn()
+    private boolean hideColumn()
     {
         if (graphArea.xErrorsOnly)
         {
-            DataColumn column = visibleDataColumns.get(visibleDataColumns.size() - 1);
-            visibleDataColumns.remove(visibleDataColumns.size() - 1);
+            DataColumn column = visibleDataColumns.remove(visibleDataColumns.size() - 1);
             invisibleDataColumns.add(0, column);
             UpdateGraphColumnAssociations();
             updateColumnNames();
@@ -627,8 +516,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
         }
         else
         {
-            DataColumn column = visibleDataColumns.get(2);
-            visibleDataColumns.remove(2);
+            DataColumn column = visibleDataColumns.remove(2);
             invisibleDataColumns.add(column);
             UpdateGraphColumnAssociations();
             updateColumnNames();
@@ -644,7 +532,6 @@ public class DataSet extends JScrollPane implements HasDataToSave
                 dataTableModel.addColumn(visibleDataColumns.get(1).getName());
             }
         }
-        updateFits();
     }
 
     /** Internal method used to update the last column in the DataSet being displayed */
@@ -981,7 +868,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
             variableNames.add("NumberOfColumns");
             variableValues.add(Integer.toString((visibleDataColumns.size() + invisibleDataColumns.size())));
             variableNames.add("FitType");
-            variableValues.add(currentFitType.toString());
+            variableValues.add(dataSetFitType.toString());
             variableNames.add("WhatIsFixed");
             if (linearFitStrategy.getWhatIsFixed() == FixedVariable.SLOPE)
             {
@@ -1159,7 +1046,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
      * @return The FitType this DataSet is using */
     public FitType getFitType()
     {
-        return currentFitType;
+        return dataSetFitType;
     }
 
     /** The DataColumn that keeps track of the x data for this DataSet
@@ -1194,15 +1081,6 @@ public class DataSet extends JScrollPane implements HasDataToSave
         return yErrorData;
     }
 
-    /** Returns whether or not this DataSet's Fit Selector is currently locked
-     * 
-     * @return Whether or not the fit is currently locked so that it cannot be changed automatically by listeners. True
-     *         means it is currently locked */
-    public boolean isFitLocked()
-    {
-        return fitLock;
-    }
-
     /** Sets the Color to be used when drawing this DataSet to the given Color
      * 
      * @param color The desired Color to use when drawing this DataSet to the GraphArea */
@@ -1228,7 +1106,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
     public void setFitType(FitType fit)
     {
         changeTracker.setFileModified();
-        currentFitType = fit;
+        dataSetFitType = fit;
     }
 
     /** Sets the name of this DataSet to the desired passed name
@@ -1260,7 +1138,6 @@ public class DataSet extends JScrollPane implements HasDataToSave
                 if (e.getFirstRow() + 1 == dataTableModel.getRowCount())
                 {
                     dataTableModel.insertRow(dataTableModel.getRowCount(), new Object[visibleDataColumns.size()]);
-                    // tableHeight += 1;
                 }
             }
             graphArea.repaint();

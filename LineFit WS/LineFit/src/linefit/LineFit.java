@@ -119,13 +119,13 @@ public class LineFit extends JFrame implements HasOptionsToSave
     /** The drop down menu that contains the DataSets as well as the currently selected DataSet */
     private QuickBarListener quickBarListener = new QuickBarListener();
     /** The drop down menu that contains the DataSets as well as the currently selected DataSet */
-    private JComboBox<DataSet> dataSetSelector;
+    private JComboBox<DataSet> dataSetSelector = new JComboBox<DataSet>();
     /** The drop down box that allows the user to select the FitType of the current DataSet */
-    private JComboBox<FitType> fitSelector;
+    private JComboBox<FitType> fitSelector = new JComboBox<FitType>();
     /** The drop down box that allows the user to select the Color of the current DataSet */
-    private JComboBox<Color> colorSelector;
+    private JComboBox<Color> colorSelector = new JComboBox<Color>();
     /** The drop down box that allows the user to select the Shape of the current DataSet */
-    private JComboBox<Shape> shapeSelector;
+    private JComboBox<Shape> shapeSelector = new JComboBox<Shape>();
     /** The JSpinner that allows the user to set the number of DataColumns for the current DataSet */
     private JSpinner columnSelector;
     /** The JLabel for the number of DataColumns JSpinner */
@@ -206,6 +206,7 @@ public class LineFit extends JFrame implements HasOptionsToSave
 
     // Other variables
     private GeneralIO ioHandler;
+    private boolean temporarilyDisableQuickMenuListener = false;
 
     /** The default FitAlgorithm to use when creating linear fits for the DataSets */
     static LinearFitFactory currentFitAlgorithmFactory = LinearFitFactory.fitAlgorithmFactories[0];
@@ -227,7 +228,6 @@ public class LineFit extends JFrame implements HasOptionsToSave
         fitResultsArea.setBackground(null);
 
         // make our graph area
-        dataSetSelector = new JComboBox<DataSet>();
         graphingArea = new GraphArea(DEFAULT_X_AXIS_MINIMUM_VALUE, DEFAULT_X_AXIS_MAXIMUM_VALUE,
                 DEFAULT_Y_AXIS_MINIMUM_VALUE, DEFAULT_Y_AXIS_MAXIMUM_VALUE, dataSetSelector, fitResultsArea,
                 ioHandler.changeTracker);
@@ -235,7 +235,7 @@ public class LineFit extends JFrame implements HasOptionsToSave
         ioHandler.InitializeExportIO(graphingArea);
 
         // and then make an empty dataset to start
-        currentDataSet = new DataSet(graphingArea, ioHandler.changeTracker, quickBarListener);
+        currentDataSet = new DataSet(graphingArea, ioHandler.changeTracker);
 
         // create our panels and menu bars
         mainDisplayPanel = new JPanel();
@@ -315,11 +315,7 @@ public class LineFit extends JFrame implements HasOptionsToSave
         DataSet newDataSet = DataSet.createDropDownPlaceHolder("New DataSet");
         dataSetSelector.addItem(newDataSet);
 
-        // Set up Type of linear fit selection ComboBox
-        fitSelector = currentDataSet.fitTypeSelector;
-
         // Set up line color selection ComboBox
-        colorSelector = new JComboBox<Color>();
         ColorBoxRenderer renderer = new ColorBoxRenderer();
         colorSelector.setRenderer(renderer);
 
@@ -333,9 +329,8 @@ public class LineFit extends JFrame implements HasOptionsToSave
         colorSelector.addItem(ColorBoxRenderer.RESERVED_FOR_CUSTOM_COLOR);
 
         // set up the shape selector drop down
-        shapeSelector = new JComboBox<Shape>();
-        ShapeBoxRenderer renderer2 = new ShapeBoxRenderer();
-        shapeSelector.setRenderer(renderer2);
+        ShapeBoxRenderer shapeRenderer = new ShapeBoxRenderer();
+        shapeSelector.setRenderer(shapeRenderer);
         shapeSelector.addItem(new Rectangle2D.Double()); // square
         shapeSelector.addItem(new Ellipse2D.Double()); // circle
         shapeSelector.addItem(new Polygon()); // triangle
@@ -460,7 +455,7 @@ public class LineFit extends JFrame implements HasOptionsToSave
     private DataSet createNewDataSet()
     {
         // create a new dataset
-        DataSet current = new DataSet(graphingArea, ioHandler.changeTracker, quickBarListener);
+        DataSet current = new DataSet(graphingArea, ioHandler.changeTracker);
 
         // Register it with the graphing area which will keep the new DataSet option at the end of the list and select
         // it which will then trigger the listener to update the GUI with the new dataset
@@ -471,17 +466,22 @@ public class LineFit extends JFrame implements HasOptionsToSave
 
     private void setDataSetDisplayed(DataSet toSet)
     {
+        temporarilyDisableQuickMenuListener = true;
+
         // remove all and then add the dataset we are displaying the table for and the fit data panel
         rightSideBar.removeAll();
         rightSideBar.add(toSet);
         rightSideBar.add(fitDataPanel);
 
-        // update the type of fits this dataset can use
-        toSet.updateFits();
-
         // remove the listener from the old set and put it on the new one
         // fitSelector.removeActionListener(quickBarListener);
-        fitSelector = toSet.fitTypeSelector;
+        ArrayList<FitType> dataSetFits = toSet.getAllowableFits();
+        fitSelector.removeAll();
+        for (FitType fit : dataSetFits)
+        {
+            fitSelector.addItem(fit);
+        }
+        fitSelector.setSelectedItem(toSet.getFitType());
         // fitSelector.addActionListener(quickBarListener);
 
         setupQuickBar();
@@ -502,7 +502,6 @@ public class LineFit extends JFrame implements HasOptionsToSave
         }
         visibleCheckBox.setSelected(toSet.visibleGraph);
 
-
         // update column selector when a new dataset is selected
         // since the column selector has a listener, it will automatically fire which will cause the correct number of
         // columns to be displayed
@@ -510,6 +509,8 @@ public class LineFit extends JFrame implements HasOptionsToSave
 
         setupLayout();
         graphingArea.repaint();
+
+        temporarilyDisableQuickMenuListener = false;
     }
 
     /** Makes it so that the number of columns in the current DataSet is equal to the default number of visible
@@ -704,70 +705,71 @@ public class LineFit extends JFrame implements HasOptionsToSave
         /** Determines which component of the QuickBar was clicked and then behaves accordingly */
         public void actionPerformed(ActionEvent e)
         {
-            if (e.getActionCommand().equals("Visible"))
+            if (!temporarilyDisableQuickMenuListener)
             {
-                DataSet current = (DataSet) dataSetSelector.getSelectedItem();
-                ioHandler.changeTracker.setFileModified();
-                current.visibleGraph = !current.visibleGraph;
-                graphingArea.repaint();
-            }
-            else if (e.getSource() == dataSetSelector)
-            {
-                DataSet current = (DataSet) dataSetSelector.getSelectedItem();
-                if (current.getName().equals("New DataSet"))
+                if (e.getActionCommand().equals("Visible"))
                 {
-                    // create the new dataset which will also select it. We still need to refresh the GUI here though
-                    // because the listener is disabled while it is being executed to help avoid endless loops
-                    current = createNewDataSet();
+                    DataSet current = (DataSet) dataSetSelector.getSelectedItem();
+                    ioHandler.changeTracker.setFileModified();
+                    current.visibleGraph = !current.visibleGraph;
+                    graphingArea.repaint();
                 }
-
-                // refresh all the needed components for this dataset
-                setDataSetDisplayed(current);
-            }
-            else if (e.getSource() == colorSelector)
-            {
-                // Event handler for colorSelector
-                DataSet current = (DataSet) dataSetSelector.getSelectedItem();
-                Color color = (Color) colorSelector.getSelectedItem();
-                // if its the reserved color then do some special things
-                if (color == ColorBoxRenderer.RESERVED_FOR_CUSTOM_COLOR)
+                else if (e.getSource() == dataSetSelector)
                 {
-                    // see if we already have a customColorMenu and if we dont then we need to center it on the frame
-                    boolean doNotCenterCustomColorMenu = ((DataSet) dataSetSelector.getSelectedItem())
-                            .doesHaveVisibleCustomColorMenu();
-
-                    // get the custom menu to the front or create it
-                    CustomColorMenu chooser = ((DataSet) dataSetSelector.getSelectedItem())
-                            .createOrFocusOnCustomColorMenu();
-
-                    // center it only if we just made it
-                    if (!doNotCenterCustomColorMenu)
+                    DataSet current = (DataSet) dataSetSelector.getSelectedItem();
+                    if (current.getName().equals("New DataSet"))
                     {
-                        centerOnThis(chooser);
+                        // create the new dataset which will also select it. We still need to refresh the GUI here
+                        // though
+                        // because the listener is disabled while it is being executed to help avoid endless loops
+                        current = createNewDataSet();
+                    }
+
+                    // refresh all the needed components for this dataset
+                    setDataSetDisplayed(current);
+                }
+                else if (e.getSource() == colorSelector)
+                {
+                    // Event handler for colorSelector
+                    DataSet current = (DataSet) dataSetSelector.getSelectedItem();
+                    Color color = (Color) colorSelector.getSelectedItem();
+                    // if its the reserved color then do some special things
+                    if (color == ColorBoxRenderer.RESERVED_FOR_CUSTOM_COLOR)
+                    {
+                        // see if we already have a customColorMenu and if we dont then we need to center it on the
+                        // frame
+                        boolean doNotCenterCustomColorMenu = ((DataSet) dataSetSelector.getSelectedItem())
+                                .doesHaveVisibleCustomColorMenu();
+
+                        // get the custom menu to the front or create it
+                        CustomColorMenu chooser = ((DataSet) dataSetSelector.getSelectedItem())
+                                .createOrFocusOnCustomColorMenu();
+
+                        // center it only if we just made it
+                        if (!doNotCenterCustomColorMenu)
+                        {
+                            centerOnThis(chooser);
+                        }
+                    }
+                    // only set the color if we are not using the reserved color value
+                    else
+                    {
+                        current.setColor(color);
                     }
                 }
-                // only set the color if we are not using the reserved color value
-                else
+                else if (e.getSource() == shapeSelector)
                 {
-                    current.setColor(color);
+                    DataSet current = (DataSet) dataSetSelector.getSelectedItem();
+                    Shape shape = (Shape) shapeSelector.getSelectedItem();
+                    current.setShape(shape);
+
+                    graphingArea.repaint();
+
                 }
-            }
-            else if (e.getSource() == shapeSelector)
-            {
-                DataSet current = (DataSet) dataSetSelector.getSelectedItem();
-                Shape shape = (Shape) shapeSelector.getSelectedItem();
-                current.setShape(shape);
-
-                graphingArea.repaint();
-
-            }
-            else if (e.getSource() == fitSelector)
-            {
-                // Event handler for fitSelector
-                DataSet current = (DataSet) dataSetSelector.getSelectedItem();
-
-                if (!current.isFitLocked())
+                else if (e.getSource() == fitSelector)
                 {
+                    // Event handler for fitSelector
+                    DataSet current = (DataSet) dataSetSelector.getSelectedItem();
                     FitType fit = (FitType) fitSelector.getSelectedItem();
 
                     if (fit != null)
@@ -776,11 +778,11 @@ public class LineFit extends JFrame implements HasOptionsToSave
                         updateCellFormattingInDataSetColumns(current);
                     }
                 }
-            }
-            else if (e.getSource() == graphOptionsButton)
-            {
-                DataSet current = (DataSet) dataSetSelector.getSelectedItem();
-                centerOnThis(new GraphOptionsMenu(graphingArea, current, ioHandler));
+                else if (e.getSource() == graphOptionsButton)
+                {
+                    DataSet current = (DataSet) dataSetSelector.getSelectedItem();
+                    centerOnThis(new GraphOptionsMenu(graphingArea, current, ioHandler));
+                }
             }
         }
     }

@@ -38,16 +38,6 @@ public class DataColumn
         data = new ArrayList<Double>();
     }
 
-    /** Creates a GraphColumn with the name "column " with the integer appended at the end
-     * 
-     * @param num the number one less than the number to use for the column number to account for zero indexing */
-    public DataColumn(int num)
-    {
-        // this adds one so to account for zero indexing
-        setColumnName("Column " + ++num);
-        data = new ArrayList<Double>();
-    }
-
     /** Returns the number of data points with or without null entries */
     public int dataSize()
     {

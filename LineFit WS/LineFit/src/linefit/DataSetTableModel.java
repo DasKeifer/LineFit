@@ -30,6 +30,11 @@ class DataSetTableModel extends DefaultTableModel
      * http://docs.oracle.com/javase/7/docs/api/java/io/Serializable.html for full discussion on its uses and purpose */
     private final static long serialVersionUID = 42L;
 
+    void removeLastColumn()
+    {
+        removeColumn(getColumnCount() - 1);
+    }
+
     /** Removes the column with the given index from the table
      * 
      * @param columnIndex The index of the column to remove */

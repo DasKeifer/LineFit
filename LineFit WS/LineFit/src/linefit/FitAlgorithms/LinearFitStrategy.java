@@ -14,6 +14,7 @@ package linefit.FitAlgorithms;
 
 
 import linefit.DataColumn;
+import linefit.DataDimension;
 import linefit.DataSet;
 import linefit.ScientificNotation;
 
@@ -52,38 +53,9 @@ public abstract class LinearFitStrategy
     /** Recalculates the Fit for the given DataSet - updates the fit for the given values */
     public void refreshFitData()
     {
-        // We need to check that we have the right data for the fit we are set to so that we dont explode
-        switch (dataForFit.getFitType())
+        if (dataForFit.getFitType() != FitType.NONE)
         {
-            case NONE:
-                break;
-            case REGULAR:
-                if (dataForFit.getXData() != null && dataForFit.getYData() != null)
-                {
-                    calculateLinearFit(FitType.REGULAR);
-                }
-                break;
-            case X_ERROR:
-                if (dataForFit.getXData() != null && dataForFit.getYData() != null && dataForFit
-                        .getXErrorData() != null)
-                {
-                    calculateLinearFit(FitType.X_ERROR);
-                }
-                break;
-            case Y_ERROR:
-                if (dataForFit.getXData() != null && dataForFit.getYData() != null && dataForFit
-                        .getYErrorData() != null)
-                {
-                    calculateLinearFit(FitType.Y_ERROR);
-                }
-                break;
-            case BOTH_ERRORS:
-                if (dataForFit.getXData() != null && dataForFit.getYData() != null && dataForFit
-                        .getXErrorData() != null && dataForFit.getYErrorData() != null)
-                {
-                    calculateLinearFit(FitType.BOTH_ERRORS);
-                }
-                break;
+            calculateLinearFit(dataForFit.getFitType());
         }
     }
 
@@ -99,31 +71,29 @@ public abstract class LinearFitStrategy
      * @return The Intercept of the fit line if the passed slope is used for calculating it */
     double calculateIntercept(double inSlope)
     {
-        DataColumn xData = dataForFit.getXData();
-        DataColumn yData = dataForFit.getYData();
-        DataColumn xErrorData = dataForFit.getXErrorData();
-        DataColumn yErrorData = dataForFit.getYErrorData();
-
-        if (whatIsFixed != FixedVariable.INTERCEPT || !canFixIntercept)
+        // if we can't or don't have the intercept fixed, then we need to calculate it
+        if (!canFixIntercept || whatIsFixed != FixedVariable.INTERCEPT)
         {
             double sigmaSquared = 0.0, xSum = 0.0, ySum = 0.0, wSum = 0.0;
             double eX = 0.0, eY = 0.0, x = 0.0, y = 0.0;
 
+            DataColumn xData = dataForFit.getData(DataDimension.X);
+            DataColumn yData = dataForFit.getData(DataDimension.Y);
+            DataColumn xErrorData = dataForFit.getErrorData(DataDimension.X);
+            DataColumn yErrorData = dataForFit.getErrorData(DataDimension.Y);
+
             // calculates the intercept with the current slope
             for (int i = 0; i < xData.getData().size(); i++)
             {
-                if (!xData.isNull(i) && !yData.isNull(i) && !xErrorData.isNull(i) && !yErrorData.isNull(i))
-                {
-                    x = xData.readDouble(i);
-                    y = yData.readDouble(i);
-                    eX = xErrorData.readDouble(i);
-                    eY = yErrorData.readDouble(i);
+                x = xData.readDouble(i);
+                y = yData.readDouble(i);
+                eX = xErrorData.readDouble(i);
+                eY = yErrorData.readDouble(i);
 
-                    sigmaSquared = Math.pow(eY, 2) + (Math.pow(inSlope, 2) * Math.pow(eX, 2));
-                    wSum += 1.0 / sigmaSquared;
-                    xSum += x / sigmaSquared;
-                    ySum += y / sigmaSquared;
-                }
+                sigmaSquared = Math.pow(eY, 2) + (Math.pow(inSlope, 2) * Math.pow(eX, 2));
+                wSum += 1.0 / sigmaSquared;
+                xSum += x / sigmaSquared;
+                ySum += y / sigmaSquared;
             }
             return (ySum - inSlope * xSum) / wSum;
         }
@@ -131,6 +101,47 @@ public abstract class LinearFitStrategy
         {
             return fixedValue;
         }
+    }
+
+    public double getChiSquaredWeight(FitType fitTypeToUse, int dataPointIndex)
+    {
+        double weight = 1;
+
+        switch (fitTypeToUse)
+        {
+            case Y_ERROR:
+                double eY = dataForFit.getErrorData(DataDimension.Y).readDouble(dataPointIndex);
+                if (eY != 0.0)
+                {
+                    weight = (double) (1.0 / (eY * eY));
+                }
+                else
+                {
+                    weight = 1;
+                }
+                break;
+            case BOTH_ERRORS:
+                System.out.println(
+                        "Error: Default Chi Squared Algorithm does not support both x and y error fitting. Defaulting to X only fit");
+            case X_ERROR:
+                double eX = dataForFit.getErrorData(DataDimension.X).readDouble(dataPointIndex);
+                if (eX != 0.0)
+                {
+                    weight = (double) (1.0 / (eX * eX));
+                }
+                else
+                {
+                    weight = 1;
+                }
+                break;
+            default:
+                System.out.println("Error: Bad fit type specified. Defaulting to no error fit");
+            case NONE:
+                weight = 1;
+                break;
+        }
+
+        return weight;
     }
 
     /** Calculates the Chi Squared(^2) value for the inputed slope and intercept.The DataSet's Chi Squared measures the
@@ -141,31 +152,31 @@ public abstract class LinearFitStrategy
      * @return The Chi Squared value of the fit using the passed slope and intercept */
     public double calculateChiSquared(double inSlope, double inIntercept)
     {
-        double eX = 0.0, eY = 0.0, x = 0.0, y = 0.0;
-        DataColumn xData = dataForFit.getXData();
-        DataColumn yData = dataForFit.getYData();
-        DataColumn xErrorData = dataForFit.getXErrorData();
-        DataColumn yErrorData = dataForFit.getYErrorData();
+        double x = 0.0, y = 0.0;
+
+        DataColumn xData = dataForFit.getData(DataDimension.X);
+        DataColumn yData = dataForFit.getData(DataDimension.Y);
+        DataColumn xErrorData = dataForFit.getErrorData(DataDimension.X);
+        DataColumn yErrorData = dataForFit.getErrorData(DataDimension.Y);
 
         // if we have both fits then calculate the chi squared like this
         if (this.dataForFit.getFitType() == FitType.BOTH_ERRORS)
         {
+            double eX = 0.0, eY = 0.0;
             double sigmaSquared = 0.0, chiSquaredSum = 0.0;
+
             // now finds the chi squared sum using this slope and intercept
             for (int i = 0; i < xData.getData().size(); i++)
             {
-                if (!xData.isNull(i) && !yData.isNull(i) && !xErrorData.isNull(i) && !yErrorData.isNull(i))
-                {
-                    x = xData.readDouble(i);
-                    y = yData.readDouble(i);
-                    eX = xErrorData.readDouble(i);
-                    eY = yErrorData.readDouble(i);
+                x = xData.readDouble(i);
+                y = yData.readDouble(i);
+                eX = xErrorData.readDouble(i);
+                eY = yErrorData.readDouble(i);
 
-                    sigmaSquared = Math.pow(eY, 2) + (Math.pow(inSlope, 2) * Math.pow(eX, 2));
+                sigmaSquared = Math.pow(eY, 2) + (Math.pow(inSlope, 2) * Math.pow(eX, 2));
 
-                    double distFromSlope = y - (inSlope) * x - inIntercept;
-                    chiSquaredSum += distFromSlope * distFromSlope / sigmaSquared;
-                }
+                double distFromSlope = y - (inSlope) * x - inIntercept;
+                chiSquaredSum += distFromSlope * distFromSlope / sigmaSquared;
             }
 
             return chiSquaredSum;
@@ -178,46 +189,11 @@ public abstract class LinearFitStrategy
             {
                 if (!xData.isNull(i) && !yData.isNull(i))
                 {
-                    eX = 0;
-                    eY = 0;
                     x = xData.readDouble(i);
                     y = yData.readDouble(i);
-                    if (xErrorData != null)
-                    {
-                        eX = xErrorData.readDouble(i);
-                    }
-                    if (yErrorData != null)
-                    {
-                        eY = yErrorData.readDouble(i);
-                    }
-                    // Weight the data according to either the xErrors or the
-                    // yErrors
-                    if (this.dataForFit.getFitType() == FitType.Y_ERROR && yErrorData != null)
-                    {
-                        if (eY != 0.0)
-                        {
-                            weight = (double) (1.0 / (eY * eY));
-                        }
-                        else
-                        {
-                            weight = 1;
-                        }
-                    }
-                    else if (this.dataForFit.getFitType() == FitType.X_ERROR && xErrorData != null)
-                    {
-                        if (eX != 0.0)
-                        {
-                            weight = (double) (1.0 / (eX * eX));
-                        }
-                        else
-                        {
-                            weight = 1;
-                        }
-                    }
-                    else
-                    {
-                        weight = 1;
-                    }
+
+                    weight = getChiSquaredWeight(dataForFit.getFitType(), i);
+
                     sumX += x * weight;
                     sumY += y * weight;
                     sumXX += x * x * weight;
@@ -226,8 +202,9 @@ public abstract class LinearFitStrategy
                     sumW += weight;
                 }
             }
-            return sumYY - 2.0 * slope * sumXY - 2.0 * intercept * sumY + Math.pow(slope, 2) * sumXX + 2.0 * slope *
-                    intercept * sumX + Math.pow(intercept, 2) * sumW;
+
+            return sumYY - (2.0 * slope * sumXY) - (2.0 * intercept * sumY) + (Math.pow(slope, 2) * sumXX) + (2.0 *
+                    slope * intercept * sumX) + (Math.pow(intercept, 2) * sumW);
         }
     }
 
@@ -251,138 +228,30 @@ public abstract class LinearFitStrategy
         return getSlope() * xPoint + intercept;
     }
 
-    /** Returns the slope and its error as a string in scientific notation using ASCII characters
-     * 
-     * @param resultDecPlaces The number of decimal places to round the slope value to. If negative values are inputed,
-     * it rounds that many digits to the left of the decimal place
-     * @param useScientificNotation Whether or not to use scientific notation for formatting the slope String. True
-     * means the results use scientific notation
-     * @param returnAsLaTexString Whether or not to return the String in the correct form to be displayed in LaTex
-     * (which is the incorrect form for other purposes). True returns it as a LaTex String
-     * @return Returns the slope of this particular fit in the format specified by the parameters */
-    public String getSlopeAsString(int resultDecPlaces, boolean useScientificNotation, boolean returnAsLaTexString)
-    {
-        if (useScientificNotation)
-        {
-            if (!returnAsLaTexString)
-            {
-                return ScientificNotation.withError(getSlope(), getSlopeError(), resultDecPlaces);
-            }
-            else
-            {
-                return ScientificNotation.laTexWithError(getSlope(), getSlopeError(), resultDecPlaces);
-            }
-        }
-        else
-        {
-            if (!returnAsLaTexString)
-            {
-                return ScientificNotation.withError(getSlope(), getSlopeError(), 0, resultDecPlaces);
-            }
-            else
-            {
-                return ScientificNotation.laTexWithError(getSlope(), getSlopeError(), 0, resultDecPlaces);
-            }
-        }
-    }
-
-    /** Returns the intercept and its error as a string in scientific notation using ASCII characters
-     * 
-     * @param resultDecPlaces The number of decimal places to round the intercept value to. If negative values are
-     * inputed, it rounds that many digits to the left of the decimal place
-     * @param yAxisPower The power on the Y Axis of the graph so that the intercept's power will match the power on the
-     * Y Axis if put into scientific notation
-     * @param useScientificNotation Whether or not to use scientific notation for formatting the intercept String. True
-     * means the results use scientific notation
-     * @param returnAsLaTexString Whether or not to return the String in the correct form to be displayed in LaTex
-     * (which is the incorrect form for other purposes). True returns it as a LaTex String
-     * @return Returns the intercept of this particular fit in the format specified by the parameters */
-    public String getInterceptAsString(int resultDecPlaces, int yAxisPower, boolean useScientificNotation,
-            boolean returnAsLaTexString)
-    {
-        // if we use scientific notation we want the intercept with the same power as the y axis
-        if (useScientificNotation)
-        {
-            if (!returnAsLaTexString)
-            {
-                return ScientificNotation.withError(getIntercept(), getInterceptError(), yAxisPower, resultDecPlaces);
-            }
-            else
-            {
-                return ScientificNotation.laTexWithError(getIntercept(), getInterceptError(), yAxisPower,
-                        resultDecPlaces);
-            }
-        }
-        // otherwise we want the power to be 0
-        else
-        {
-            if (!returnAsLaTexString)
-            {
-                return ScientificNotation.withError(getIntercept(), getInterceptError(), 0, resultDecPlaces);
-            }
-            else
-            {
-                return ScientificNotation.laTexWithError(getIntercept(), getInterceptError(), 0, resultDecPlaces);
-            }
-        }
-    }
-
     /** calculates the linear fit for only one set of errors by minimizing the Chi Squared value
      * 
      * @param fitTypeToUse The fit type to fit the DataSet with */
     void defaultChiSquareFitForSingleOrNoErrors(FitType fitTypeToUse)
     {
+        double x = 0, y = 0;
         double sumX = 0.0, sumY = 0.0, sumXX = 0.0, sumXY = 0.0, sumW = 0.0, weight = 0.0;
 
-        DataColumn xData = dataForFit.getXData();
-        DataColumn yData = dataForFit.getYData();
-        DataColumn xErrorData = dataForFit.getXErrorData();
-        DataColumn yErrorData = dataForFit.getYErrorData();
+        DataColumn xData = dataForFit.getData(DataDimension.X);
+        DataColumn yData = dataForFit.getData(DataDimension.Y);
 
         for (int i = 0; i < xData.getData().size(); i++)
         {
             // If both X and Y values exist, calculate, otherwise, don't.
             if (!xData.isNull(i) && !yData.isNull(i))
             {
-                double eX = 0, eY = 0;
-                double x = xData.readDouble(i);
-                double y = yData.readDouble(i);
-                if (xErrorData != null)
-                {
-                    eX = xErrorData.readDouble(i);
-                }
-                if (yErrorData != null)
-                {
-                    eY = yErrorData.readDouble(i);
-                }
-                // Weight the data according to either the xErrors or the
-                // yErrors
-                if (fitTypeToUse == FitType.Y_ERROR && yErrorData != null)
-                {
-                    if (eY != 0.0)
-                    {
-                        weight = (double) (1.0 / (eY * eY));
-                    }
-                    else
-                    {
-                        weight = 1;
-                    }
-                }
-                else if (fitTypeToUse == FitType.X_ERROR && xErrorData != null)
-                {
-                    if (eX != 0.0)
-                    {
-                        weight = (double) (1.0 / (eX * eX));
-                    }
-                    else
-                    {
-                        weight = 1;
-                    }
-                }
-                else
-                {
-                    weight = 1;
-                }
+                // read the x and y data
+                x = xData.readDouble(i);
+                y = yData.readDouble(i);
+
+                // get the weight
+                weight = getChiSquaredWeight(fitTypeToUse, i);
+
+                // sum the values we need later
                 sumX += x * weight;
                 sumY += y * weight;
                 sumXX += x * x * weight;
@@ -392,92 +261,58 @@ public abstract class LinearFitStrategy
         }
 
         double delta = 0;
-
-        if (whatIsFixed == FixedVariable.SLOPE && canFixSlope) // check if we have the easy case of a fixed slope
+        if (canFixSlope && whatIsFixed == FixedVariable.SLOPE) // check if we have the easy case of a fixed slope
         {
             slope = fixedValue;
             intercept = (sumY - slope * sumX) / sumW;
             delta = sumW * sumXX - sumX * sumX; // we can do it this way because the loss of accuracy wont matter once
                                                 // we square root it for finding the errors
         }
-        else if (whatIsFixed == FixedVariable.INTERCEPT && canFixIntercept) // or the easy case of a fixed intercept
+        else if (canFixIntercept && whatIsFixed == FixedVariable.INTERCEPT) // or the easy case of a fixed intercept
         {
             intercept = fixedValue;
             slope = (sumXY - (intercept * sumX)) / (sumXX);
             delta = sumW * sumXX - sumX * sumX; // we can do it this way because the loss of accuracy wont matter once
                                                 // we square root it for finding the errors
         }
-        else // this part should be equivalent to (whatIsFixed == FixedVariable.NONE)
+        else if (whatIsFixed == FixedVariable.NONE)
         {
-            if (whatIsFixed != FixedVariable.NONE) // if its unrecognized just do no fixed values and warn the
-                                                   // programmer
-            {
-                System.err.println("Trying To set undefined fixed varaible");
-            }
+            double xi = 0.0, xj = 0.0, yi = 0.0, yj = 0.0, wi = 0.0, wj = 0.0;
             double slopeSum = 0, interceptSum = 0;
+
             for (int i = 0; i < xData.getData().size(); i++)
             {
                 if (!xData.isNull(i) && !yData.isNull(i))
                 {
-                    double xi = xData.readDouble(i);
-                    double yi = yData.readDouble(i);
-                    double weighti = 1;
-
-                    if (fitTypeToUse == FitType.Y_ERROR && yErrorData != null)
-                    {
-                        double errYi = yErrorData.readDouble(i);
-                        if (errYi != 0.0)
-                        {
-                            weighti = (double) (1.0 / (errYi * errYi));
-                        }
-                    }
-                    else if (fitTypeToUse == FitType.X_ERROR && xErrorData != null)
-                    {
-                        double errXi = xErrorData.readDouble(i);
-                        if (errXi != 0.0)
-                        {
-                            weighti = (double) (1.0 / (errXi * errXi));
-                        }
-                    }
+                    xi = xData.readDouble(i);
+                    yi = yData.readDouble(i);
+                    wi = getChiSquaredWeight(fitTypeToUse, i);
 
                     double sumj = 0, sumjIntercept = 0;
                     for (int j = 0; j < xData.getData().size(); j++)
                     {
-                        if (!xData.isNull(j) && !yData.isNull(j))
+                        if (i != j && !xData.isNull(j) && !yData.isNull(j))
                         {
-                            double xj = xData.readDouble(j);
-                            double yj = yData.readDouble(j);
-                            double wj = 1;
-
-                            if (fitTypeToUse == FitType.Y_ERROR && yErrorData != null)
-                            {
-                                double errYj = yErrorData.readDouble(j);
-                                if (errYj != 0.0)
-                                {
-                                    wj = (double) (1.0 / (errYj * errYj));
-                                }
-                            }
-                            else if (fitTypeToUse == FitType.X_ERROR && xErrorData != null)
-                            {
-                                double errXj = xErrorData.readDouble(j);
-                                if (errXj != 0.0)
-                                {
-                                    wj = (double) (1.0 / (errXj * errXj));
-                                }
-                            }
+                            xj = xData.readDouble(j);
+                            yj = yData.readDouble(j);
+                            wj = getChiSquaredWeight(fitTypeToUse, j);
 
                             sumj += (xi - xj) * wj;
                             sumjIntercept += (xi - xj) * wj * yj;
                         }
                     }
-                    delta += sumj * xi * weighti;
-                    slopeSum += sumj * yi * weighti;
-                    interceptSum += sumjIntercept * xi * weighti;
+                    delta += sumj * xi * wi;
+                    slopeSum += sumj * yi * wi;
+                    interceptSum += sumjIntercept * xi * wi;
                 }
             }
             slope = slopeSum / delta;
             intercept = interceptSum / delta;
 
+        }
+        else
+        {
+            System.err.println("Trying To set undefined fixed varaible");
         }
 
         slopeError = Math.sqrt(sumW / delta);
@@ -505,39 +340,37 @@ public abstract class LinearFitStrategy
      * @param valueOfFixed The value to set the fixed variable to */
     public void setWhatIsFixed(FixedVariable whatFixed, double valueOfFixed)
     {
+        if (!canFixIntercept && !canFixSlope)
+        {
+            System.err.println("Cannot set any fixed values for this Fit Algortihm");
+            return;
+        }
+
         switch (whatFixed)
         {
             case NONE:
                 whatIsFixed = whatFixed;
                 break;
             case SLOPE:
-                // we still set it so we can hold onto it if the fit is switched back
-                whatIsFixed = whatFixed;
-
                 if (!canFixSlope)
                 {
                     System.err.println("Cannot fix the slope for this Fit Algortihm");
-                } ;
+                }
                 break;
             case INTERCEPT:
-                // we still set it so we can hold onto it if the fit is switched back
-                whatIsFixed = whatFixed;
-
                 if (!canFixIntercept)
                 {
                     System.err.println("Cannot fix the Intercept for this Fit Algortihm");
-                } ;
+                }
                 break;
             default:
                 System.err.println("Trying to fix an Undefined variable");
-                break;
+                return;
         }
+
+        whatIsFixed = whatFixed;
         fixedValue = valueOfFixed;
 
-        if (!canFixIntercept && !canFixSlope)
-        {
-            System.err.println("Cannot set any fixed values for this Fit Algortihm");
-        }
         refreshFitData();
     }
 
@@ -567,10 +400,11 @@ public abstract class LinearFitStrategy
         if (dataForFit.getFitType() == FitType.REGULAR)
         {
             // we need to make sure that we have enough points so that we do not divide by 0!
-            if (dataForFit.getXData().getData().size() > 2 && (this.whatIsFixed != FixedVariable.SLOPE || !canFixSlope))
+            if (dataForFit.getData(DataDimension.X).getData().size() > 2 && (this.whatIsFixed != FixedVariable.SLOPE ||
+                    !canFixSlope))
             {
-                return Math.sqrt(Math.abs(calculateChiSquared(this.slope, this.intercept)) / (dataForFit.getXData()
-                        .getData().size() - 2));
+                return Math.sqrt(Math.abs(calculateChiSquared(this.slope, this.intercept)) / (dataForFit.getData(
+                        DataDimension.X).getData().size() - 2));
             }
             else
             {
@@ -630,5 +464,81 @@ public abstract class LinearFitStrategy
             System.err.println("this strategy does not support fixing variables");
         }
         return fixedValue;
+    }
+
+    /** Returns the slope and its error as a string in scientific notation using ASCII characters
+     * 
+     * @param resultDecPlaces The number of decimal places to round the slope value to. If negative values are inputed,
+     *        it rounds that many digits to the left of the decimal place
+     * @param useScientificNotation Whether or not to use scientific notation for formatting the slope String. True
+     *        means the results use scientific notation
+     * @param returnAsLaTexString Whether or not to return the String in the correct form to be displayed in LaTex
+     *        (which is the incorrect form for other purposes). True returns it as a LaTex String
+     * @return Returns the slope of this particular fit in the format specified by the parameters */
+    public String getSlopeAsString(int resultDecPlaces, boolean useScientificNotation, boolean returnAsLaTexString)
+    {
+        if (useScientificNotation)
+        {
+            if (!returnAsLaTexString)
+            {
+                return ScientificNotation.withError(getSlope(), getSlopeError(), resultDecPlaces);
+            }
+            else
+            {
+                return ScientificNotation.laTexWithError(getSlope(), getSlopeError(), resultDecPlaces);
+            }
+        }
+        else
+        {
+            if (!returnAsLaTexString)
+            {
+                return ScientificNotation.withError(getSlope(), getSlopeError(), 0, resultDecPlaces);
+            }
+            else
+            {
+                return ScientificNotation.laTexWithError(getSlope(), getSlopeError(), 0, resultDecPlaces);
+            }
+        }
+    }
+
+    /** Returns the intercept and its error as a string in scientific notation using ASCII characters
+     * 
+     * @param resultDecPlaces The number of decimal places to round the intercept value to. If negative values are
+     *        inputed, it rounds that many digits to the left of the decimal place
+     * @param yAxisPower The power on the Y Axis of the graph so that the intercept's power will match the power on the
+     *        Y Axis if put into scientific notation
+     * @param useScientificNotation Whether or not to use scientific notation for formatting the intercept String. True
+     *        means the results use scientific notation
+     * @param returnAsLaTexString Whether or not to return the String in the correct form to be displayed in LaTex
+     *        (which is the incorrect form for other purposes). True returns it as a LaTex String
+     * @return Returns the intercept of this particular fit in the format specified by the parameters */
+    public String getInterceptAsString(int resultDecPlaces, int yAxisPower, boolean useScientificNotation,
+            boolean returnAsLaTexString)
+    {
+        // if we use scientific notation we want the intercept with the same power as the y axis
+        if (useScientificNotation)
+        {
+            if (!returnAsLaTexString)
+            {
+                return ScientificNotation.withError(getIntercept(), getInterceptError(), yAxisPower, resultDecPlaces);
+            }
+            else
+            {
+                return ScientificNotation.laTexWithError(getIntercept(), getInterceptError(), yAxisPower,
+                        resultDecPlaces);
+            }
+        }
+        // otherwise we want the power to be 0
+        else
+        {
+            if (!returnAsLaTexString)
+            {
+                return ScientificNotation.withError(getIntercept(), getInterceptError(), 0, resultDecPlaces);
+            }
+            else
+            {
+                return ScientificNotation.laTexWithError(getIntercept(), getInterceptError(), 0, resultDecPlaces);
+            }
+        }
     }
 }

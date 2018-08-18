@@ -45,20 +45,18 @@ import linefit.IO.HasDataToSave;
  * @since &lt;0.98.0 */
 public class DataSet extends JScrollPane implements HasDataToSave
 {
+    /** The static variable that keeps track of the current number of GraphDataSets in the GraphArea. Used to determine
+     * the number used for the next GraphDataSet */
+    private static int numberOfGraphDataSets = 0;
+
     /** The Serial Version UID so that we know what version it is when we are using it. See
      * http://docs.oracle.com/javase/7/docs/api/java/io/Serializable.html for full discussion on its uses and purpose */
     private final static long serialVersionUID = 42L;
-    /** The static variable that keeps track of the current number of GraphDataSets in the GraphArea. Used to determine
-     * the number used for the next GraphDataSet */
-    private static int numberOfGraphDataSets = 1;
     /** The Default number of columns in each GraphDataSet when it is created. By Default it is two: one for the x
      * values and one for the y values */
     final static int DEFAULT_NUMBER_OF_COLUMNS = 2;
     /** The Default number or rows in each column in the GraphDataSet */
     final static int DEFAULT_NUMBER_OF_ROWS = 10;
-
-    /** The GraphArea this GraphDataSet is linked to */
-    private GraphArea graphArea;
 
     /** The object that keeps track of if any changes have been made */
     private ChangeTracker changeTracker;
@@ -73,19 +71,12 @@ public class DataSet extends JScrollPane implements HasDataToSave
     public boolean visibleGraph;
 
     /** The list of all the visible DataColumns in this DataSet */
-    ArrayList<DataColumn> visibleDataColumns;
-    /** the list of all the columns that are not being displayed currently in the DataSet. This allows us to keep the
-     * values in case the user wants to bring back the column they removed earlier */
-    ArrayList<DataColumn> invisibleDataColumns;
+    ArrayList<DataColumn> dataColumns;
+    ArrayList<DataColumn> errorColumns;
 
-    /** The DataColumn that keeps track of the x data for this DataSet */
-    public DataColumn xData;
-    /** The DataColumn that keeps track of the y data for this DataSet */
-    public DataColumn yData;
-    /** The DataColumn that keeps track of the x error/uncertainty data for this DataSet */
-    public DataColumn xErrorData;
-    /** The DataColumn that keeps track of the y error/uncertainty data for this DataSet */
-    public DataColumn yErrorData;
+    int errorColumnsDisplayed = 0;
+    DataDimension[] errorColumnsOrder = DataDimension.values();
+
     /** The FitAlgrorithm we are using to fit this DataSet that also keeps track of the fit's data */
     public LinearFitStrategy linearFitStrategy; // TODO: encapsulate
     /** The currently selected FitType of this DataSet (i.e. no fit, x error fit) */
@@ -111,8 +102,8 @@ public class DataSet extends JScrollPane implements HasDataToSave
         linearFitStrategy = LineFit.currentFitAlgorithmFactory.createNewLinearFitStartegy(this);
 
         dataSetName = "DataSet " + numberOfGraphDataSets;
-        visibleDataColumns = new ArrayList<DataColumn>();
-        invisibleDataColumns = new ArrayList<DataColumn>();
+        dataColumns = new ArrayList<DataColumn>();
+        errorColumns = new ArrayList<DataColumn>();
         dataTableModel = new DataSetTableModel();
         tableContainingData = new JTable(dataTableModel);
         tableContainingData.setGridColor(Color.gray);
@@ -126,20 +117,24 @@ public class DataSet extends JScrollPane implements HasDataToSave
         tableContainingData.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
 
         setViewportView(tableContainingData);
-        graphArea = parentGraphArea;
-
-        for (int i = 0; i < DEFAULT_NUMBER_OF_COLUMNS; i++)
-        {
-            addColumn();
-        }
 
         for (int i = 0; i < DEFAULT_NUMBER_OF_ROWS; i++)
         {
-            // System.out.println("add a row");
-            dataTableModel.insertRow(dataTableModel.getRowCount(), new Object[visibleDataColumns.size()]);
+            dataTableModel.insertRow(dataTableModel.getRowCount(), new Object[0]);
         }
 
-        dataTableModel.addTableModelListener(new GraphSetListener());
+        for (DataDimension dim : DataDimension.values())
+        {
+            dataColumns.add(dim.getColumnIndex(), new DataColumn(dim.getDisplayString(), changeTracker));
+            errorColumns.add(dim.getColumnIndex(), new DataColumn(dim.getErrorDisplayString(), changeTracker));
+        }
+
+        for (int i = 0; i < DataDimension.getNumberOfDimensions(); i++)
+        {
+            dataTableModel.addColumn(dataColumns.get(i).getName());
+        }
+
+        dataTableModel.addTableModelListener(new GraphSetListener(parentGraphArea));
 
         tableContainingData.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_R, 0, false), "MY_CUSTOM_ACTION");
         dataSetColor = Color.BLACK;
@@ -167,28 +162,92 @@ public class DataSet extends JScrollPane implements HasDataToSave
         return placeHolder;
     }
 
+    public void setErrorColumnOrder(DataDimension[] columnOrder)
+    {
+        int numCurrentlyDisplayed = errorColumnsDisplayed;
+        while (errorColumnsDisplayed > 0)
+        {
+            hideLastErrorColumn();
+        }
+
+        errorColumnsOrder = columnOrder;
+
+        while (errorColumnsDisplayed < numCurrentlyDisplayed)
+        {
+            showNextErrorColumn();
+        }
+    }
+
+    public boolean setNumberOfDisplayedColumns(int numColumns)
+    {
+        int errorColums = numColumns - DataDimension.getNumberOfDimensions();
+        if (errorColums < 0 || errorColums > DataDimension.getNumberOfDimensions())
+        {
+            return false;
+        }
+        else
+        {
+            int diffColumns = errorColums - errorColumnsDisplayed;
+            boolean addColumns = diffColumns > 0;
+            for (int i = 0; i < Math.abs(diffColumns); i++)
+            {
+                if (addColumns)
+                {
+                    showNextErrorColumn();
+                }
+                else
+                {
+                    hideLastErrorColumn();
+                }
+            }
+
+            return true;
+        }
+    }
+
+    public void showNextErrorColumn()
+    {
+        if (errorColumnsDisplayed < DataDimension.getNumberOfDimensions())
+        {
+            DataColumn error = errorColumns.get(errorColumnsOrder[errorColumnsDisplayed++].getColumnIndex());
+            dataTableModel.addColumn(error.getName());
+        }
+    }
+
+    public void hideLastErrorColumn()
+    {
+        // not working???
+        if (errorColumnsDisplayed > 0)
+        {
+            dataTableModel.removeLastColumn();
+            errorColumnsDisplayed--;
+        }
+    }
+
     /** Updates the available FitTypes we can use on this DataSet based on the amount of data in them */
     ArrayList<FitType> getAllowableFits()
     {
         ArrayList<FitType> fits = new ArrayList<FitType>();
 
         fits.add(FitType.NONE);
-        if (getNumberOfValidPoints() > 1)
+        ArrayList<Integer> validPoints = getIndexesOfValidPoints();
+        if (validPoints.size() > 1)
         {
             fits.add(FitType.REGULAR);
 
-            checkForZeroErrorValues();
-            if (checkAllXHaveErrors())
+            if (checkAllHaveErrors(validPoints, DataDimension.X))
             {
                 fits.add(FitType.X_ERROR);
+
+                if (checkAllHaveErrors(validPoints, DataDimension.Y))
+                {
+                    fits.add(FitType.Y_ERROR);
+                    fits.add(FitType.BOTH_ERRORS);
+                }
             }
-            if (checkAllYHaveErrors())
+            else if (checkAllHaveErrors(validPoints, DataDimension.Y))
             {
                 fits.add(FitType.Y_ERROR);
-            }
-            if (checkAllXHaveErrors() && checkAllYHaveErrors())
-            {
-                fits.add(FitType.BOTH_ERRORS);
             }
         }
 
@@ -204,66 +263,73 @@ public class DataSet extends JScrollPane implements HasDataToSave
     /** returns how many rows have valid points, meaning that they have both x and y data for
      * 
      * @return The number of points containing at least an x and a y value in this DataSet */
-    private int getNumberOfValidPoints()
+    private ArrayList<Integer> getIndexesOfValidPoints()
     {
-        int activePoints = 0;
-        if (xData != null && yData != null)
+        ArrayList<Integer> validPoints = new ArrayList<Integer>();
+        boolean pointValid;
+        for (int i = 0; i < dataColumns.get(0).getData().size(); i++)
         {
-            for (int i = 0; i < Math.max(xData.getData().size(), yData.getData().size()); i++)
+            pointValid = true;
+            for (int column = 0; column < DataDimension.getNumberOfDimensions(); column++)
             {
-                if (!xData.isNull(i) && !yData.isNull(i))
+                if (dataColumns.get(column).isNull(i))
                 {
-                    activePoints++;
+                    pointValid = false;
+                    break;
                 }
             }
+
+            if (pointValid)
+            {
+                validPoints.add(i);
+            }
         }
-        return activePoints;
+
+        return validPoints;
     }
 
-    /** Checks the x and y errors/uncertainties for this DataSet and makes sure none of them are 0 because it will throw
-     * off the fit algorithms */
-    private void checkForZeroErrorValues()
+    public double[] getMinMax(DataDimension dim, boolean withErrors)
     {
-        if (yErrorData != null)
+        boolean hasInit = false;
+        double dataMax = 0;
+        double dataMin = 0;
+
+        refreshFitData();
+        DataColumn data = dataColumns.get(dim.getColumnIndex());
+        DataColumn error = errorColumns.get(dim.getColumnIndex());
+
+        for (int i = 0; i < data.getData().size(); i++)
         {
-            for (int i = 0; i < yErrorData.getData().size(); i++)
+            if (!data.isNull(i))
             {
-                if (!yErrorData.isNull(i) && yErrorData.readDouble(i) == 0.0)
+                double tmp = data.readDouble(i);
+                double tmpErr = 0;
+                if (withErrors && !error.isNull(i))
                 {
-                    yErrorData.getData().set(i, null);
-                    JOptionPane.showMessageDialog(this, "Errors must be non zero if they are to be fitted to",
-                            "NoDataFound Exception", JOptionPane.WARNING_MESSAGE);
+                    tmpErr = Math.abs(error.readDouble(i));
+                }
+
+                if (hasInit)
+                {
+                    if (tmp + tmpErr > dataMax)
+                    {
+                        dataMax = tmp + tmpErr;
+                    }
+                    else if (tmp - tmpErr < dataMin)
+                    {
+                        dataMin = tmp - tmpErr;
+                    }
+                }
+                else
+                {
+                    dataMax = tmp + tmpErr;
+                    dataMin = tmp - tmpErr;
+                    hasInit = true;
                 }
             }
         }
 
-        if (xErrorData != null)
-        {
-            for (int i = 0; i < xData.getData().size(); i++)
-            {
-                if (!xErrorData.isNull(i) && xErrorData.readDouble(i) == 0.0)
-                {
-                    xErrorData.getData().set(i, null);
-                    JOptionPane.showMessageDialog(this, "Errors must be non zero if they are to be fitted to",
-                            "NoDataFound Exception", JOptionPane.WARNING_MESSAGE);
-                }
-            }
-        }
-    }
-
-    /** Checks to see if there are y errors/uncertainties in this DataSet
-     * 
-     * @return True if there is y error/uncertainty values and false otherwise */
-    private boolean checkYErrors()
-    {
-        if (yErrorData != null)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        return new double[] { dataMin, dataMax };
     }
 
     /** Checks if all the points that have an x and a y also have an associated y error/uncertainty value. This is used
@@ -271,338 +337,28 @@ public class DataSet extends JScrollPane implements HasDataToSave
      * 
      * @return True if all the points of this DataSet have a y error/uncertainty associated with them and false
      *         otherwise */
-    private boolean checkAllYHaveErrors()
+    private boolean checkAllHaveErrors(ArrayList<Integer> indexes, DataDimension dimension)
     {
-        if (yErrorData != null)
-        {
-            // first see which points will draw - have both a x and a y component
-            boolean[] drawablePoints = new boolean[yData.getData().size()];
-            for (int i = 0; i < yData.getData().size(); i++)
-            {
-                if (!xData.isNull(i) && !yData.isNull(i))
-                {
-                    drawablePoints[i] = true;
-                }
-            }
+        DataColumn error = errorColumns.get(dimension.getColumnIndex());
 
-            // now check to make sure for each point we will draw we have an x error
-            for (int i = 0; i < drawablePoints.length; i++)
+        for (Integer index : indexes)
+        {
+            if (error.isNull(index))
             {
-                if (yErrorData.isNull(i) && drawablePoints[i])
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    /** Checks to see if there are x errors/uncertainties in this DataSet
-     * 
-     * @return True if there are x error/uncertainty values and false otherwise */
-    private boolean checkXErrors()
-    {
-        if (xErrorData != null)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    /** Checks if all the points that have an x and a y also have an associated x error/uncertainty value. This is used
-     * to determine if we can do a fit with x errors/uncertainties
-     * 
-     * @return True if all the points of this DataSet have a x error/uncertainty associated with them and false
-     *         otherwise */
-    private boolean checkAllXHaveErrors()
-    {
-        if (xErrorData != null)
-        {
-            // first see which points will draw - have both a x and a y component
-            boolean[] drawablePoints = new boolean[xData.getData().size()];
-            for (int i = 0; i < xData.getData().size(); i++)
-            {
-                if (!xData.isNull(i) && !yData.isNull(i))
-                {
-                    drawablePoints[i] = true;
-                }
-            }
-
-            // now check to make sure for each point we will draw we have an x error
-            for (int i = 0; i < drawablePoints.length; i++)
-            {
-                if (xErrorData.isNull(i) && drawablePoints[i])
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    /** Updates the DataColumns to make sure that the DataColumns being displayed have the right data associated with
-     * them */
-    private void UpdateGraphColumnAssociations()
-    {
-        // Connect data to the Graph
-        if (visibleDataColumns.size() == 0)
-        {
-            xData = null;
-            yData = null;
-            xErrorData = null;
-            yErrorData = null;
-        }
-        else if (visibleDataColumns.size() == 1)
-        {
-            xData = (DataColumn) visibleDataColumns.get(0);
-            yData = (DataColumn) visibleDataColumns.get(0);
-            xErrorData = null;
-            yErrorData = null;
-        }
-        else if (visibleDataColumns.size() == 2)
-        {
-            xData = (DataColumn) visibleDataColumns.get(0);
-            yData = (DataColumn) visibleDataColumns.get(1);
-            xErrorData = null;
-            yErrorData = null;
-        }
-        else if (visibleDataColumns.size() == 3)
-        {
-            xData = (DataColumn) visibleDataColumns.get(0);
-            yData = (DataColumn) visibleDataColumns.get(1);
-            if (graphArea.xErrorsOnly)
-            {
-                xErrorData = (DataColumn) visibleDataColumns.get(2);
-                yErrorData = null;
-            }
-            else
-            {
-                xErrorData = null;
-                yErrorData = (DataColumn) visibleDataColumns.get(2);
+                return false;
             }
         }
-        else
-        {
-            xData = (DataColumn) visibleDataColumns.get(0);
-            yData = (DataColumn) visibleDataColumns.get(1);
-            xErrorData = (DataColumn) visibleDataColumns.get(2);
-            yErrorData = (DataColumn) visibleDataColumns.get(3);
-        }
-    }
 
-    /** Changes the current number of visible columns to the inputed amount and puts the other ones on the
-     * unusedDataColumns list
-     * 
-     * @param desiredColumns The desired number of DataColumns that this DataSet should have */
-    void changeNumVisibleColumns(int desiredColumns)
-    {
-        // TODO: Come back to this
-        // I want it so that the 3rd column if present without the fourth will be whichever error is selected but if a
-        // fourth column exists then it chooses which column to display based on which is selected (x or y)
-
-
-        // Either add or remove columns based on user input
-        changeTracker.setFileModified();
-
-        if (visibleDataColumns.size() < desiredColumns)
-        {
-            // We want to add columns!
-            for (int i = visibleDataColumns.size(); i < desiredColumns; i++)
-            {
-                this.addColumn();
-            }
-        }
-        else if (visibleDataColumns.size() > desiredColumns)
-        {
-            // We want to remove columns!
-            for (int i = visibleDataColumns.size(); i > desiredColumns; i--)
-            {
-                this.hideColumn();
-            }
-        }
-    }
-
-    /** Adds a column to our current DataSet. If there are invisible columns than it will make them visible instead of
-     * creating a new one */
-    private void addColumn()
-    {
-        if (invisibleDataColumns.size() > 0)
-        {
-            unhideColumn();
-        }
-        else
-        {
-            addNewColumn();
-        }
-    }
-
-    /** Adds a new DataColumn to our graph set regardless of if there are invisible ones that have already been
-     * created */
-    private void addNewColumn()
-    {
-        visibleDataColumns.add(new DataColumn(changeTracker));
-        UpdateGraphColumnAssociations();
-        updateColumnNames();
-        dataTableModel.addColumn((visibleDataColumns.get(visibleDataColumns.size() - 1)).getName());
-    }
-
-    /** Makes the first invisible column into a visible one */
-    private void unhideColumn()
-    {
-        if (graphArea.xErrorsOnly)
-        {
-            // move the column
-            visibleDataColumns.add(invisibleDataColumns.get(0));
-            invisibleDataColumns.remove(0);
-
-            // update columns
-            UpdateGraphColumnAssociations();
-            updateColumnNames();
-            dataTableModel.addColumn((visibleDataColumns.get(visibleDataColumns.size() - 1)).getName());
-        }
-        else
-        {
-            if (visibleDataColumns.size() == 3)
-            {
-                visibleDataColumns.add(2, invisibleDataColumns.get(0));
-                invisibleDataColumns.remove(0);
-                UpdateGraphColumnAssociations();
-                updateColumnNames();
-                dataTableModel.removeColumn(2);
-                dataTableModel.addColumn((visibleDataColumns.get(2).getName()));
-                dataTableModel.addColumn((visibleDataColumns.get(3).getName()));
-            }
-            else if (visibleDataColumns.size() == 2)
-            {
-                if (invisibleDataColumns.size() > 1)
-                {
-                    visibleDataColumns.add(invisibleDataColumns.get(1));
-                    invisibleDataColumns.remove(1);
-                }
-                else
-                {
-                    visibleDataColumns.add(invisibleDataColumns.get(0));
-                    invisibleDataColumns.remove(0);
-                }
-                UpdateGraphColumnAssociations();
-                updateColumnNames();
-                dataTableModel.addColumn((visibleDataColumns.get(visibleDataColumns.size() - 1)).getName());
-            }
-        }
-    }
-
-    /** Makes the last visible column invisible so it is no longer displayed but the data is still kept in case we want
-     * it later */
-    private boolean hideColumn()
-    {
-        if (graphArea.xErrorsOnly)
-        {
-            DataColumn column = visibleDataColumns.remove(visibleDataColumns.size() - 1);
-            invisibleDataColumns.add(0, column);
-            UpdateGraphColumnAssociations();
-            updateColumnNames();
-            dataTableModel.removeColumn(visibleDataColumns.size());
-        }
-        else
-        {
-            DataColumn column = visibleDataColumns.remove(2);
-            invisibleDataColumns.add(column);
-            UpdateGraphColumnAssociations();
-            updateColumnNames();
-            dataTableModel.removeColumn(visibleDataColumns.size() - 1);
-            if (visibleDataColumns.size() == 3)
-            {
-                dataTableModel.removeColumn(2);
-                dataTableModel.addColumn(visibleDataColumns.get(2).getName());
-            }
-            if (visibleDataColumns.size() == 2)
-            {
-                dataTableModel.removeColumn(1);
-                dataTableModel.addColumn(visibleDataColumns.get(1).getName());
-            }
-        }
-    }
-
-    /** Internal method used to update the last column in the DataSet being displayed */
-    private void refreshLastColumn()
-    {
-        removeColumn();
-        unhideColumn();
-    }
-
-    /** Makes sure the third column is updated so we can change whether we use only x errors of y errors This has to be
-     * done because the third column can be either x or y errors/uncertainties */
-    void refreshThirdColumn()
-    {
-        boolean switchErrorFit = false;
-        if (this.getFitType() == FitType.X_ERROR || this.getFitType() == FitType.Y_ERROR)
-        {
-            switchErrorFit = true;
-        }
-
-        if (this.visibleDataColumns.size() == 3)
-        {
-            this.refreshLastColumn();
-
-            if (switchErrorFit)
-            {
-                if (graphArea.xErrorsOnly)
-                {
-                    this.setFitType(FitType.X_ERROR);
-                }
-                else
-                {
-                    this.setFitType(FitType.Y_ERROR);
-                }
-                this.updateFits();
-            }
-        }
-    }
-
-    /** Makes sure that each DataColumn is appropriately named to represent what data is in it */
-    private void updateColumnNames()
-    {
-        if (visibleDataColumns.size() >= 1)
-        {
-            visibleDataColumns.get(0).setColumnName("x");
-        }
-        if (visibleDataColumns.size() >= 2)
-        {
-            visibleDataColumns.get(1).setColumnName("y");
-        }
-        if (!checkYErrors() && checkXErrors())
-        {
-            visibleDataColumns.get(2).setColumnName('\u03B4' + "x");
-        }
-        if (checkYErrors() && !checkXErrors())
-        {
-            visibleDataColumns.get(2).setColumnName('\u03B4' + "y");
-        }
-        if (checkXErrors() && checkYErrors())
-        {
-            visibleDataColumns.get(2).setColumnName('\u03B4' + "x");
-            visibleDataColumns.get(3).setColumnName('\u03B4' + "y");
-        }
+        return true;
     }
 
     /** Updates the DataColumns in this DataSet to make sure they are displaying the correct values in their cells and
      * formatted in a double format */
     void updateCellFormattingInColumns()
     {
-        for (int i = 0; i < this.visibleDataColumns.size(); i++)
+        for (int i = 0; i < dataColumns.size(); i++)
         {
-            DataColumn currentColumn = this.visibleDataColumns.get(i);
+            DataColumn currentColumn = dataColumns.get(i);
             ArrayList<Double> columnData = currentColumn.getData();
 
             Iterator<Double> columnIterator = columnData.iterator();
@@ -611,7 +367,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
             while (columnIterator.hasNext())
             {
                 Double valueInRow = columnIterator.next();
-                this.dataTableModel.setValueAt(valueInRow, rowNum, i);
+                dataTableModel.setValueAt(valueInRow, rowNum, i);
                 rowNum++;
             }
         }
@@ -622,7 +378,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
      * @return Returns true if there is data and false if no data was found */
     public boolean hasData()
     {
-        return this.dataTableModel.hasData();
+        return dataTableModel.hasData();
     }
 
     /** Determines whether or not there is a visible CustomColorMenu for this DataSet or if it does not exist or is
@@ -681,12 +437,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
                 case "colnum":
                 case "numberofcolumns":
                 {
-                    int numCols = Integer.parseInt(valueForField);
-
-                    for (int i = visibleDataColumns.size(); i < numCols; i++)
-                    {
-                        addColumn();
-                    }
+                    // Not used anymore
                     break;
                 }
                 case "fittype":
@@ -816,7 +567,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
                     // Reads should only take place when a set is created so we
                     // can just use the data size of the first column to determine
                     // the next row to add at.
-                    int row = visibleDataColumns.get(0).dataSize();
+                    int row = dataColumns.get(0).dataSize();
                     for (int column = 0; column < splitPointValuesInput.length; column++)
                     {
                         String pointValueString = splitPointValuesInput[column];
@@ -829,7 +580,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
                         }
                         try
                         {
-                            visibleDataColumns.get(column).writeData(row, pointValueString);
+                            dataColumns.get(column).writeData(row, pointValueString);
                             dataTableModel.setValueAt(value, row, column);
                         }
                         catch (IndexOutOfBoundsException iobe)
@@ -865,8 +616,6 @@ public class DataSet extends JScrollPane implements HasDataToSave
     {
         if (dataTableModel.hasData())
         {
-            variableNames.add("NumberOfColumns");
-            variableValues.add(Integer.toString((visibleDataColumns.size() + invisibleDataColumns.size())));
             variableNames.add("FitType");
             variableValues.add(dataSetFitType.toString());
             variableNames.add("WhatIsFixed");
@@ -892,30 +641,27 @@ public class DataSet extends JScrollPane implements HasDataToSave
             variableNames.add("Color");
             variableValues.add(getColorString());
 
-            if (visibleDataColumns.size() > 0)
+            String datapoint;
+            ArrayList<Integer> indexes = getIndexesOfValidPoints();
+            for (Integer index : indexes)
             {
-                String datapoint;
-                for (int i = 0; i < visibleDataColumns.get(0).getData().size(); i++)
+                datapoint = "";
+                variableNames.add("DataPoint");
+                for (int j = 0; j < DataDimension.getNumberOfDimensions(); j++)
                 {
-                    datapoint = "";
-                    variableNames.add("DataPoint");
-                    for (int j = 0; j < visibleDataColumns.size(); j++)
+                    if (j > 0)
                     {
-                        if (j > 0)
-                        {
-                            datapoint += " ";
-                        }
-                        datapoint += visibleDataColumns.get(j).getData().get(i);
+                        datapoint += " ";
                     }
-                    if (invisibleDataColumns.size() > 0)
-                    {
-                        for (int k = 0; k < invisibleDataColumns.size(); k++)
-                        {
-                            datapoint += " " + invisibleDataColumns.get(k).getData().get(i);
-                        }
-                    }
-                    variableValues.add(datapoint);
+                    datapoint += dataColumns.get(j).getData().get(index);
                 }
+
+                for (int j = 0; j < errorColumnsDisplayed; j++)
+                {
+                    datapoint += " " + errorColumns.get(j).getData().get(index);
+                }
+
+                variableValues.add(datapoint);
             }
         }
     }
@@ -1001,6 +747,11 @@ public class DataSet extends JScrollPane implements HasDataToSave
         }
     }
 
+    public int getNumberOfDisplayedColumns()
+    {
+        return DataDimension.getNumberOfDimensions() + errorColumnsDisplayed;
+    }
+
     /** Gets the current Color that is being used by this DataSet
      * 
      * @return The Color that is being used to draw this DataSet */
@@ -1025,14 +776,6 @@ public class DataSet extends JScrollPane implements HasDataToSave
         return tableContainingData;
     }
 
-    /** Gets all the currently visible DataColumns in this DataSet
-     * 
-     * @return An List of all the DataColumns in this DataSet */
-    public ArrayList<DataColumn> getColumns()
-    {
-        return visibleDataColumns;
-    }
-
     /** Gets the name of this DataSet
      * 
      * @return The String containing this DataSet's name */
@@ -1049,36 +792,42 @@ public class DataSet extends JScrollPane implements HasDataToSave
         return dataSetFitType;
     }
 
+    public DataColumn getColumn(int columnIndex)
+    {
+        if (columnIndex < DataDimension.getNumberOfDimensions())
+        {
+            return getData(columnIndex);
+        }
+        else
+        {
+            return getErrorData(errorColumnsOrder[columnIndex - DataDimension.getNumberOfDimensions()]);
+        }
+    }
+
     /** The DataColumn that keeps track of the x data for this DataSet
      * 
      * @return The DataColumn that keeps track of the x data values for this DataSet */
-    public DataColumn getXData()
+    public DataColumn getData(int index)
     {
-        return xData;
+        return dataColumns.get(index);
     }
 
-    /** The DataColumn that keeps track of the y data for this DataSet
-     * 
-     * @return The DataColumn that keeps track of the y data values for this DataSet */
-    public DataColumn getYData()
+    public DataColumn getData(DataDimension data)
     {
-        return yData;
+        return getData(data.getColumnIndex());
     }
 
-    /** The DataColumn that keeps track of the x error/uncertainty data for this DataSet
+    /** The DataColumn that keeps track of the x data for this DataSet
      * 
-     * @return The DataColumn that keeps track of the x errors data values for this DataSet */
-    public DataColumn getXErrorData()
+     * @return The DataColumn that keeps track of the x data values for this DataSet */
+    public DataColumn getErrorData(int errorColumnIndex)
     {
-        return xErrorData;
+        return errorColumns.get(errorColumnIndex);
     }
 
-    /** The DataColumn that keeps track of the y error/uncertainty data for this DataSet
-     * 
-     * @return The DataColumn that keeps track of the y error data values for this DataSet */
-    public DataColumn getYErrorData()
+    public DataColumn getErrorData(DataDimension data)
     {
-        return yErrorData;
+        return getErrorData(data.getColumnIndex());
     }
 
     /** Sets the Color to be used when drawing this DataSet to the given Color
@@ -1088,7 +837,6 @@ public class DataSet extends JScrollPane implements HasDataToSave
     {
         changeTracker.setFileModified();
         dataSetColor = color;
-        graphArea.repaint();
     }
 
     /** Sets the shape used for the points of this DataSet when drawing it to the GraphArea to the given Shape
@@ -1126,22 +874,30 @@ public class DataSet extends JScrollPane implements HasDataToSave
      * @since &lt;0.98.0 */
     private class GraphSetListener implements TableModelListener
     {
+        GraphArea graphArea;
+
+        GraphSetListener(GraphArea area)
+        {
+            graphArea = area;
+        }
+
         /** The event that is called whenever the values in the table have been modified */
         public void tableChanged(TableModelEvent e)
         {
-            DataColumn col;
             if (e.getColumn() >= 0)
             {
-                col = visibleDataColumns.get(e.getColumn());
-                col.writeData(e.getFirstRow(), "" + dataTableModel.getValueAt(e.getFirstRow(), e.getColumn()));
-                updateFits();
+                DataColumn data = getColumn(e.getColumn());
+                data.writeData(e.getFirstRow(), (String) dataTableModel.getValueAt(e.getFirstRow(), e.getColumn()));
+
+                // if there are no more rows, then add one
                 if (e.getFirstRow() + 1 == dataTableModel.getRowCount())
                 {
-                    dataTableModel.insertRow(dataTableModel.getRowCount(), new Object[visibleDataColumns.size()]);
+                    dataTableModel.addRow(new Object[dataTableModel.getColumnCount()]);
                 }
+
+                refreshFitData();
+                graphArea.repaint();
             }
-            graphArea.repaint();
         }
     }
-
 }

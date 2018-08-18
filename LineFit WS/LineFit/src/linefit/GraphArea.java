@@ -210,6 +210,10 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
      * DataSet. True means to use x errors/uncertainties and false means to use y errors/uncertainties. */
     boolean xErrorsOnly = false;
 
+
+    private static final DataDimension[] xDimensionFirst = new DataDimension[] { DataDimension.X, DataDimension.Y };
+    private static final DataDimension[] yDimensionFirst = new DataDimension[] { DataDimension.Y, DataDimension.X };
+
     /** Constructor for our graph area that is called by LineFit to create the visual graph Note: Each LineFit should
      * have only one GraphArea
      * 
@@ -219,7 +223,7 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
      * @param defaultYAxisMaximum The starting maximum value on the y-axis
      * @param dataSetSelectorToUse The data set selector that contains all the data sets to draw on the graph
      * @param resultsPanelToUse The Results Panel to display the currently selected DataSet's results data as a String
-     * in */
+     *        in */
     GraphArea(double defaultXAxisMinimum, double defaultXAxisMaximum, double defaultYAxisMinimum,
             double defaultYAxisMaximum, JComboBox<DataSet> dataSetSelectorToUse, JTextArea resultsPanelToUse,
             ChangeTracker parentsChangeTracker)
@@ -244,6 +248,7 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
      * @param toRegister The DataSet to add to the DataSet selector box */
     void registerDataSet(DataSet toRegister)
     {
+        // We have to subtract one for the "new dataset" placeholder
         DataSet newDataSet = dataSetSelector.getItemAt(dataSetSelector.getItemCount() - 1);
         dataSetSelector.removeItem(newDataSet);
         dataSetSelector.addItem(toRegister);
@@ -356,160 +361,100 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
         // if (xData != null && yData != null) {
         if (!userDefinedAxes)
         {
-            // we have to subtract one for the new dataset button
+            // We have to subtract one for the "new dataset" placeholder
             int numberOfDataSets = dataSetSelector.getItemCount() - 1;
 
-            boolean xHasInit = false;
-            double xDataMax = 0;
-            double xDataMin = 0;
+            double xDataMax = Double.MIN_VALUE;
+            double xDataMin = Double.MAX_VALUE;
+            double yDataMax = Double.MIN_VALUE;
+            double yDataMin = Double.MAX_VALUE;
+
             // look for our largest and smallest values with errors across the datasets
-            // boolean hasMoreThanOnePoint = false;
             for (int c = 0; c < numberOfDataSets; c++)
             {
                 DataSet current = (DataSet) dataSetSelector.getItemAt(c);
                 if (current.visibleGraph)
                 {
-                    /* if((c == 0 && current.xData.getNonNullDataSize() > 1) || (c > 0 &&
-                     * current.xData.getNonNullDataSize() > 0)) { hasMoreThanOnePoint = true; } */
-                    DataColumn dataX = current.xData;
-                    DataColumn dataXError = current.xErrorData;
-                    current.refreshFitData();
-                    for (int i = 0; i < dataX.getData().size(); i++)
-                    {
-                        if (!dataX.isNull(i))
-                        {
-                            double tmpX = dataX.readDouble(i);
-                            double tmpXErr = 0;
-                            if (dataXError != null && !dataXError.isNull(i))
-                            {
-                                tmpXErr = Math.abs(dataXError.readDouble(i));
-                            }
+                    double[] xMinMax = current.getMinMax(DataDimension.X, true);
+                    double[] yMinMax = current.getMinMax(DataDimension.Y, true);
 
-                            if (xHasInit)
-                            {
-                                if (tmpX + tmpXErr > xDataMax)
-                                {
-                                    xDataMax = tmpX + tmpXErr;
-                                    // xDataMaxIndex = i;
-                                }
-                                else if (tmpX - tmpXErr < xDataMin)
-                                {
-                                    xDataMin = tmpX - tmpXErr;
-                                    // xDataMinIndex = i;
-                                }
-                            }
-                            else
-                            {
-                                xDataMax = tmpX + tmpXErr;
-                                xDataMin = tmpX - tmpXErr;
-                                xHasInit = true;
-                            }
-                        }
+                    if (xMinMax[1] > xDataMax)
+                    {
+                        xDataMax = xMinMax[1];
+                    }
+
+                    if (xMinMax[0] < xDataMin)
+                    {
+                        xDataMin = xMinMax[0];
+                    }
+
+                    if (yMinMax[1] > yDataMax)
+                    {
+                        yDataMax = yMinMax[1];
+                    }
+
+                    if (yMinMax[0] < yDataMin)
+                    {
+                        yDataMin = yMinMax[0];
                     }
                 }
             }
-
-            boolean yHasInit = false;
-            double yDataMax = 0;
-            double yDataMin = 0;
-            // boolean hasMoreThanOnePoint = false;
-            for (int c = 0; c < numberOfDataSets; c++)
+            // ensure it won't explode in case all datasets are hidden
+            if (xDataMin != Double.MAX_VALUE)
             {
-                DataSet current = (DataSet) dataSetSelector.getItemAt(c);
-                if (current.visibleGraph)
-                {
-                    /* if((c == 0 && current.yData.getNonNullDataSize() > 1) || (c > 0 &&
-                     * current.yData.getNonNullDataSize() > 0)) { hasMoreThanOnePoint = true; } */
-                    DataColumn dataY = current.yData;
-                    DataColumn dataYError = current.yErrorData;
-                    current.refreshFitData();
-                    for (int i = 0; i < dataY.getData().size(); i++)
-                    {
-                        if (!dataY.isNull(i))
-                        {
-                            double tmpY = dataY.readDouble(i);
-                            double tmpYErr = 0;
-                            if (dataYError != null && !dataYError.isNull(i))
-                            {
-                                tmpYErr = Math.abs(dataYError.readDouble(i));
-                            }
-
-                            if (yHasInit)
-                            {
-                                if (tmpY + tmpYErr > yDataMax)
-                                {
-                                    yDataMax = tmpY + tmpYErr;
-                                    // yDataMaxIndex = i;
-                                }
-                                else if (tmpY - tmpYErr < yDataMin)
-                                {
-                                    yDataMin = tmpY - tmpYErr;
-                                    // yDataMinIndex = i;
-                                }
-                            }
-                            else
-                            {
-                                yDataMax = tmpY + tmpYErr;
-                                yDataMin = tmpY - tmpYErr;
-                                yHasInit = true;
-                            }
-                        }
-                    }
-                }
+                xDataMin = 0;
+                xDataMax = 0;
+                yDataMin = 0;
+                yDataMax = 0;
             }
 
-            if (xHasInit && yHasInit)
-            { // adds some spacing to the sides of the graph so the point is not right on the edge of the graph
-                if (xDataMax != xDataMin)
-                {
-                    double distBetween = xDataMax - xDataMin;
-                    xAxisMinimumValue = xDataMin - distBetween * 0.1;
-                    xAxisMaximumValue = xDataMax + distBetween * 0.1;
-                }
-                else
-                {
-                    xAxisMinimumValue = xDataMax - xDataMax * 0.1;
-                    xAxisMaximumValue = xDataMax + xDataMax * 0.1;
-                }
-
-                // xMin = xDataMinToUse - xDataMaxToUse * 0.05;
-                // xMax = xDataMaxToUse + xDataMaxToUse * 0.05;
-                refreshAxesPower();
-                xAxisMaximumValue = Math.ceil(xAxisMaximumValue * Math.pow(10, xAxisDecimalPlaces - xAxisPower - 1)) /
-                        Math.pow(10, xAxisDecimalPlaces - xAxisPower - 1);
-                xAxisMinimumValue = Math.floor(xAxisMinimumValue * Math.pow(10, xAxisDecimalPlaces - xAxisPower - 1)) /
-                        Math.pow(10, xAxisDecimalPlaces - xAxisPower - 1);
-                // xMax = Double.parseDouble(ScientificNotation.numberString(xMax, xAxisPower, xAxisDecPlaces - 1)) *
-                // Math.pow(10, xAxisPower);
-                // xMin = Double.parseDouble(ScientificNotation.numberString(xMin, xAxisPower, xAxisDecPlaces - 1)) *
-                // Math.pow(10, xAxisPower);
-                refreshAxesPower();
-
-
-                if (yDataMax != yDataMin)
-                {
-                    double distBetween = yDataMax - yDataMin;
-                    yAxisMinimumValue = yDataMin - distBetween * 0.1;
-                    yAxisMaximumValue = yDataMax + distBetween * 0.1;
-                }
-                else
-                {
-                    yAxisMinimumValue = yDataMax - yDataMax * 0.1;
-                    yAxisMaximumValue = yDataMax + yDataMax * 0.1;
-                }
-
-                // yMin = yDataMinToUse - yDataMaxToUse * 0.05;
-                // yMax = yDataMaxToUse + yDataMaxToUse * 0.05;
-                refreshAxesPower();
-                yAxisMaximumValue = Math.ceil(yAxisMaximumValue * Math.pow(10, yAxisDecimalPlaces - yAxisPower - 1)) /
-                        Math.pow(10, yAxisDecimalPlaces - yAxisPower - 1);
-                yAxisMinimumValue = Math.floor(yAxisMinimumValue * Math.pow(10, yAxisDecimalPlaces - yAxisPower - 1)) /
-                        Math.pow(10, yAxisDecimalPlaces - yAxisPower - 1);
-                // yMax = Double.parseDouble(ScientificNotation.numberString(yMax, yAxisPower, yAxisDecPlaces - 1)) *
-                // Math.pow(10, yAxisPower);
-                // yMin = Double.parseDouble(ScientificNotation.numberString(yMin, yAxisPower, yAxisDecPlaces - 1)) *
-                // Math.pow(10, yAxisPower);
+            // adds some spacing to the sides of the graph so the point is not right on the edge of the graph
+            if (xDataMax != xDataMin)
+            {
+                double distBetween = xDataMax - xDataMin;
+                xAxisMinimumValue = xDataMin - distBetween * 0.1;
+                xAxisMaximumValue = xDataMax + distBetween * 0.1;
             }
+            else if (xDataMax != 0)
+            {
+                xAxisMinimumValue = xDataMax - xDataMax * 0.1;
+                xAxisMaximumValue = xDataMax + xDataMax * 0.1;
+            }
+            else
+            {
+                xAxisMinimumValue = -1;
+                xAxisMaximumValue = 1;
+            }
+
+            refreshAxesPower();
+            xAxisMaximumValue = Math.ceil(xAxisMaximumValue * Math.pow(10, xAxisDecimalPlaces - xAxisPower - 1)) / Math
+                    .pow(10, xAxisDecimalPlaces - xAxisPower - 1);
+            xAxisMinimumValue = Math.floor(xAxisMinimumValue * Math.pow(10, xAxisDecimalPlaces - xAxisPower - 1)) / Math
+                    .pow(10, xAxisDecimalPlaces - xAxisPower - 1);
+
+
+            if (yDataMax != yDataMin)
+            {
+                double distBetween = yDataMax - yDataMin;
+                yAxisMinimumValue = yDataMin - distBetween * 0.1;
+                yAxisMaximumValue = yDataMax + distBetween * 0.1;
+            }
+            else if (yDataMax != 0)
+            {
+                yAxisMinimumValue = yDataMax - yDataMax * 0.1;
+                yAxisMaximumValue = yDataMax + yDataMax * 0.1;
+            }
+            else
+            {
+                yAxisMinimumValue = -1;
+                yAxisMaximumValue = 1;
+            }
+
+            refreshAxesPower();
+            yAxisMaximumValue = Math.ceil(yAxisMaximumValue * Math.pow(10, yAxisDecimalPlaces - yAxisPower - 1)) / Math
+                    .pow(10, yAxisDecimalPlaces - yAxisPower - 1);
+            yAxisMinimumValue = Math.floor(yAxisMinimumValue * Math.pow(10, yAxisDecimalPlaces - yAxisPower - 1)) / Math
+                    .pow(10, yAxisDecimalPlaces - yAxisPower - 1);
         }
     }
 
@@ -528,7 +473,7 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
      * 
      * @param fontSize The size of the font to be drawn on the graph to find the correct spacing for
      * @param spaceForCursorLocation Whether or not to calculate leaving space for the cursor location to be drawn at
-     * the top on the GraphArea */
+     *        the top on the GraphArea */
     void calculatePaddingForGraphArea(double fontSize, boolean spaceForCursorLocation)
     {
         xAxisTickLabelCentering = currentFontMeasurements.stringWidth(ScientificNotation.withoutTimesTen(
@@ -599,7 +544,8 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
      * @param graphGraphics The graphics we are using to draw the graph with
      * @param graphMaximumDimensions The dimensions of the Graph area to which we are drawing
      * @param areExporting Whether or not this graph is being drawn to be exported to a file. This changes the top
-     * spacing proportions slightly and changes the font size and the spacing to account for the size differnce */
+     *        spacing proportions slightly and changes the font size and the spacing to account for the size
+     *        differnce */
     public void makeGraph(Graphics2D graphGraphics, Dimension graphMaximumDimensions,
             boolean leaveSpaceForCursorLocation, Font fontToUse)
     {
@@ -646,7 +592,8 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
         graphGraphics.setColor(Color.white);
         graphGraphics.fill(background);
 
-        for (int c = 0; c < dataSetSelector.getItemCount(); c++)
+        // We have to subtract one for the "new dataset" placeholder
+        for (int c = 0; c < dataSetSelector.getItemCount() - 1; c++)
         {
             DataSet current = (DataSet) dataSetSelector.getItemAt(c);
             // if its not our new set option we draw it
@@ -655,10 +602,10 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
                 if (current.visibleGraph)
                 {
                     // Get the column associations
-                    DataColumn dataX = current.xData;
-                    DataColumn dataY = current.yData;
-                    DataColumn dataXError = current.xErrorData;
-                    DataColumn dataYError = current.yErrorData;
+                    DataColumn dataX = current.getData(DataDimension.X);
+                    DataColumn dataY = current.getData(DataDimension.Y);
+                    DataColumn dataXError = current.getErrorData(DataDimension.X);
+                    DataColumn dataYError = current.getErrorData(DataDimension.Y);;
                     Color currentColor = current.getColor();
                     Shape currentShape = current.getShape();
                     FitType dataFitType = current.getFitType();
@@ -767,14 +714,18 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
                         if (resultsAreDisplayedOnGraph)
                         {
                             String cStr = "";
+
+                            // 2 because we have the new set option in the set selector
                             if (dataSetSelector.getItemCount() > 2)
-                            { // 2 because we have the new set option in the set selector
+                            {
                                 cStr = convertToSubScript(c + 1);
                             }
                             int lineHeight = (int) graphGraphics.getFont().getSize() + resultsInbetweenSpacing;
                             int relPosX = xResultOnGraphThisPass + getLongestResultsLength();
+
+                            // We have to subtract one for the "new dataset" placeholder
                             int relPosY = yResultOnGraphThisPass + 3 * lineHeight * (dataSetSelector.getItemCount() -
-                                    1); // -1 because of the new DataSet option
+                                    1);
 
                             graphGraphics.drawString("y" + cStr + " = m" + cStr + "x + b" + cStr,
                                     graphMaximumDimensions.width - relPosX - graphAreaRightSpacing,
@@ -950,10 +901,11 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
     /** Finds the pixel length of the line of the data sets' linear fits with the longest length
      * 
      * @return Returns an integer of the length of the longest line in the results string (0 if none are being
-     * displayed) */
+     *         displayed) */
     public int getLongestResultsLength()
     {
         String longString = "";
+        // We have to subtract one for the "new dataset" placeholder
         int numDataSets = dataSetSelector.getItemCount() - 1;
         String numStr = "";
 
@@ -997,21 +949,35 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
 
     /** Makes sure all the dataset's third columns are updated so we can change whether we use only x errors of y errors
      * This has to be done because the third column can be either x or y errors/uncertainties */
-    void refreshAllSetsThirdColumn()
+    void setThirdColumn(boolean xErrors)
     {
-        // We have to subtract one for the new dataset
-        for (int i = 0; i < dataSetSelector.getItemCount() - 1; i++)
+        if (xErrors != xErrorsOnly)
         {
-            DataSet current = (DataSet) dataSetSelector.getItemAt(i);
-            current.refreshThirdColumn();
+            xErrorsOnly = xErrors;
+
+            for (int i = 0; i < dataSetSelector.getItemCount() - 1; i++)
+            {
+                DataSet current = (DataSet) dataSetSelector.getItemAt(i);
+
+                if (xErrors)
+                {
+                    current.setErrorColumnOrder(xDimensionFirst);
+                }
+                else
+                {
+                    current.setErrorColumnOrder(yDimensionFirst);
+                }
+            }
+
+            calculateAxesMinimumAndMaximumValues();
         }
-        calculateAxesMinimumAndMaximumValues();
     }
 
     public boolean readInDataAndDataOptions(String line, boolean newDataSet)
     {
         // if this is a new dataset then see if the last one is a blank one
         // and if it isn't then add one
+        // We have to subtract one for the "new dataset" placeholder
         if (newDataSet && this.dataSetSelector.getItemAt(dataSetSelector.getItemCount() - 2).hasData())
         {
             // create a new dataset and then read into it
@@ -1033,6 +999,7 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
         else
         {
             // now actually process the line in the dataset
+            // We have to subtract one for the "new dataset" placeholder too
             return this.dataSetSelector.getItemAt(dataSetSelector.getItemCount() - 2).readInDataAndDataOptions(line,
                     newDataSet);
         }
@@ -1041,7 +1008,7 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
     /** Reads in the graph settings from the passed String and stores it in its proper value
      * 
      * @param lineRead The String that contains the line of data which contains a particular graph setting and its
-     * value */
+     *        value */
     public boolean readInOption(String lineRead)
     {
         // split the input into the two parts
@@ -1158,8 +1125,8 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
                 case "xerrors":
                 case "xerrorsbeforeyerrors":
                     xErrorsOnly = Boolean.parseBoolean(valueForField);
-                    refreshAllSetsThirdColumn();
-                    break; // do this in case we are loading data into a graph that already has data
+                    setThirdColumn(xErrorsOnly);
+                    break;
                 case "fitalgorithm":
                     LineFit.currentFitAlgorithmFactory = LinearFitFactory.getAlgorithmWithName(valueForField);
                     break;
@@ -1250,18 +1217,15 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
     public void retrieveAllDataAndDataOptions(ArrayList<String> variableNames, ArrayList<String> variableValues)
     {
         // pass it on to our datasets
-        for (int i = 0; i < dataSetSelector.getItemCount(); i++)
+        // We have to subtract one for the "new dataset" placeholder
+        for (int i = 0; i < dataSetSelector.getItemCount() - 1; i++)
         {
-            // if we aren't just the new set option
-            if (!dataSetSelector.getItemAt(i).getName().equals("New DataSet"))
-            {
-                // add the dataset line so we know to trigger a new set
-                variableNames.add("DataSet");
-                variableValues.add(Integer.toString(i + 1));
+            // add the dataset line so we know to trigger a new set
+            variableNames.add("DataSet");
+            variableValues.add(Integer.toString(i + 1));
 
-                // now add the dataset's data
-                dataSetSelector.getItemAt(i).retrieveAllDataAndDataOptions(variableNames, variableValues);
-            }
+            // now add the dataset's data
+            dataSetSelector.getItemAt(i).retrieveAllDataAndDataOptions(variableNames, variableValues);
         }
     }
 

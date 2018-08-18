@@ -863,11 +863,7 @@ public class GraphOptionsMenu extends JFrame
         graphingArea.setXAxisDescription(xAxisNameField.getText());
         graphingArea.setYAxisDescription(yAxisNameField.getText());
 
-        if (xErrorsOnlyCheckBox.isSelected() != graphingArea.xErrorsOnly)
-        {
-            graphingArea.xErrorsOnly = !graphingArea.xErrorsOnly;
-            graphingArea.refreshAllSetsThirdColumn();
-        }
+        graphingArea.setThirdColumn(xErrorsOnlyCheckBox.isSelected());
 
         graphingArea.xAxisNumberOfTickMarks = Integer.parseInt(xNumberOfTicksField.getText());
         graphingArea.yAxisNumberOfTickMarks = Integer.parseInt(yNumberOfTicksField.getText());

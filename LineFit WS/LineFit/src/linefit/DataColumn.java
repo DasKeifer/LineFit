@@ -32,8 +32,9 @@ public class DataColumn
     private ArrayList<Double> data;
 
     /** The default constructor for this class */
-    public DataColumn(ChangeTracker parentChangeTracker)
+    public DataColumn(String name, ChangeTracker parentChangeTracker)
     {
+        columnName = name;
         changeTracker = parentChangeTracker;
         data = new ArrayList<Double>();
     }
@@ -156,7 +157,7 @@ public class DataColumn
      * @return Returns the String that is this GraphColumn's name */
     public String getName()
     {
-        return getColName();
+        return columnName;
     }
 
     // Setters
@@ -166,30 +167,5 @@ public class DataColumn
     public void setData(ArrayList<Double> data)
     {
         this.data = data;
-    }
-
-    /** Sets the name of this GraphColumn
-     * 
-     * @param name The name to use */
-    public void setName(String name)
-    {
-        changeTracker.setFileModified();
-        setColumnName(name);
-    }
-
-    /** Sets this GraphColumn's name to the given name
-     * 
-     * @param columnName Sets this column's name to the passed name */
-    public void setColumnName(String columnName)
-    {
-        this.columnName = columnName;
-    }
-
-    /** Gets this GraphColumn's name
-     * 
-     * @return Returns a String containing the name of this GraphColumn */
-    public String getColName()
-    {
-        return columnName;
     }
 }

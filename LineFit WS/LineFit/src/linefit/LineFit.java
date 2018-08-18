@@ -486,7 +486,7 @@ public class LineFit extends JFrame implements HasOptionsToSave
 
         setupQuickBar();
 
-        dataSetTableWidth = toSet.visibleDataColumns.size() * DATA_COLUMN_WIDTH;
+        dataSetTableWidth = toSet.getNumberOfDisplayedColumns() * DATA_COLUMN_WIDTH;
         updateCellFormattingInDataSetColumns(toSet);
 
         colorSelector.setSelectedItem(toSet.getColor());
@@ -505,7 +505,7 @@ public class LineFit extends JFrame implements HasOptionsToSave
         // update column selector when a new dataset is selected
         // since the column selector has a listener, it will automatically fire which will cause the correct number of
         // columns to be displayed
-        columnSelector.setValue(toSet.visibleDataColumns.size());
+        columnSelector.setValue(toSet.getNumberOfDisplayedColumns());
 
         setupLayout();
         graphingArea.repaint();
@@ -529,8 +529,10 @@ public class LineFit extends JFrame implements HasOptionsToSave
         DataSet current = (DataSet) dataSetSelector.getSelectedItem();
         rightSideBar.add(current);
         rightSideBar.add(fitDataPanel);
-        current.changeNumVisibleColumns(desiredColumns);
-        dataSetTableWidth = current.visibleDataColumns.size() * DATA_COLUMN_WIDTH;
+
+        current.setNumberOfDisplayedColumns(desiredColumns);
+
+        dataSetTableWidth = current.getNumberOfDisplayedColumns() * DATA_COLUMN_WIDTH;
         updateCellFormattingInDataSetColumns(current);
         setupLayout();
     }

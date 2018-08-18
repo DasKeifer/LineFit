@@ -13,6 +13,7 @@
 package linefit.FitAlgorithms;
 
 import linefit.DataColumn;
+import linefit.DataDimension;
 import linefit.DataSet;
 
 
@@ -50,7 +51,7 @@ class PartialDerivativeMinimizationFactory extends LinearFitFactory
      * 
      * @param dataSet The DataSet that the new FitStrategy will use for data and fit its line to
      * @return Returns a new LinearFitStrategy that is an instance of whatever the instance this is called on subclass
-     * Algorithm */
+     *         Algorithm */
     public LinearFitStrategy createNewLinearFitStartegy(DataSet dataSet)
     {
         return new PartialDerivativeMinimizationStrategy(dataSet);
@@ -114,14 +115,13 @@ class PartialDerivativeMinimizationFactory extends LinearFitFactory
         private void minimizePartialDerivatesOfErrors()
         {
             double scope;
-            // FitData fitData = new FitData();
             double m1, m2, m3, chi1, chi2, chi3, numerator, denominator, weight, delta;
-            double sumX = 0.0, sumXX = 0.0/* , sumYY = 0.0, sumXY = 0.0 */, sumW = 0.0;
+            double sumX = 0.0, sumXX = 0.0, sumW = 0.0;
 
-            DataColumn xData = dataForFit.getXData();
-            DataColumn yData = dataForFit.getYData();
-            DataColumn xErrorData = dataForFit.getXErrorData();
-            DataColumn yErrorData = dataForFit.getYErrorData();
+            DataColumn xData = dataForFit.getData(DataDimension.X);
+            DataColumn yData = dataForFit.getData(DataDimension.Y);
+            DataColumn xErrorData = dataForFit.getErrorData(DataDimension.X);
+            DataColumn yErrorData = dataForFit.getErrorData(DataDimension.Y);
 
             // This is the minimization equation that is being used
             // ////////////////////////////////////////////////////////////////

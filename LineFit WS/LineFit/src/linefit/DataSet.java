@@ -216,7 +216,6 @@ public class DataSet extends JScrollPane implements HasDataToSave
 
     public void hideLastErrorColumn()
     {
-        // not working???
         if (errorColumnsDisplayed > 0)
         {
             dataTableModel.removeLastColumn();
@@ -885,6 +884,15 @@ public class DataSet extends JScrollPane implements HasDataToSave
         private void updateColumn(TableModelEvent e, int columnIndex)
         {
             DataColumn data = getColumn(columnIndex);
+
+            // we should never have a negative here but add the check just in case
+            if (e.getFirstRow() < 0)
+            {
+                System.err.println("Warning: detected negative row index for table update for row " + columnIndex +
+                        ". Continuing");
+                return;
+            }
+
             for (int i = e.getFirstRow(); i <= e.getLastRow(); i++)
             {
                 Object entryObj = dataTableModel.getValueAt(i, columnIndex);
@@ -895,6 +903,13 @@ public class DataSet extends JScrollPane implements HasDataToSave
                     try
                     {
                         entry = Double.parseDouble(entryObj.toString());
+
+                        // ensure it is not infinity or any other strange value
+                        if (!Double.isFinite(entry))
+                        {
+                            entry = null;
+                            dataTableModel.setValueAt(entry, i, columnIndex);
+                        }
                     }
                     catch (NumberFormatException nfe)
                     {
@@ -916,8 +931,8 @@ public class DataSet extends JScrollPane implements HasDataToSave
         public void tableChanged(TableModelEvent e)
         {
             // if this event was fired while we were modifying the table, then ignore it because it was due to our
-            // modifications
-            if (!alreadyUpdatingTable)
+            // modifications. Also, if we are adding a new column, its index will be -1
+            if (!(alreadyUpdatingTable || e.getColumn() < 0))
             {
                 alreadyUpdatingTable = true;
 
@@ -928,13 +943,9 @@ public class DataSet extends JScrollPane implements HasDataToSave
                         updateColumn(e, i);
                     }
                 }
-                else if (e.getColumn() >= 0)
-                {
-                    updateColumn(e, e.getColumn());
-                }
                 else
                 {
-                    return;
+                    updateColumn(e, e.getColumn());
                 }
 
                 refreshFitData();

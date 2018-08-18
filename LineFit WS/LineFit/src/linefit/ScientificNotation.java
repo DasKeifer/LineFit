@@ -35,9 +35,9 @@ public class ScientificNotation
      * @param number The number to be converted to scientific notation and rounded
      * @param error The error or uncertainty that is associated with the number to be put in scientific notation
      * @param roundTo The decimal places after the decimal point to round to (negative rounds to the right of the
-     * decimal)
+     *        decimal)
      * @return Returns an ASCII String the number with the given error in scientific notation rounded to the given
-     * decimal place in the following form: (a ± b)×10^n */
+     *         decimal place in the following form: (a ± b)×10^n */
     public static String withError(double number, double error, int roundTo)
     {
         return withError(number, error, getPowerOf(number), roundTo);
@@ -51,9 +51,9 @@ public class ScientificNotation
      * @param error The error or uncertainty that is associated with the number to be put in scientific notation
      * @param power The power to use for ^n in scientific notation
      * @param roundTo The decimal places after the decimal point to round to (negative rounds to the right of the
-     * decimal)
+     *        decimal)
      * @return Returns an ASCII String of the number with the given error in scientific notation rounded to the given
-     * decimal place in the following form: (a ± b)×10^n */
+     *         decimal place in the following form: (a ± b)×10^n */
     public static String withError(double number, double error, int power, int roundTo)
     {
         String inNotation = withoutTimesTen(number, power, roundTo);
@@ -81,9 +81,9 @@ public class ScientificNotation
      * @param number The number to be converted to scientific notation and rounded
      * @param error The error or uncertainty that is associated with the number to be put in scientific notation
      * @param roundTo The decimal places after the decimal point to round to (negative rounds to the right of the
-     * decimal)
+     *        decimal)
      * @return Returns a string formatted for use in LaTex of the number with the given error in scientific notation
-     * rounded to the given decimal place in the following form: (a ± b)×10^n */
+     *         rounded to the given decimal place in the following form: (a ± b)×10^n */
     public static String laTexWithError(double number, double error, int roundTo)
     {
         return laTexWithError(number, error, getPowerOf(number), roundTo);
@@ -97,9 +97,9 @@ public class ScientificNotation
      * @param error The error or uncertainty that is associated with the number to be put in scientific notation
      * @param power The power to use for ^n in scientific notation
      * @param roundTo The decimal places after the decimal point to round to (negative rounds to the right of the
-     * decimal)
+     *        decimal)
      * @return Returns a string formatted for use in LaTex of the number with the given error in scientific notation and
-     * the given power rounded to the given decimal place in the following form: (a ± b)×10^n */
+     *         the given power rounded to the given decimal place in the following form: (a ± b)×10^n */
     public static String laTexWithError(double number, double error, int power, int roundTo)
     {
         String inNotation = withoutTimesTen(number, power, roundTo);
@@ -128,9 +128,9 @@ public class ScientificNotation
      * @param number The number to be converted to scientific notation and rounded
      * @param power The power to use for ^n in scientific notation
      * @param roundTo The decimal places after the decimal point to round to (negative rounds to the right of the
-     * decimal)
+     *        decimal)
      * @return Returns an ASCII string of the number in scientific notation with the given power rounded to the given
-     * decimal place in the following form: a×10^n */
+     *         decimal place in the following form: a×10^n */
     public static String withNoError(double number, int power, int roundTo)
     {
         return withoutTimesTen(number, power, roundTo) + onlyTimesTen(power);
@@ -195,7 +195,7 @@ public class ScientificNotation
      * 
      * @param number The number to be converted to scientific notation and rounded
      * @param roundTo The decimal places after the decimal point to round to (negative rounds to the right of the
-     * decimal)
+     *        decimal)
      * @return Returns the number without the times ten component */
     public static String withoutTimesTen(double number, int roundTo)
     {
@@ -208,7 +208,7 @@ public class ScientificNotation
      * @param number The number to be converted to scientific notation and rounded
      * @param power The power to use for ^n in scientific notation
      * @param roundTo The decimal places after the decimal point to round to (negative rounds to the right of the
-     * decimal)
+     *        decimal)
      * @return Returns the number without the times ten component */
     public static String withoutTimesTen(double number, int power, int roundTo)
     {
@@ -370,15 +370,18 @@ public class ScientificNotation
         {
             power = Integer.parseInt(numStr.substring(numStr.indexOf('E') + 1));
         }
+        // otherwise we must find it by looping until we arrive at standard form
         else
-        { // otherwise we must find it by looping until we arrive at standard form
+        {
             if (number >= 10.0d || number <= -10.0d)
             {
-                // well have postive power
+                // well have positive power
                 String xBeforeDec = numStr.substring(0, numStr.indexOf('.'));
                 power = xBeforeDec.length() - 1;
+
+                // if there's a negative sign in front it will add one to our power so we need to decrement it by 1
                 if (numStr.indexOf('-') != -1)
-                { // if theres a negative sign in front it will add one to our power so we need to decrement it by 1
+                {
                     power--;
                 }
             }

@@ -580,7 +580,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
                         }
                         try
                         {
-                            dataColumns.get(column).writeData(row, pointValueString);
+                            dataColumns.get(column).writeData(row, value);
                             dataTableModel.setValueAt(value, row, column);
                         }
                         catch (IndexOutOfBoundsException iobe)
@@ -874,6 +874,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
      * @since &lt;0.98.0 */
     private class GraphSetListener implements TableModelListener
     {
+        boolean alreadyUpdatingTable = false;
         GraphArea graphArea;
 
         GraphSetListener(GraphArea area)
@@ -881,22 +882,65 @@ public class DataSet extends JScrollPane implements HasDataToSave
             graphArea = area;
         }
 
+        private void updateColumn(TableModelEvent e, int columnIndex)
+        {
+            DataColumn data = getColumn(columnIndex);
+            for (int i = e.getFirstRow(); i <= e.getLastRow(); i++)
+            {
+                Object entryObj = dataTableModel.getValueAt(i, columnIndex);
+                Double entry = null;
+                if (entryObj != null)
+                {
+                    // ensure it is a double and if not clear the entry
+                    try
+                    {
+                        entry = Double.parseDouble(entryObj.toString());
+                    }
+                    catch (NumberFormatException nfe)
+                    {
+                        dataTableModel.setValueAt(entry, i, columnIndex);
+                    }
+                }
+
+                data.writeData(e.getFirstRow(), entry);
+            }
+
+            // if there are no more rows, then add one
+            if (e.getLastRow() + 1 == dataTableModel.getRowCount())
+            {
+                dataTableModel.addRow(new Object[dataTableModel.getColumnCount()]);
+            }
+        }
+
         /** The event that is called whenever the values in the table have been modified */
         public void tableChanged(TableModelEvent e)
         {
-            if (e.getColumn() >= 0)
+            // if this event was fired while we were modifying the table, then ignore it because it was due to our
+            // modifications
+            if (!alreadyUpdatingTable)
             {
-                DataColumn data = getColumn(e.getColumn());
-                data.writeData(e.getFirstRow(), dataTableModel.getValueAt(e.getFirstRow(), e.getColumn()).toString());
+                alreadyUpdatingTable = true;
 
-                // if there are no more rows, then add one
-                if (e.getFirstRow() + 1 == dataTableModel.getRowCount())
+                if (e.getColumn() == TableModelEvent.ALL_COLUMNS)
                 {
-                    dataTableModel.addRow(new Object[dataTableModel.getColumnCount()]);
+                    for (int i = 0; i < dataTableModel.getColumnCount(); i++)
+                    {
+                        updateColumn(e, i);
+                    }
+                }
+                else if (e.getColumn() >= 0)
+                {
+                    updateColumn(e, e.getColumn());
+                }
+                else
+                {
+                    return;
                 }
 
                 refreshFitData();
                 graphArea.repaint();
+
+                alreadyUpdatingTable = false;
             }
         }
     }

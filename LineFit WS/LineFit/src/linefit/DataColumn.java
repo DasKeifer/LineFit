@@ -89,8 +89,8 @@ public class DataColumn
      * currently have
      * 
      * @param rowIndex The index of the row to write to
-     * @param toWrite The String to write into the row with the given index */
-    void writeData(int rowIndex, String toWrite)
+     * @param entry The Double to write into the row with the given index. This can be null. */
+    void writeData(int rowIndex, Double entry)
     {
         // We have to use a string so we can catch the null exception
         while (rowIndex >= data.size())
@@ -98,15 +98,8 @@ public class DataColumn
             data.add(null);
         }
 
-        try
-        {
-            changeTracker.setFileModified();
-            data.set(rowIndex, Double.parseDouble(toWrite));
-        }
-        catch (Exception e)
-        {
-            data.set(rowIndex, null);
-        }
+        changeTracker.setFileModified();
+        data.set(rowIndex, entry);
     }
 
     /** Reads the value from the row with the given index

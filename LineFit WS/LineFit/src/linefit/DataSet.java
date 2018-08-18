@@ -887,7 +887,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
             if (e.getColumn() >= 0)
             {
                 DataColumn data = getColumn(e.getColumn());
-                data.writeData(e.getFirstRow(), (String) dataTableModel.getValueAt(e.getFirstRow(), e.getColumn()));
+                data.writeData(e.getFirstRow(), dataTableModel.getValueAt(e.getFirstRow(), e.getColumn()).toString());
 
                 // if there are no more rows, then add one
                 if (e.getFirstRow() + 1 == dataTableModel.getRowCount())

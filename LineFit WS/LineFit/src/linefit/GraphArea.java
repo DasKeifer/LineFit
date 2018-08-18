@@ -364,10 +364,10 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
             // We have to subtract one for the "new dataset" placeholder
             int numberOfDataSets = dataSetSelector.getItemCount() - 1;
 
-            double xDataMax = Double.MIN_VALUE;
-            double xDataMin = Double.MAX_VALUE;
-            double yDataMax = Double.MIN_VALUE;
-            double yDataMin = Double.MAX_VALUE;
+            double xDataMax = Double.NEGATIVE_INFINITY;
+            double xDataMin = Double.POSITIVE_INFINITY;
+            double yDataMax = Double.NEGATIVE_INFINITY;
+            double yDataMin = Double.POSITIVE_INFINITY;
 
             // look for our largest and smallest values with errors across the datasets
             for (int c = 0; c < numberOfDataSets; c++)
@@ -400,10 +400,13 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
                 }
             }
             // ensure it won't explode in case all datasets are hidden
-            if (xDataMin != Double.MAX_VALUE)
+            if (xDataMin == Double.POSITIVE_INFINITY)
             {
                 xDataMin = 0;
                 xDataMax = 0;
+            }
+            if (yDataMin == Double.POSITIVE_INFINITY)
+            {
                 yDataMin = 0;
                 yDataMax = 0;
             }

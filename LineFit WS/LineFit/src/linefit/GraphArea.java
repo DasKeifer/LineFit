@@ -12,6 +12,7 @@
 
 package linefit;
 
+
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -210,9 +211,9 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
      * DataSet. True means to use x errors/uncertainties and false means to use y errors/uncertainties. */
     boolean xErrorsOnly = false;
 
-
     private static final DataDimension[] xDimensionFirst = new DataDimension[] { DataDimension.X, DataDimension.Y };
     private static final DataDimension[] yDimensionFirst = new DataDimension[] { DataDimension.Y, DataDimension.X };
+
 
     /** Constructor for our graph area that is called by LineFit to create the visual graph Note: Each LineFit should
      * have only one GraphArea
@@ -352,7 +353,6 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
                 ScientificNotation.withNoError(mouseY, yAxisPower, yAxisDecimalPlaces) + ")";
         graphGraphics.drawString(cursorPosition, 5, 15);
     }
-
 
     /** Calculates the lengths of the axes based on the data points, unless the user has overridden this functionality,
      * so that they are all on screen */
@@ -567,7 +567,6 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
         double fontSize = graphGraphics.getFont().getSize();
         calculatePaddingForGraphArea(fontSize, leaveSpaceForCursorLocation);
 
-
         double gWidth = xAxisMaximumValue - xAxisMinimumValue;
         double gHeight = yAxisMaximumValue - yAxisMinimumValue;
 
@@ -622,7 +621,6 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
                             // Get the graph points
                             double gpX = dataX.readDouble(i);
                             double gpY = dataY.readDouble(i);
-
 
                             // Calculate the coordinate points
                             int cpX = convertXCoordinateToPixel(gpX);
@@ -976,36 +974,15 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
         }
     }
 
+    public boolean hasData()
+    {
+        return dataSetSelector.getItemCount() != 2 || dataSetSelector.getItemAt(0).hasData();
+    }
+
     public boolean readInDataAndDataOptions(String line, boolean newDataSet)
     {
-        // if this is a new dataset then see if the last one is a blank one
-        // and if it isn't then add one
-        // We have to subtract one for the "new dataset" placeholder
-        if (newDataSet && this.dataSetSelector.getItemAt(dataSetSelector.getItemCount() - 2).hasData())
-        {
-            // create a new dataset and then read into it
-            DataSet readDataSet = new DataSet(this, changeTracker);
-
-            // attempt to read in the setting and add it if it was successfully read
-            if (readDataSet.readInDataAndDataOptions(line, newDataSet))
-            {
-                // now add it to the drop down
-                registerDataSet(readDataSet);
-                return true;
-            }
-            // otherwise don't add it and let the dataset get garbage collected...
-            else
-            {
-                return false;
-            }
-        }
-        else
-        {
-            // now actually process the line in the dataset
-            // We have to subtract one for the "new dataset" placeholder too
-            return this.dataSetSelector.getItemAt(dataSetSelector.getItemCount() - 2).readInDataAndDataOptions(line,
-                    newDataSet);
-        }
+        // We have to subtract one for the "new dataset" placeholder too
+        return ((DataSet) dataSetSelector.getSelectedItem()).readInDataAndDataOptions(line, newDataSet);
     }
 
     /** Reads in the graph settings from the passed String and stores it in its proper value
@@ -1215,7 +1192,6 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
         variableNames.add("FitAlgorithm");
         variableValues.add(LineFit.currentFitAlgorithmFactory.toString());
     }
-
 
     public void retrieveAllDataAndDataOptions(ArrayList<String> variableNames, ArrayList<String> variableValues)
     {

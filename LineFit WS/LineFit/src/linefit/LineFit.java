@@ -205,8 +205,13 @@ public class LineFit extends JFrame implements HasOptionsToSave
     private static final String menuTitles_CheckForUpdates_Shortcut = "F3";
 
     // Other variables
-    private GeneralIO ioHandler;
-    private boolean temporarilyDisableQuickMenuListener = false;
+    // this is an int so that we can go multiple layers deep
+    // TODO: encapsulate in a class or make it a semaphore (seems like alot of overhead)
+    private int temporarilyDisableQuickMenuListener = 0;
+
+    // Classes that should be set once upon initialization
+    private final GeneralIO ioHandler;
+    private final Runnable onUpdateFitTypesAction;
 
     /** The default FitAlgorithm to use when creating linear fits for the DataSets */
     static LinearFitFactory currentFitAlgorithmFactory = LinearFitFactory.fitAlgorithmFactories[0];
@@ -218,6 +223,8 @@ public class LineFit extends JFrame implements HasOptionsToSave
         super("LineFit");
         setSize(1000, 750);
 
+        //
+        onUpdateFitTypesAction = new updateFitTypesAction();
         ioHandler = new GeneralIO(this, graphingArea);
 
         this.setIconImage(ioHandler.getLineFitIcon());
@@ -235,7 +242,7 @@ public class LineFit extends JFrame implements HasOptionsToSave
         ioHandler.InitializeExportIO(graphingArea);
 
         // and then make an empty dataset to start
-        currentDataSet = new DataSet(graphingArea, ioHandler.changeTracker);
+        currentDataSet = new DataSet(ioHandler.changeTracker, onUpdateFitTypesAction);
 
         // create our panels and menu bars
         mainDisplayPanel = new JPanel();
@@ -305,7 +312,6 @@ public class LineFit extends JFrame implements HasOptionsToSave
         SpinnerNumberModel columnSelectorModel = new SpinnerNumberModel(DataSet.DEFAULT_NUMBER_OF_COLUMNS, 2, 4, 1);
         columnSelector = new JSpinner(columnSelectorModel);
         columnSelector.setToolTipText("Add or Subtract a Column");
-
 
         // DataSet selection ComboBox
         dataSetSelector.addItem(currentDataSet);
@@ -455,7 +461,7 @@ public class LineFit extends JFrame implements HasOptionsToSave
     private DataSet createNewDataSet()
     {
         // create a new dataset
-        DataSet current = new DataSet(graphingArea, ioHandler.changeTracker);
+        DataSet current = new DataSet(ioHandler.changeTracker, onUpdateFitTypesAction);
 
         // Register it with the graphing area which will keep the new DataSet option at the end of the list and select
         // it which will then trigger the listener to update the GUI with the new dataset
@@ -464,34 +470,30 @@ public class LineFit extends JFrame implements HasOptionsToSave
         return current;
     }
 
-    private void setDataSetDisplayed(DataSet toSet)
+    private void updateDataSetDisplayed()
     {
-        temporarilyDisableQuickMenuListener = true;
+        temporarilyDisableQuickMenuListener++;
+
+        // get the currently selected dataset
+        DataSet current = (DataSet) dataSetSelector.getSelectedItem();
 
         // remove all and then add the dataset we are displaying the table for and the fit data panel
         rightSideBar.removeAll();
-        rightSideBar.add(toSet);
+        rightSideBar.add(current);
         rightSideBar.add(fitDataPanel);
 
         // remove the listener from the old set and put it on the new one
-        // fitSelector.removeActionListener(quickBarListener);
-        ArrayList<FitType> dataSetFits = toSet.getAllowableFits();
-        fitSelector.removeAll();
-        for (FitType fit : dataSetFits)
-        {
-            fitSelector.addItem(fit);
-        }
-        fitSelector.setSelectedItem(toSet.getFitType());
-        // fitSelector.addActionListener(quickBarListener);
+        updateFitTypes();
 
+        // TODO: Needed?
         setupQuickBar();
 
-        dataSetTableWidth = toSet.getNumberOfDisplayedColumns() * DATA_COLUMN_WIDTH;
-        updateCellFormattingInDataSetColumns(toSet);
+        dataSetTableWidth = current.getNumberOfDisplayedColumns() * DATA_COLUMN_WIDTH;
+        updateCellFormattingInDataSetColumns(current);
 
-        colorSelector.setSelectedItem(toSet.getColor());
+        colorSelector.setSelectedItem(current.getColor());
 
-        Shape currentShape = toSet.getShape();
+        Shape currentShape = current.getShape();
         shapeSelector.setSelectedItem(currentShape);
 
         // for whatever reason it does not like setSelectedItem to a Polygon so we have to do this so it
@@ -500,17 +502,17 @@ public class LineFit extends JFrame implements HasOptionsToSave
         {
             shapeSelector.setSelectedIndex(2);
         }
-        visibleCheckBox.setSelected(toSet.visibleGraph);
+        visibleCheckBox.setSelected(current.visibleGraph);
 
         // update column selector when a new dataset is selected
         // since the column selector has a listener, it will automatically fire which will cause the correct number of
         // columns to be displayed
-        columnSelector.setValue(toSet.getNumberOfDisplayedColumns());
+        columnSelector.setValue(current.getNumberOfDisplayedColumns());
 
         setupLayout();
         graphingArea.repaint();
 
-        temporarilyDisableQuickMenuListener = false;
+        temporarilyDisableQuickMenuListener--;
     }
 
     /** Makes it so that the number of columns in the current DataSet is equal to the default number of visible
@@ -545,6 +547,38 @@ public class LineFit extends JFrame implements HasOptionsToSave
         dataSetToUpdateCellsOf.updateCellFormattingInColumns();
     }
 
+    public void updateFitTypes()
+    {
+        // get the currently selected dataset
+        DataSet current = (DataSet) dataSetSelector.getSelectedItem();
+
+        FitType currentFit = current.getFitType();
+        boolean changedFitType = fitSelector.getSelectedItem() == currentFit;
+
+        if (!changedFitType)
+        {
+            // Disable the action that happens when we set the selected item because all it does is set the fit type but
+            // we are setting the selected based on what is already set so its pointless
+            temporarilyDisableQuickMenuListener++;
+        }
+
+        // get the currently selected type of fit
+        // clear and re-add the items
+        ArrayList<FitType> dataSetFits = current.getAllowableFits();
+        fitSelector.removeAllItems();
+        for (FitType fit : dataSetFits)
+        {
+            fitSelector.addItem(fit);
+        }
+        fitSelector.setSelectedItem(currentFit);
+
+        // don't forget to re-enable the quickbar actions if needed!
+        if (!changedFitType)
+        {
+            temporarilyDisableQuickMenuListener--;
+        }
+    }
+
     /** Shows the about frame - called by the action listener */
     private void showAboutBox()
     {
@@ -564,6 +598,10 @@ public class LineFit extends JFrame implements HasOptionsToSave
 
     public boolean readInData(String line, boolean newDataSet)
     {
+        if (newDataSet && graphingArea.hasData())
+        {
+            createNewDataSet();
+        }
         return graphingArea.readInDataAndDataOptions(line, newDataSet);
     }
 
@@ -707,7 +745,7 @@ public class LineFit extends JFrame implements HasOptionsToSave
         /** Determines which component of the QuickBar was clicked and then behaves accordingly */
         public void actionPerformed(ActionEvent e)
         {
-            if (!temporarilyDisableQuickMenuListener)
+            if (temporarilyDisableQuickMenuListener <= 0)
             {
                 if (e.getActionCommand().equals("Visible"))
                 {
@@ -722,13 +760,13 @@ public class LineFit extends JFrame implements HasOptionsToSave
                     if (current.getName().equals("New DataSet"))
                     {
                         // create the new dataset which will also select it. We still need to refresh the GUI here
-                        // though
-                        // because the listener is disabled while it is being executed to help avoid endless loops
+                        // though because the listener is disabled while it is being executed to help avoid endless
+                        // loops
                         current = createNewDataSet();
                     }
 
                     // refresh all the needed components for this dataset
-                    setDataSetDisplayed(current);
+                    updateDataSetDisplayed();
                 }
                 else if (e.getSource() == colorSelector)
                 {
@@ -803,6 +841,16 @@ public class LineFit extends JFrame implements HasOptionsToSave
             JSpinner mySpinner = (JSpinner) (e.getSource());
             SpinnerNumberModel myModel = (SpinnerNumberModel) (mySpinner.getModel());
             setNumberOfVisibleColumns((Integer) myModel.getValue());
+        }
+    }
+
+    private class updateFitTypesAction implements Runnable
+    {
+        @Override
+        public void run()
+        {
+            updateFitTypes();
+            graphingArea.repaint();
         }
     }
 }

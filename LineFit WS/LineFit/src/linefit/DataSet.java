@@ -12,6 +12,7 @@
 
 package linefit;
 
+
 import java.awt.Color;
 import java.awt.Polygon;
 import java.awt.Shape;
@@ -92,7 +93,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
     /** Creates a new empty DataSet that is linked to the GraphArea
      * 
      * @param parentGraphArea The GraphArea that this DataSet belongs to and will be drawn to */
-    DataSet(GraphArea parentGraphArea, ChangeTracker parentsChangeTracker)
+    DataSet(ChangeTracker parentsChangeTracker, Runnable onUpdateFitTypesAction)
     {
         changeTracker = parentsChangeTracker;
 
@@ -101,7 +102,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
 
         linearFitStrategy = LineFit.currentFitAlgorithmFactory.createNewLinearFitStartegy(this);
 
-        dataSetName = "DataSet " + numberOfGraphDataSets;
+        dataSetName = "DataSet " + (numberOfGraphDataSets + 1); // +1 so its 1 based instead of 0 based
         dataColumns = new ArrayList<DataColumn>();
         errorColumns = new ArrayList<DataColumn>();
         dataTableModel = new DataSetTableModel();
@@ -134,7 +135,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
             dataTableModel.addColumn(dataColumns.get(i).getName());
         }
 
-        dataTableModel.addTableModelListener(new GraphSetListener(parentGraphArea));
+        dataTableModel.addTableModelListener(new GraphSetListener(onUpdateFitTypesAction));
 
         tableContainingData.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_R, 0, false), "MY_CUSTOM_ACTION");
         dataSetColor = Color.BLACK;
@@ -874,11 +875,11 @@ public class DataSet extends JScrollPane implements HasDataToSave
     private class GraphSetListener implements TableModelListener
     {
         boolean alreadyUpdatingTable = false;
-        GraphArea graphArea;
+        Runnable onUpdateFitTypesAction;
 
-        GraphSetListener(GraphArea area)
+        GraphSetListener(Runnable inOnUpdateFitTypesAction)
         {
-            graphArea = area;
+            onUpdateFitTypesAction = inOnUpdateFitTypesAction;
         }
 
         private void updateColumn(TableModelEvent e, int columnIndex)
@@ -949,8 +950,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
                 }
 
                 refreshFitData();
-                graphArea.repaint();
-
+                onUpdateFitTypesAction.run();
                 alreadyUpdatingTable = false;
             }
         }

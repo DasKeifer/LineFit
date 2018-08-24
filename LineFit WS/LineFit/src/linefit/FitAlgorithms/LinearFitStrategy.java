@@ -134,9 +134,12 @@ public abstract class LinearFitStrategy
                     weight = 1;
                 }
                 break;
-            default:
-                System.out.println("Error: Bad fit type specified. Defaulting to no error fit");
             case NONE:
+                System.out.println("Error: FitType NONE specified! Should not be here!");
+            default:
+                System.out.println("Error: Bad fit type specified (" + fitTypeToUse.getDisplayString() +
+                        "). Defaulting to REGULAR (i.e. no error) fit");
+            case REGULAR:
                 weight = 1;
                 break;
         }

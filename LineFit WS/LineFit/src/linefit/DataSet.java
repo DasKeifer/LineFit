@@ -20,7 +20,6 @@ import java.awt.event.KeyEvent;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
-import java.util.Iterator;
 
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
@@ -352,27 +351,6 @@ public class DataSet extends JScrollPane implements HasDataToSave
         return true;
     }
 
-    /** Updates the DataColumns in this DataSet to make sure they are displaying the correct values in their cells and
-     * formatted in a double format */
-    void updateCellFormattingInColumns()
-    {
-        for (int i = 0; i < dataColumns.size(); i++)
-        {
-            DataColumn currentColumn = dataColumns.get(i);
-            ArrayList<Double> columnData = currentColumn.getData();
-
-            Iterator<Double> columnIterator = columnData.iterator();
-            int rowNum = 0;
-
-            while (columnIterator.hasNext())
-            {
-                Double valueInRow = columnIterator.next();
-                dataTableModel.setValueAt(valueInRow, rowNum, i);
-                rowNum++;
-            }
-        }
-    }
-
     /** Determines whether or not their is data in this DataSet
      * 
      * @return Returns true if there is data and false if no data was found */
@@ -413,6 +391,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
         {
             customColorMenu = new CustomColorMenu(this);
         }
+
         return customColorMenu;
     }
 

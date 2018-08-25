@@ -83,8 +83,6 @@ public class LineFit extends JFrame implements HasOptionsToSave
     // Variables for the visible components of LineFit
     /** The GraphArea of this instance of LineFit in which the Graph is drawn */
     private GraphArea graphingArea;
-    /** The DataSet that is currently selected to be edited or viewed */
-    private DataSet currentDataSet;
     /** The Panel that contains all the core pieces of LineFit */
     private JPanel mainDisplayPanel;
     /** The panel along the right side of the LineFit window that contains the current {@link DataSet} information as
@@ -241,16 +239,13 @@ public class LineFit extends JFrame implements HasOptionsToSave
 
         ioHandler.InitializeExportIO(graphingArea);
 
-        // and then make an empty dataset to start
-        currentDataSet = new DataSet(ioHandler.changeTracker, onUpdateFitTypesAction);
-
         // create our panels and menu bars
         mainDisplayPanel = new JPanel();
         createMenuBar();
         createQuickBar();
         createRightSideBar();
 
-        // Set up the layout of the entire program
+        // Now that all the GUI components are created, set up the layout of the entire program
         setupLayout();
 
         // Change what we do when we are closed
@@ -262,6 +257,9 @@ public class LineFit extends JFrame implements HasOptionsToSave
                 ioHandler.closeApplication();
             }
         });
+
+
+        createNewDataSet();
 
         // So it pops up on the center of the screen
         this.centerOnScreen();
@@ -285,16 +283,11 @@ public class LineFit extends JFrame implements HasOptionsToSave
     {
         rightSideBar = new JPanel(new GridLayout(2, 1));
         rightSideBar.setFocusable(true);
-        rightSideBar.add(currentDataSet);
 
         fitDataPanel = new JPanel();
         TitledBorder tb = new TitledBorder("Fit Data");
         fitDataPanel.setBorder(tb);
         fitDataPanel.add(fitResultsArea);
-        rightSideBar.add(fitDataPanel);
-
-        // Add Default Number of Columns
-        setNumberOfVisibleColumnsToDefault();
     }
 
     /** Creates and initializes the quick bar at the top of the LineFit below the menu bar that allows us to change
@@ -302,9 +295,7 @@ public class LineFit extends JFrame implements HasOptionsToSave
     private void createQuickBar()
     {
         graphOptionsButton = new JButton("Graph Options");
-
         visibleCheckBox = new JCheckBox("Visible");
-        visibleCheckBox.setSelected(true);
 
         // Set up the Column Selector (in TopBar)
         // See
@@ -312,10 +303,6 @@ public class LineFit extends JFrame implements HasOptionsToSave
         SpinnerNumberModel columnSelectorModel = new SpinnerNumberModel(DataSet.DEFAULT_NUMBER_OF_COLUMNS, 2, 4, 1);
         columnSelector = new JSpinner(columnSelectorModel);
         columnSelector.setToolTipText("Add or Subtract a Column");
-
-        // DataSet selection ComboBox
-        dataSetSelector.addItem(currentDataSet);
-        dataSetSelector.setSelectedIndex(0);
 
         // create the new DataSet option in the dataSet selector combo box
         DataSet newDataSet = DataSet.createDropDownPlaceHolder("New DataSet");
@@ -425,10 +412,12 @@ public class LineFit extends JFrame implements HasOptionsToSave
         Utils.inlayGuiItem(springLayout, quickBar, graphOptionsButton, true, quickBar, 8, 138, 4, -4);
     }
 
+    private SpringLayout layout = new SpringLayout();
+
     /** Sets up the layout of LineFit and places each panel in the right spot */
     private void setupLayout()
     {
-        SpringLayout layout = new SpringLayout();
+        layout = new SpringLayout();
 
         mainDisplayPanel.removeAll();
 
@@ -457,6 +446,14 @@ public class LineFit extends JFrame implements HasOptionsToSave
         this.setVisible(true);
     }
 
+    private void updateLayout()
+    {
+        layout.putConstraint(SpringLayout.WEST, rightSideBar, -dataSetTableWidth, SpringLayout.EAST, mainDisplayPanel);
+
+        // validating causes the layout to be updated
+        validate();
+    }
+
     /** Creates a new DataSet and makes it the currently selected DataSet */
     private DataSet createNewDataSet()
     {
@@ -482,26 +479,22 @@ public class LineFit extends JFrame implements HasOptionsToSave
         rightSideBar.add(current);
         rightSideBar.add(fitDataPanel);
 
-        // remove the listener from the old set and put it on the new one
+        // Update the fit types that are available
         updateFitTypes();
 
-        // TODO: Needed?
-        setupQuickBar();
-
         dataSetTableWidth = current.getNumberOfDisplayedColumns() * DATA_COLUMN_WIDTH;
-        updateCellFormattingInDataSetColumns(current);
 
         colorSelector.setSelectedItem(current.getColor());
 
         Shape currentShape = current.getShape();
         shapeSelector.setSelectedItem(currentShape);
-
         // for whatever reason it does not like setSelectedItem to a Polygon so we have to do this so it
         // gets the triangle shape drop down
         if (currentShape.getClass() == new Polygon().getClass())
         {
             shapeSelector.setSelectedIndex(2);
         }
+
         visibleCheckBox.setSelected(current.visibleGraph);
 
         // update column selector when a new dataset is selected
@@ -509,8 +502,8 @@ public class LineFit extends JFrame implements HasOptionsToSave
         // columns to be displayed
         columnSelector.setValue(current.getNumberOfDisplayedColumns());
 
-        setupLayout();
-        graphingArea.repaint();
+        // update the layout which will trigger a repaint
+        updateLayout();
 
         temporarilyDisableQuickMenuListener--;
     }
@@ -535,16 +528,7 @@ public class LineFit extends JFrame implements HasOptionsToSave
         current.setNumberOfDisplayedColumns(desiredColumns);
 
         dataSetTableWidth = current.getNumberOfDisplayedColumns() * DATA_COLUMN_WIDTH;
-        updateCellFormattingInDataSetColumns(current);
-        setupLayout();
-    }
-
-    /** Updates the DataColumns to make sure they are displaying the correct values in their cells
-     * 
-     * @param dataSetToUpdateCellsOf The DataSet to update the DataColumns for */
-    private void updateCellFormattingInDataSetColumns(DataSet dataSetToUpdateCellsOf)
-    {
-        dataSetToUpdateCellsOf.updateCellFormattingInColumns();
+        updateLayout();
     }
 
     public void updateFitTypes()
@@ -757,6 +741,10 @@ public class LineFit extends JFrame implements HasOptionsToSave
                 else if (e.getSource() == dataSetSelector)
                 {
                     DataSet current = (DataSet) dataSetSelector.getSelectedItem();
+                    if (current == null)
+                    {
+                        return;
+                    }
                     if (current.getName().equals("New DataSet"))
                     {
                         // create the new dataset which will also select it. We still need to refresh the GUI here
@@ -790,11 +778,16 @@ public class LineFit extends JFrame implements HasOptionsToSave
                         {
                             centerOnThis(chooser);
                         }
+
+                        // we repaint when we close the custom color window and not now
                     }
                     // only set the color if we are not using the reserved color value
                     else
                     {
                         current.setColor(color);
+
+                        // repaint the graph area
+                        graphingArea.repaint();
                     }
                 }
                 else if (e.getSource() == shapeSelector)
@@ -814,8 +807,9 @@ public class LineFit extends JFrame implements HasOptionsToSave
 
                     if (fit != null)
                     {
+                        // Set the fit type and repaint the graph
                         current.setFitType(fit);
-                        updateCellFormattingInDataSetColumns(current);
+                        graphingArea.repaint();
                     }
                 }
                 else if (e.getSource() == graphOptionsButton)

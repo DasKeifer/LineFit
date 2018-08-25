@@ -32,7 +32,7 @@ import linefit.Version;
  * precise format of the data file. Each class that has data to save must provide functionality for retrieving and
  * setting the data.
  * 
- * @author Das Keifer
+ * @author Keith Rice
  * @version 1.0
  * @since 0.99.0 */
 public class LineFitFileIO

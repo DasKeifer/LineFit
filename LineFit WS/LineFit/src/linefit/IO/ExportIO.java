@@ -64,7 +64,7 @@ import linefit.FitAlgorithms.FitType;
  * WYSWYG, basing its dimensions on the current LineFit window but the other exports are done based on the export
  * settings in the options panel.
  * 
- * @author Das Keifer
+ * @author Keith Rice
  * @version 1.0
  * @since 0.99.0 */
 public class ExportIO implements HasOptionsToSave, HasOptionsToDisplay

@@ -45,7 +45,7 @@ import linefit.IO.HasOptionsToSave;
  * and allowing users to input data (all but menus)
  * 
  * @author Keith Rice
- * @version 2.0.0
+ * @version 2.0
  * @since &lt;0.98.0 */
 public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
 {

@@ -25,7 +25,7 @@ package linefit;
  * decimal point
  * 
  * @author Keith Rice
- * @version 1.0.1
+ * @version 1.1
  * @since &lt;0.98.0 */
 public class ScientificNotation
 {

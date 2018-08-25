@@ -29,7 +29,7 @@ import linefit.DataDimension;
  * </ul>
  * 
  * @author Keith Rice
- * @version 1.2.0
+ * @version 1.2
  * @since &lt;0.98.0 */
 public enum FitType
 {

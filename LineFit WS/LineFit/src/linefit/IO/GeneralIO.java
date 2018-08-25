@@ -12,6 +12,7 @@
 
 package linefit.IO;
 
+
 import java.awt.Desktop;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -38,7 +39,7 @@ import linefit.Version;
 /** This class Handles the general IO operations of LineFit so that the rest of the code does not need to worry about
  * handling these operations
  * 
- * @author Das Keifer
+ * @author Keith Rice
  * @version 1.0
  * @since 0.99.0 */
 public class GeneralIO

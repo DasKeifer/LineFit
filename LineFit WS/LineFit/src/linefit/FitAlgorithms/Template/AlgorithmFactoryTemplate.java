@@ -13,6 +13,7 @@
 package linefit.FitAlgorithms.Template; // TODO: Remove the ".template" part and move the created class to the higher
                                         // package, FitAlgorithms
 
+
 import linefit.DataSet;
 import linefit.FitAlgorithms.FitType;
 import linefit.FitAlgorithms.LinearFitFactory;

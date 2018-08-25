@@ -21,7 +21,7 @@ import java.util.ArrayList;
  * directly or indirectly. It provides a set of standardized functions to read in an option from a file line by line and
  * to retrieve all the options and their settings as strings for saving them.
  * 
- * @author Das Keifer
+ * @author Keith Rice
  * @version 1.0
  * @since 0.99.0 */
 public interface HasOptionsToSave

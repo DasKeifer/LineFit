@@ -12,6 +12,7 @@
 
 package linefit;
 
+
 import java.awt.Component;
 import java.awt.event.ActionListener;
 
@@ -25,7 +26,7 @@ import javax.swing.SpringLayout;
 /** This class contains some functionality related to other LineFit classes that either are used in multiple classes or
  * potentially could be.
  * 
- * @author Das Keifer
+ * @author Keith Rice
  * @version 1.0
  * @since 0.99.0 */
 public class Utils

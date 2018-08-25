@@ -12,6 +12,7 @@
 
 package linefit;
 
+
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
@@ -40,8 +41,8 @@ import linefit.IO.GeneralIO;
 
 /** This class handles the creation and the display of the graph options menu
  * 
- * @author Unknown
- * @version 1.1.0
+ * @author Unknown, Keith Rice
+ * @version 1.1
  * @since &lt;0.98.0 */
 public class GraphOptionsMenu extends JFrame
 {

@@ -12,6 +12,7 @@
 
 package linefit.FitAlgorithms;
 
+
 import linefit.DataSet;
 
 
@@ -33,7 +34,7 @@ public abstract class LinearFitFactory
      * 
      * @param passedName The name of the algorithm to get in the list of possible linear fit factories
      * @return Returns the Linear fit factory that has the passed name as its toString method or the default factory if
-     * the passed name is not found in the array of fit factories */
+     *         the passed name is not found in the array of fit factories */
     public static LinearFitFactory getAlgorithmWithName(String passedName)
     {
         for (int i = 0; i < fitAlgorithmFactories.length; i++)
@@ -41,7 +42,7 @@ public abstract class LinearFitFactory
             if (fitAlgorithmFactories[i].toString().equalsIgnoreCase(passedName))
             {
                 return fitAlgorithmFactories[i];
-            } 
+            }
         }
         return fitAlgorithmFactories[0];
     }
@@ -74,6 +75,6 @@ public abstract class LinearFitFactory
      * 
      * @param dataSet The DataSet that the new FitStrategy will use for data and fit its line to
      * @return Returns a new LinearFitStrategy that is an instance of whatever the instance this is called on subclass
-     * Algorithm */
+     *         Algorithm */
     public abstract LinearFitStrategy createNewLinearFitStartegy(DataSet dataSet);
 }

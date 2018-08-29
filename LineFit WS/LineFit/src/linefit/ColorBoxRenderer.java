@@ -41,8 +41,11 @@ class ColorBoxRenderer extends JLabel implements ListCellRenderer<Object>
     private Graphics2D g2d;
     /** The Color that is current selected in the drop down menu */
     private Color color;
-    /** Defines the color we are using as reserved for the custom color option */
-    static Color RESERVED_FOR_CUSTOM_COLOR = Color.GRAY;
+    /** Defines the color we are using as reserved for the custom color option. We actually just use null for this so
+     * every color is allowed */
+    public static final Color RESERVED_FOR_CUSTOM_COLOR = null;
+    private Color customColor = Color.BLACK;
+    private static final int TOO_LIGHT_VALUE = 210;
 
     /** The default constructor of the Renderer */
     ColorBoxRenderer()
@@ -50,6 +53,11 @@ class ColorBoxRenderer extends JLabel implements ListCellRenderer<Object>
         setOpaque(true);
         setHorizontalAlignment(CENTER);
         setVerticalAlignment(CENTER);
+    }
+
+    void setCustomColor(Color color)
+    {
+        customColor = color;
     }
 
     /** Makes it paint a square of color instead of a string */
@@ -65,6 +73,18 @@ class ColorBoxRenderer extends JLabel implements ListCellRenderer<Object>
         }
         else
         {
+            if (customColor != null && (customColor.getRed() > TOO_LIGHT_VALUE || customColor
+                    .getGreen() > TOO_LIGHT_VALUE || customColor.getBlue() > TOO_LIGHT_VALUE))
+            {
+                setBackground(Color.DARK_GRAY);
+            }
+            else
+            {
+                setBackground(Color.WHITE);
+            }
+            setForeground(customColor);
+            setText("Custom");
+
             // just let it do what we normally do so it is text
             super.paint(g);
         }
@@ -77,19 +97,9 @@ class ColorBoxRenderer extends JLabel implements ListCellRenderer<Object>
     public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected,
             boolean cellHasFocus)
     {
-        // Get the selected index. (The index param isn't
-        // always valid, so just use the value.)
-
         color = (Color) value;
-        // setBackground(c);
-        // setForeground(c);
         setText(" ");
 
-        if (color == RESERVED_FOR_CUSTOM_COLOR)
-        {
-            setText("Custom");
-
-        }
         return this;
     }
 }

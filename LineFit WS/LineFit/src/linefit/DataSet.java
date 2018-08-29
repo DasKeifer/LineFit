@@ -83,11 +83,14 @@ public class DataSet extends JScrollPane implements HasDataToSave
     private FitType dataSetFitType;
     /** The color of this DataSet when drawn to the GraphArea */
     private Color dataSetColor;
+    private Color dataSetCustomColor;
     /** The shape of this DataSet when drawn to the GraphArea */
     private Shape dataSetShape;
-    /** The color selector that is chosen when the set is selected this way there is not multiple ones for the same
-     * DataSet leading to some potentially awkward situations */
-    private CustomColorMenu customColorMenu;
+
+    public static final Color[] predefinedColors = new Color[] { Color.BLACK, Color.YELLOW, Color.BLUE, Color.GREEN,
+            Color.ORANGE, Color.RED };
+    public static final String[] predefinedColorNames = new String[] { "black", "yellow", "blue", "green", "orange",
+            "red" };
 
     /** Creates a new empty DataSet that is linked to the GraphArea
      * 
@@ -359,42 +362,6 @@ public class DataSet extends JScrollPane implements HasDataToSave
         return dataTableModel.hasData();
     }
 
-    /** Determines whether or not there is a visible CustomColorMenu for this DataSet or if it does not exist or is
-     * hidden from view
-     * 
-     * @return Returns true if there is a CustomColorMenu and it is Visible */
-    boolean doesHaveVisibleCustomColorMenu()
-    {
-        // return if it is not null and it is visible
-        return customColorMenu != null && customColorMenu.isVisible();
-    }
-
-    /** Creates a new CustomColorMenu for this DataSet, but only if one does not already exist. If one does then it
-     * focuses on that CustomColorMenu
-     * 
-     * @return Returns the CustomColorMenu that is associated with this DataSet whether it is newly created or already
-     *         existed */
-    CustomColorMenu createOrFocusOnCustomColorMenu()
-    {
-        // if we have one bring it up, otherwise make one
-        if (customColorMenu != null)
-        {
-            // if its just invisible then initialize it so it updates the color and makes it visible
-            if (!customColorMenu.isVisible())
-            {
-                customColorMenu.initialize();
-            }
-            // bring it to the front
-            customColorMenu.toFront();
-        }
-        else
-        {
-            customColorMenu = new CustomColorMenu(this);
-        }
-
-        return customColorMenu;
-    }
-
     /** Reads in data or an option related to the data from the passed in line
      * 
      * @param line The line that contains the data or option related to the data
@@ -485,49 +452,38 @@ public class DataSet extends JScrollPane implements HasDataToSave
                 }
                 case "color":
                 {
-                    switch (valueForField)
+                    boolean foundColor = false;
+                    for (int i = 0; i < predefinedColorNames.length; i++)
                     {
-                        case "black":
-                            setColor(Color.BLACK);
-                            break;
-                        case "yellow":
-                            setColor(Color.YELLOW);
-                            break;
-                        case "blue":
-                            setColor(Color.BLUE);
-                            break;
-                        case "green":
-                            setColor(Color.GREEN);
-                            break;
-                        case "orange":
-                            setColor(Color.ORANGE);
-                            break;
-                        case "red":
-                            setColor(Color.RED);
-                            break;
-                        default:// we expect three ints
+                        if (valueForField.equals(predefinedColorNames[i]))
                         {
-                            String[] colorInputExploded = valueForField.split(" ");
-                            if (colorInputExploded.length == 3)
+                            setColor(predefinedColors[i]);
+                            foundColor = true;
+                            break;
+                        }
+                    }
+
+                    if (!foundColor)
+                    {
+                        String[] colorInputExploded = valueForField.split(" ");
+                        if (colorInputExploded.length == 3)
+                        {
+                            // get the rgb as ints and set up the color
+                            try
                             {
-                                // get the rgb as ints and set up the color
-                                try
-                                {
-                                    int red = Integer.parseInt(colorInputExploded[0]);
-                                    int green = Integer.parseInt(colorInputExploded[1]);
-                                    int blue = Integer.parseInt(colorInputExploded[2]);
-                                    setColor(new Color(red, green, blue));
-                                }
-                                catch (NumberFormatException e)
-                                {
-                                    setColor(Color.BLACK);
-                                }
+                                int red = Integer.parseInt(colorInputExploded[0]);
+                                int green = Integer.parseInt(colorInputExploded[1]);
+                                int blue = Integer.parseInt(colorInputExploded[2]);
+                                setColor(new Color(red, green, blue));
                             }
-                            else
+                            catch (NumberFormatException e)
                             {
                                 setColor(Color.BLACK);
                             }
-                            break;
+                        }
+                        else
+                        {
+                            setColor(Color.BLACK);
                         }
                     }
                     break;
@@ -696,34 +652,28 @@ public class DataSet extends JScrollPane implements HasDataToSave
      * @return A String representing this DataSet's color */
     public String getColorString()
     {
-        if (dataSetColor == Color.BLACK)
+        for (int i = 0; i < predefinedColorNames.length; i++)
         {
-            return "black";
+            if (dataSetColor == predefinedColors[i])
+            {
+                return predefinedColorNames[i];
+            }
         }
-        else if (dataSetColor == Color.YELLOW)
+
+        return dataSetColor.getRed() + " " + dataSetColor.getGreen() + " " + dataSetColor.getBlue();
+    }
+
+    public boolean isColorCustom()
+    {
+        for (int i = 0; i < predefinedColorNames.length; i++)
         {
-            return "yellow";
+            if (dataSetColor == predefinedColors[i])
+            {
+                return false;
+            }
         }
-        else if (dataSetColor == Color.BLUE)
-        {
-            return "blue";
-        }
-        else if (dataSetColor == Color.GREEN)
-        {
-            return "green";
-        }
-        else if (dataSetColor == Color.ORANGE)
-        {
-            return "orange";
-        }
-        else if (dataSetColor == Color.RED)
-        {
-            return "red";
-        }
-        else
-        {
-            return dataSetColor.getRed() + " " + dataSetColor.getGreen() + " " + dataSetColor.getBlue();
-        }
+
+        return true;
     }
 
     public int getNumberOfDisplayedColumns()
@@ -737,6 +687,11 @@ public class DataSet extends JScrollPane implements HasDataToSave
     public Color getColor()
     {
         return dataSetColor;
+    }
+
+    public Color getLastCustomColor()
+    {
+        return dataSetCustomColor;
     }
 
     /** Gets the shape of the points used when drawing to the GraphArea
@@ -815,7 +770,13 @@ public class DataSet extends JScrollPane implements HasDataToSave
     public void setColor(Color color)
     {
         changeTracker.setFileModified();
+
         dataSetColor = color;
+
+        if (isColorCustom())
+        {
+            dataSetCustomColor = color;
+        }
     }
 
     /** Sets the shape used for the points of this DataSet when drawing it to the GraphArea to the given Shape

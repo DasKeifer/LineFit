@@ -37,7 +37,6 @@ import javax.swing.JTextArea;
 
 import linefit.FitAlgorithms.FitType;
 import linefit.FitAlgorithms.LinearFitFactory;
-import linefit.IO.ChangeTracker;
 import linefit.IO.HasDataToSave;
 import linefit.IO.HasOptionsToSave;
 
@@ -52,8 +51,6 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
 {
     /** The current serial version UID that changes when the interface of the class is changed */
     private final static long serialVersionUID = 42;
-
-    private ChangeTracker changeTracker;
 
     // spacing variables
     /** The width of the points we are using to draw the shapes on the graph */
@@ -226,10 +223,8 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
      * @param resultsPanelToUse The Results Panel to display the currently selected DataSet's results data as a String
      *        in */
     GraphArea(double defaultXAxisMinimum, double defaultXAxisMaximum, double defaultYAxisMinimum,
-            double defaultYAxisMaximum, JComboBox<DataSet> dataSetSelectorToUse, JTextArea resultsPanelToUse,
-            ChangeTracker parentsChangeTracker)
+            double defaultYAxisMaximum, JComboBox<DataSet> dataSetSelectorToUse, JTextArea resultsPanelToUse)
     {
-        changeTracker = parentsChangeTracker;
         xAxisMinimumValue = defaultXAxisMinimum;
         xAxisMaximumValue = defaultXAxisMaximum;
         yAxisMinimumValue = defaultYAxisMinimum;

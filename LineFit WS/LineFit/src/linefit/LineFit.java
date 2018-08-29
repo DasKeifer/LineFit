@@ -122,6 +122,7 @@ public class LineFit extends JFrame implements HasOptionsToSave
     private JComboBox<FitType> fitSelector = new JComboBox<FitType>();
     /** The drop down box that allows the user to select the Color of the current DataSet */
     private JComboBox<Color> colorSelector = new JComboBox<Color>();
+    private ColorBoxRenderer colorSelectorRenderer = new ColorBoxRenderer();
     /** The drop down box that allows the user to select the Shape of the current DataSet */
     private JComboBox<Shape> shapeSelector = new JComboBox<Shape>();
     /** The JSpinner that allows the user to set the number of DataColumns for the current DataSet */
@@ -210,6 +211,8 @@ public class LineFit extends JFrame implements HasOptionsToSave
     // Classes that should be set once upon initialization
     private final GeneralIO ioHandler;
     private final Runnable onUpdateFitTypesAction;
+    private final Runnable onUpdateColorAction;
+    private CustomColorMenu customColorMenu;
 
     /** The default FitAlgorithm to use when creating linear fits for the DataSets */
     static LinearFitFactory currentFitAlgorithmFactory = LinearFitFactory.fitAlgorithmFactories[0];
@@ -223,6 +226,7 @@ public class LineFit extends JFrame implements HasOptionsToSave
 
         //
         onUpdateFitTypesAction = new updateFitTypesAction();
+        onUpdateColorAction = new updateDataSetColorAction();
         ioHandler = new GeneralIO(this, graphingArea);
 
         this.setIconImage(ioHandler.getLineFitIcon());
@@ -234,8 +238,7 @@ public class LineFit extends JFrame implements HasOptionsToSave
 
         // make our graph area
         graphingArea = new GraphArea(DEFAULT_X_AXIS_MINIMUM_VALUE, DEFAULT_X_AXIS_MAXIMUM_VALUE,
-                DEFAULT_Y_AXIS_MINIMUM_VALUE, DEFAULT_Y_AXIS_MAXIMUM_VALUE, dataSetSelector, fitResultsArea,
-                ioHandler.changeTracker);
+                DEFAULT_Y_AXIS_MINIMUM_VALUE, DEFAULT_Y_AXIS_MAXIMUM_VALUE, dataSetSelector, fitResultsArea);
 
         ioHandler.InitializeExportIO(graphingArea);
 
@@ -309,16 +312,13 @@ public class LineFit extends JFrame implements HasOptionsToSave
         dataSetSelector.addItem(newDataSet);
 
         // Set up line color selection ComboBox
-        ColorBoxRenderer renderer = new ColorBoxRenderer();
-        colorSelector.setRenderer(renderer);
+        colorSelector.setRenderer(colorSelectorRenderer);
 
         // Add possible colors to colorSelector
-        colorSelector.addItem(Color.BLACK);
-        colorSelector.addItem(Color.YELLOW);
-        colorSelector.addItem(Color.BLUE);
-        colorSelector.addItem(Color.GREEN);
-        colorSelector.addItem(Color.ORANGE);
-        colorSelector.addItem(Color.RED);
+        for (Color color : DataSet.predefinedColors)
+        {
+            colorSelector.addItem(color);
+        }
         colorSelector.addItem(ColorBoxRenderer.RESERVED_FOR_CUSTOM_COLOR);
 
         // set up the shape selector drop down
@@ -484,7 +484,16 @@ public class LineFit extends JFrame implements HasOptionsToSave
 
         dataSetTableWidth = current.getNumberOfDisplayedColumns() * DATA_COLUMN_WIDTH;
 
-        colorSelector.setSelectedItem(current.getColor());
+        // Update the current selected color
+        if (current.isColorCustom())
+        {
+            colorSelector.setSelectedItem(ColorBoxRenderer.RESERVED_FOR_CUSTOM_COLOR);
+        }
+        else
+        {
+            colorSelector.setSelectedItem(current.getColor());
+        }
+        colorSelectorRenderer.setCustomColor(current.getLastCustomColor());
 
         Shape currentShape = current.getShape();
         shapeSelector.setSelectedItem(currentShape);
@@ -506,13 +515,6 @@ public class LineFit extends JFrame implements HasOptionsToSave
         updateLayout();
 
         temporarilyDisableQuickMenuListener--;
-    }
-
-    /** Makes it so that the number of columns in the current DataSet is equal to the default number of visible
-     * columns */
-    private void setNumberOfVisibleColumnsToDefault()
-    {
-        setNumberOfVisibleColumns(DataSet.DEFAULT_NUMBER_OF_COLUMNS);
     }
 
     /** Makes it so that the number of columns in the current DataSet is equal to the given number
@@ -761,23 +763,16 @@ public class LineFit extends JFrame implements HasOptionsToSave
                     // Event handler for colorSelector
                     DataSet current = (DataSet) dataSetSelector.getSelectedItem();
                     Color color = (Color) colorSelector.getSelectedItem();
+
                     // if its the reserved color then do some special things
                     if (color == ColorBoxRenderer.RESERVED_FOR_CUSTOM_COLOR)
                     {
-                        // see if we already have a customColorMenu and if we dont then we need to center it on the
-                        // frame
-                        boolean doNotCenterCustomColorMenu = ((DataSet) dataSetSelector.getSelectedItem())
-                                .doesHaveVisibleCustomColorMenu();
-
-                        // get the custom menu to the front or create it
-                        CustomColorMenu chooser = ((DataSet) dataSetSelector.getSelectedItem())
-                                .createOrFocusOnCustomColorMenu();
-
-                        // center it only if we just made it
-                        if (!doNotCenterCustomColorMenu)
+                        if (customColorMenu == null)
                         {
-                            centerOnThis(chooser);
+                            customColorMenu = new CustomColorMenu(onUpdateColorAction);
                         }
+
+                        customColorMenu.setDataSetAndFocus(current);
 
                         // we repaint when we close the custom color window and not now
                     }
@@ -785,6 +780,7 @@ public class LineFit extends JFrame implements HasOptionsToSave
                     else
                     {
                         current.setColor(color);
+                        colorSelectorRenderer.setCustomColor(current.getLastCustomColor());
 
                         // repaint the graph area
                         graphingArea.repaint();
@@ -835,6 +831,17 @@ public class LineFit extends JFrame implements HasOptionsToSave
             JSpinner mySpinner = (JSpinner) (e.getSource());
             SpinnerNumberModel myModel = (SpinnerNumberModel) (mySpinner.getModel());
             setNumberOfVisibleColumns((Integer) myModel.getValue());
+        }
+    }
+
+    private class updateDataSetColorAction implements Runnable
+    {
+        @Override
+        public void run()
+        {
+            colorSelectorRenderer.setCustomColor(((DataSet) dataSetSelector.getSelectedItem()).getLastCustomColor());
+            colorSelector.repaint();
+            graphingArea.repaint();
         }
     }
 

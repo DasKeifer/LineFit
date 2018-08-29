@@ -12,6 +12,7 @@
 
 package linefit;
 
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
@@ -37,7 +38,7 @@ import javax.swing.event.ChangeListener;
 /** A Class that extends JDialog that allows the user to choose custom colors to use for the lines
  * 
  * @author Keith Rice
- * @version 1.0
+ * @version 1.1
  * @since 0.98.1 */
 class CustomColorMenu extends JFrame
 {
@@ -46,19 +47,23 @@ class CustomColorMenu extends JFrame
     private static final long serialVersionUID = 42L;
     /** The Color that was chosen before this selector was started */
     private Color startColor;
+    /** The Color that was chosen before this selector was started */
+    private Color selectedColor;
     /** The DataSet that this Color selector goes with */
     private DataSet goesWith;
     /** The JColorChooser that goes with this menu which is what actually allows the user to specify the color to use */
     private JColorChooser customColorChooser;
 
+    private final Runnable onColorChangeAction;
+
     /** Creates a new Color Selector that is paired with the passed in dataset
      * 
      * @param dataSetThisGoesWith The DataSet that this CustomColorMenu is linked with */
-    CustomColorMenu(DataSet dataSetThisGoesWith)
+    public CustomColorMenu(Runnable inOnColorChangeAction)
     {
-        goesWith = dataSetThisGoesWith;
-
         setSize(600, 400);
+        onColorChangeAction = inOnColorChangeAction;
+
         // make it so you cant do other things setModalityType(Dialog.DEFAULT_MODALITY_TYPE);
         setLayout(new BorderLayout());
 
@@ -90,6 +95,7 @@ class CustomColorMenu extends JFrame
         catch (IllegalAccessException iae)
         {
         }
+
         add(customColorChooser, BorderLayout.CENTER);
 
         JPanel buttonRow = new JPanel();
@@ -102,29 +108,41 @@ class CustomColorMenu extends JFrame
         cancBut.addActionListener(new CancelButtonListener());
         buttonRow.add(cancBut, BorderLayout.EAST);
         add(buttonRow, BorderLayout.SOUTH);
-
-        initialize();
     }
 
     /** Initializes this CustomColorMenu by setting the start color and making it visible */
-    void initialize()
+    public void setDataSetAndFocus(DataSet dataSet)
     {
-        startColor = goesWith.getColor();
-        goesWith.setColor(customColorChooser.getSelectionModel().getSelectedColor());
+        goesWith = dataSet;
+        startColor = goesWith.getLastCustomColor();
+        selectedColor = startColor;
+        customColorChooser.getSelectionModel().setSelectedColor(startColor);
         setVisible(true);
+        toFront();
+    }
+
+    private void applySelectedColor()
+    {
+        goesWith.setColor(selectedColor);
+        onColorChangeAction.run();
     }
 
     /** Reverts the DataSet that this color selector goes with to the color it was when the selector was first opened */
     private void undoColorChangeAndExitCustomColorMenu()
     {
-        goesWith.setColor(startColor);
+        if (goesWith != null)
+        {
+            selectedColor = startColor;
+        }
         exitCustomColorMenu();
     }
 
     /** Hides/closes the CustomColorMenu */
     private void exitCustomColorMenu()
     {
-        this.setVisible(false);
+        applySelectedColor();
+        goesWith = null;
+        setVisible(false);
     }
 
     /** A function that removes the transparency slider from the JColorChooser taken from stack overflow question:
@@ -135,9 +153,9 @@ class CustomColorMenu extends JFrame
      * @throws NoSuchFieldException throws this error if it cannot find the transparency slider to remove
      * @throws SecurityException throws this error if it encounters a security problem when removing the slider
      * @throws IllegalArgumentException throws this error if an illegal argument is encounter when trying to remove the
-     * transparency slider
+     *         transparency slider
      * @throws IllegalAccessException throws this error if when removing the transparency slider we do not have access
-     * to remove the slider */
+     *         to remove the slider */
     private static void removeTransparencySlider(JColorChooser jColorChooserToRemoveFrom) throws NoSuchFieldException,
             SecurityException, IllegalArgumentException, IllegalAccessException
     {
@@ -189,8 +207,12 @@ class CustomColorMenu extends JFrame
         @Override
         public void stateChanged(ChangeEvent chooserSource)
         {
-            ColorSelectionModel source = (ColorSelectionModel) chooserSource.getSource();
-            goesWith.setColor(source.getSelectedColor());
+            if (goesWith != null)
+            {
+                ColorSelectionModel source = (ColorSelectionModel) chooserSource.getSource();
+                selectedColor = source.getSelectedColor();
+                applySelectedColor();
+            }
         }
     }
 
@@ -204,7 +226,6 @@ class CustomColorMenu extends JFrame
         /** The action that occurs when the Select Button was clicked that saves the selected color to return */
         public void actionPerformed(ActionEvent e)
         {
-            // The color is already changed so just close us
             exitCustomColorMenu();
         }
     }

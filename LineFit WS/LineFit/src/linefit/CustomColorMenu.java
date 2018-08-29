@@ -47,13 +47,13 @@ class CustomColorMenu extends JFrame
     private static final long serialVersionUID = 42L;
     /** The Color that was chosen before this selector was started */
     private Color startColor;
-    /** The Color that was chosen before this selector was started */
+    /** The Color that is currently selected */
     private Color selectedColor;
     /** The DataSet that this Color selector goes with */
     private DataSet goesWith;
     /** The JColorChooser that goes with this menu which is what actually allows the user to specify the color to use */
-    private JColorChooser customColorChooser;
-
+    private final JColorChooser customColorChooser;
+    /** The action that is run when the color is changed */
     private final Runnable onColorChangeAction;
 
     /** Creates a new Color Selector that is paired with the passed in dataset
@@ -110,17 +110,27 @@ class CustomColorMenu extends JFrame
         add(buttonRow, BorderLayout.SOUTH);
     }
 
-    /** Initializes this CustomColorMenu by setting the start color and making it visible */
+    /** Sets the dataset connected with the custom color menu and brings the color menu to the front
+     * 
+     * @param dataSet The dataset to connect to the custom color menu */
     public void setDataSetAndFocus(DataSet dataSet)
     {
+        // update the dataset
         goesWith = dataSet;
-        startColor = goesWith.getLastCustomColor();
-        selectedColor = startColor;
-        customColorChooser.getSelectionModel().setSelectedColor(startColor);
+
+        // start with the current color of the dataset but set the selected color to the last custom color that way if
+        // we cancel we can move back to the predefined color in the drop down easily and so if we move between
+        // predefined colors it will not clear our custom color
+        startColor = goesWith.getColor();
+        selectedColor = goesWith.getLastCustomColor();
+        customColorChooser.getSelectionModel().setSelectedColor(selectedColor);
+
+        // set it visible and bring it to the front
         setVisible(true);
         toFront();
     }
 
+    /** Applies the currently selected color to the dataset connected with this custom color menu */
     private void applySelectedColor()
     {
         goesWith.setColor(selectedColor);
@@ -195,15 +205,18 @@ class CustomColorMenu extends JFrame
         }
     }
 
-
     // private classes
+
     /** A Listener class that is used to change the currently selected color for the DataSet to the selected one
      * 
      * @author Keith Rice
-     * @version 1.0
+     * @version 1.1
      * @since 0.98.0 */
     private class ColorChangedListener implements ChangeListener
     {
+        /** The action that is called when a new color is selected that updates the color of the dataset
+         * 
+         * @param chooserSource The change event that contains the selected color */
         @Override
         public void stateChanged(ChangeEvent chooserSource)
         {
@@ -223,9 +236,12 @@ class CustomColorMenu extends JFrame
      * @since 0.98.0 */
     private class SelectButtonListener implements ActionListener
     {
-        /** The action that occurs when the Select Button was clicked that saves the selected color to return */
+        /** The action that occurs when the Select Button was clicked that saves the selected color to return
+         * 
+         * @param e unused */
         public void actionPerformed(ActionEvent e)
         {
+            // Color is saves as part of the exit function
             exitCustomColorMenu();
         }
     }
@@ -239,7 +255,9 @@ class CustomColorMenu extends JFrame
     private class CancelButtonListener implements ActionListener
     {
         /** The action that is performed when the user exits out of the import and that makes sure the return Color is
-         * null so we know it has been canceled */
+         * null so we know it has been canceled
+         * 
+         * @param e unused */
         public void actionPerformed(ActionEvent e)
         {
             undoColorChangeAndExitCustomColorMenu();
@@ -254,6 +272,10 @@ class CustomColorMenu extends JFrame
      * @since 0.98.0 */
     private class WindowClosingOverrideAdapter extends WindowAdapter
     {
+        /** The action that is performed when closing the window which undos any unsaved (select button not pressed)
+         * changes.
+         * 
+         * @param e unused */
         public void windowClosing(WindowEvent e)
         {
             undoColorChangeAndExitCustomColorMenu();

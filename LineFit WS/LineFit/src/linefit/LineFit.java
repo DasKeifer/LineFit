@@ -839,7 +839,23 @@ public class LineFit extends JFrame implements HasOptionsToSave
         @Override
         public void run()
         {
-            colorSelectorRenderer.setCustomColor(((DataSet) dataSetSelector.getSelectedItem()).getLastCustomColor());
+            DataSet selected = (DataSet) dataSetSelector.getSelectedItem();
+            Color currentColor = selected.getColor();
+
+            colorSelectorRenderer.setCustomColor(selected.getLastCustomColor());
+
+            // Disable the quickbar so it doesn't trigger the listener action which would reset the starting color
+            temporarilyDisableQuickMenuListener++;
+            if (!DataSet.isColorACustomColor(currentColor))
+            {
+                colorSelector.setSelectedItem(currentColor);
+            }
+            else
+            {
+                colorSelector.setSelectedItem(ColorBoxRenderer.RESERVED_FOR_CUSTOM_COLOR);
+            }
+            temporarilyDisableQuickMenuListener--;
+
             colorSelector.repaint();
             graphingArea.repaint();
         }

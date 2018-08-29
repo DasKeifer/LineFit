@@ -141,6 +141,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
 
         tableContainingData.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_R, 0, false), "MY_CUSTOM_ACTION");
         dataSetColor = Color.BLACK;
+        dataSetCustomColor = dataSetColor;
         dataSetShape = new Rectangle2D.Double();
 
         numberOfGraphDataSets++;
@@ -663,17 +664,22 @@ public class DataSet extends JScrollPane implements HasDataToSave
         return dataSetColor.getRed() + " " + dataSetColor.getGreen() + " " + dataSetColor.getBlue();
     }
 
-    public boolean isColorCustom()
+    public static boolean isColorACustomColor(Color color)
     {
         for (int i = 0; i < predefinedColorNames.length; i++)
         {
-            if (dataSetColor == predefinedColors[i])
+            if (color == predefinedColors[i])
             {
                 return false;
             }
         }
 
         return true;
+    }
+
+    public boolean isColorCustom()
+    {
+        return isColorACustomColor(dataSetColor);
     }
 
     public int getNumberOfDisplayedColumns()

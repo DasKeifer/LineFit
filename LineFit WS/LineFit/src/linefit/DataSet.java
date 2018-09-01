@@ -71,8 +71,8 @@ public class DataSet extends JScrollPane implements HasDataToSave
     public boolean visibleGraph;
 
     /** The list of all the visible DataColumns in this DataSet */
-    ArrayList<DataColumn> dataColumns;
-    ArrayList<DataColumn> errorColumns;
+    final DataColumn[] dataColumns;
+    final DataColumn[] errorColumns;
 
     int errorColumnsDisplayed = 0;
     DataDimension[] errorColumnsOrder = DataDimension.values();
@@ -105,8 +105,8 @@ public class DataSet extends JScrollPane implements HasDataToSave
         linearFitStrategy = LineFit.currentFitAlgorithmFactory.createNewLinearFitStartegy(this);
 
         dataSetName = "DataSet " + (numberOfGraphDataSets + 1); // +1 so its 1 based instead of 0 based
-        dataColumns = new ArrayList<DataColumn>();
-        errorColumns = new ArrayList<DataColumn>();
+        dataColumns = new DataColumn[DataDimension.getNumberOfDimensions()];
+        errorColumns = new DataColumn[DataDimension.getNumberOfDimensions()];
         dataTableModel = new DataSetTableModel();
         tableContainingData = new JTable(dataTableModel);
         tableContainingData.setGridColor(Color.gray);
@@ -128,13 +128,13 @@ public class DataSet extends JScrollPane implements HasDataToSave
 
         for (DataDimension dim : DataDimension.values())
         {
-            dataColumns.add(dim.getColumnIndex(), new DataColumn(dim.getDisplayString(), changeTracker));
-            errorColumns.add(dim.getColumnIndex(), new DataColumn(dim.getErrorDisplayString(), changeTracker));
+            dataColumns[dim.getColumnIndex()] = new DataColumn(dim.getDisplayString(), changeTracker);
+            errorColumns[dim.getColumnIndex()] = new DataColumn(dim.getErrorDisplayString(), changeTracker);
         }
 
         for (int i = 0; i < DataDimension.getNumberOfDimensions(); i++)
         {
-            dataTableModel.addColumn(dataColumns.get(i).getName());
+            dataTableModel.addColumn(dataColumns[i].getName());
         }
 
         dataTableModel.addTableModelListener(new GraphSetListener(onUpdateFitTypesAction));
@@ -153,6 +153,8 @@ public class DataSet extends JScrollPane implements HasDataToSave
     /** A private constructor for an empty DataSet that is only used to make a placeholder DataSet */
     private DataSet()
     {
+        dataColumns = new DataColumn[0];
+        errorColumns = new DataColumn[0];
     }
 
     /** Returns an empty DataSet with no initialization to be used for the new DataSet option in the drop down menu
@@ -180,6 +182,26 @@ public class DataSet extends JScrollPane implements HasDataToSave
         {
             showNextErrorColumn();
         }
+    }
+
+    public int getIndexOfErrorColumn(DataDimension toGetErrorIndexOf, boolean relativeToErrors)
+    {
+        for (int i = 0; i < errorColumnsOrder.length; i++)
+        {
+            if (errorColumnsOrder[i] == toGetErrorIndexOf)
+            {
+                if (relativeToErrors)
+                {
+                    return i;
+                }
+                else
+                {
+                    return dataColumns.length;
+                }
+            }
+        }
+
+        return -1;
     }
 
     public boolean setNumberOfDisplayedColumns(int numColumns)
@@ -213,8 +235,17 @@ public class DataSet extends JScrollPane implements HasDataToSave
     {
         if (errorColumnsDisplayed < DataDimension.getNumberOfDimensions())
         {
-            DataColumn error = errorColumns.get(errorColumnsOrder[errorColumnsDisplayed++].getColumnIndex());
+            int tableIndex = dataColumns.length + errorColumnsDisplayed;
+            DataColumn error = errorColumns[errorColumnsOrder[errorColumnsDisplayed++].getColumnIndex()];
             dataTableModel.addColumn(error.getName());
+
+            for (int i = 0; i < error.dataSize(); i++)
+            {
+                if (!error.isNull(i))
+                {
+                    dataTableModel.setValueAt(error.readDouble(i), i, tableIndex);
+                }
+            }
         }
     }
 
@@ -270,12 +301,12 @@ public class DataSet extends JScrollPane implements HasDataToSave
     {
         ArrayList<Integer> validPoints = new ArrayList<Integer>();
         boolean pointValid;
-        for (int i = 0; i < dataColumns.get(0).getData().size(); i++)
+        for (int i = 0; i < dataColumns[0].getData().size(); i++)
         {
             pointValid = true;
             for (int column = 0; column < DataDimension.getNumberOfDimensions(); column++)
             {
-                if (dataColumns.get(column).isNull(i))
+                if (dataColumns[column].isNull(i))
                 {
                     pointValid = false;
                     break;
@@ -298,8 +329,8 @@ public class DataSet extends JScrollPane implements HasDataToSave
         double dataMin = 0;
 
         refreshFitData();
-        DataColumn data = dataColumns.get(dim.getColumnIndex());
-        DataColumn error = errorColumns.get(dim.getColumnIndex());
+        DataColumn data = dataColumns[dim.getColumnIndex()];
+        DataColumn error = errorColumns[dim.getColumnIndex()];
 
         for (int i = 0; i < data.getData().size(); i++)
         {
@@ -342,7 +373,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
      *         otherwise */
     private boolean checkAllHaveErrors(ArrayList<Integer> indexes, DataDimension dimension)
     {
-        DataColumn error = errorColumns.get(dimension.getColumnIndex());
+        DataColumn error = errorColumns[dimension.getColumnIndex()];
 
         for (Integer index : indexes)
         {
@@ -503,7 +534,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
                     // Reads should only take place when a set is created so we
                     // can just use the data size of the first column to determine
                     // the next row to add at.
-                    int row = dataColumns.get(0).dataSize();
+                    int row = dataColumns[0].dataSize();
                     for (int column = 0; column < splitPointValuesInput.length; column++)
                     {
                         String pointValueString = splitPointValuesInput[column];
@@ -516,7 +547,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
                         }
                         try
                         {
-                            dataColumns.get(column).writeData(row, value);
+                            dataColumns[column].writeData(row, value);
                             dataTableModel.setValueAt(value, row, column);
                         }
                         catch (IndexOutOfBoundsException iobe)
@@ -589,12 +620,12 @@ public class DataSet extends JScrollPane implements HasDataToSave
                     {
                         datapoint += " ";
                     }
-                    datapoint += dataColumns.get(j).getData().get(index);
+                    datapoint += dataColumns[j].getData().get(index);
                 }
 
                 for (int j = 0; j < errorColumnsDisplayed; j++)
                 {
-                    datapoint += " " + errorColumns.get(j).getData().get(index);
+                    datapoint += " " + errorColumns[j].getData().get(index);
                 }
 
                 variableValues.add(datapoint);
@@ -749,7 +780,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
      * @return The DataColumn that keeps track of the x data values for this DataSet */
     public DataColumn getData(int index)
     {
-        return dataColumns.get(index);
+        return dataColumns[index];
     }
 
     public DataColumn getData(DataDimension data)
@@ -762,7 +793,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
      * @return The DataColumn that keeps track of the x data values for this DataSet */
     public DataColumn getErrorData(int errorColumnIndex)
     {
-        return errorColumns.get(errorColumnIndex);
+        return errorColumns[errorColumnIndex];
     }
 
     public DataColumn getErrorData(DataDimension data)
@@ -855,15 +886,16 @@ public class DataSet extends JScrollPane implements HasDataToSave
                         if (!Double.isFinite(entry))
                         {
                             entry = null;
-                            dataTableModel.setValueAt(entry, i, columnIndex);
                         }
                     }
                     catch (NumberFormatException nfe)
                     {
-                        dataTableModel.setValueAt(entry, i, columnIndex);
+                        entry = null;
                     }
                 }
 
+                // always set it so that it will convert to double format if it wasn't entered that way
+                dataTableModel.setValueAt(entry, i, columnIndex);
                 data.writeData(e.getFirstRow(), entry);
             }
 

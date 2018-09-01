@@ -120,6 +120,7 @@ public class LineFit extends JFrame implements HasOptionsToSave
     private JComboBox<DataSet> dataSetSelector = new JComboBox<DataSet>();
     /** The drop down box that allows the user to select the FitType of the current DataSet */
     private JComboBox<FitType> fitSelector = new JComboBox<FitType>();
+    // TODO: extract to a self contained class
     /** The drop down box that allows the user to select the Color of the current DataSet */
     private JComboBox<Color> colorSelector = new JComboBox<Color>();
     private ColorBoxRenderer colorSelectorRenderer = new ColorBoxRenderer();

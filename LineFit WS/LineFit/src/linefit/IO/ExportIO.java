@@ -12,6 +12,7 @@
 
 package linefit.IO;
 
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
@@ -44,7 +45,6 @@ import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.pdf.PdfWriter;
 
-import linefit.DataColumn;
 import linefit.DataDimension;
 import linefit.DataSet;
 import linefit.GraphArea;
@@ -579,58 +579,57 @@ public class ExportIO implements HasOptionsToSave, HasOptionsToDisplay
                         symbol = "{\\symFilledTriangle}";
                     }
 
-                    DataColumn xData = current.getData(DataDimension.X);
-                    DataColumn yData = current.getData(DataDimension.Y);
-                    DataColumn xErrorData = current.getErrorData(DataDimension.X);
-                    DataColumn yErrorData = current.getErrorData(DataDimension.Y);
+                    // get the data with valid points (X and Y)
+                    double[][] data = current.getAllValidPointsData(true);
+                    double[] xData = data[DataDimension.X.getColumnIndex()];
+                    double[] yData = data[DataDimension.Y.getColumnIndex()];
+                    double[] xErrorData = data[DataDimension.X.getErrorColumnIndex()];
+                    double[] yErrorData = data[DataDimension.Y.getErrorColumnIndex()];
 
-                    for (int l = 0; l < xData.getData().size(); l++)
+                    for (int l = 0; l < xData.length; l++)
                     {
-                        if (!xData.isNull(l) && !yData.isNull(l))
+                        output.append("\t\\putpoint");
+                        if (xErrorData[l] != 0.0)
                         {
-                            output.append("\t\\putpoint");
-                            if (!xErrorData.isNull(l) && xErrorData.readDouble(l) != 0.0)
+                            if (yErrorData[l] != 0.0)
                             {
-                                if (!yErrorData.isNull(l) && yErrorData.readDouble(l) != 0.0)
-                                {
-                                    output.append("xyerr");
-                                }
-                                else
-                                {
-                                    output.append("xerr");
-                                }
+                                output.append("xyerr");
                             }
-                            else if (!yErrorData.isNull(l) && yErrorData.readDouble(l) != 0.0)
+                            else
                             {
-                                output.append("yerr");
+                                output.append("xerr");
                             }
-
-                            output.append(symbol);
-                            output.append("{");
-                            output.append(ScientificNotation.WithNoErrorAndZeroPower((xData.readDouble(l) -
-                                    xAdjForSmall) / Math.pow(10, axesPowers.xAxisPower)));
-                            output.append("}{");
-                            output.append(ScientificNotation.WithNoErrorAndZeroPower((yData.readDouble(l) -
-                                    yAdjForSmall) / Math.pow(10, axesPowers.yAxisPower)));
-                            output.append("}");
-
-                            if (!xErrorData.isNull(l) && xErrorData.readDouble(l) != 0.0)
-                            {
-                                output.append("{");
-                                output.append(ScientificNotation.WithNoErrorAndZeroPower(xErrorData.readDouble(l) / Math
-                                        .pow(10, axesPowers.xAxisPower)));
-                                output.append("}");
-                            }
-
-                            if (!yErrorData.isNull(l) && yErrorData.readDouble(l) != 0.0)
-                            {
-                                output.append("{");
-                                output.append(ScientificNotation.WithNoErrorAndZeroPower(yErrorData.readDouble(l) / Math
-                                        .pow(10, axesPowers.yAxisPower)));
-                                output.append("}");
-                            }
-                            output.append("\n");
                         }
+                        else if (yErrorData[l] != 0.0)
+                        {
+                            output.append("yerr");
+                        }
+
+                        output.append(symbol);
+                        output.append("{");
+                        output.append(ScientificNotation.WithNoErrorAndZeroPower((xData[l] - xAdjForSmall) / Math.pow(
+                                10, axesPowers.xAxisPower)));
+                        output.append("}{");
+                        output.append(ScientificNotation.WithNoErrorAndZeroPower((yData[l] - yAdjForSmall) / Math.pow(
+                                10, axesPowers.yAxisPower)));
+                        output.append("}");
+
+                        if (xErrorData[l] != 0.0)
+                        {
+                            output.append("{");
+                            output.append(ScientificNotation.WithNoErrorAndZeroPower(xErrorData[l] / Math.pow(10,
+                                    axesPowers.xAxisPower)));
+                            output.append("}");
+                        }
+
+                        if (yErrorData[l] != 0.0)
+                        {
+                            output.append("{");
+                            output.append(ScientificNotation.WithNoErrorAndZeroPower(yErrorData[l] / Math.pow(10,
+                                    axesPowers.yAxisPower)));
+                            output.append("}");
+                        }
+                        output.append("\n");
                     }
 
                     // put the line on the graph if we have a fit

@@ -13,7 +13,6 @@
 package linefit.FitAlgorithms;
 
 
-import linefit.DataColumn;
 import linefit.DataDimension;
 import linefit.DataSet;
 import linefit.ScientificNotation;
@@ -77,18 +76,19 @@ public abstract class LinearFitStrategy
             double sigmaSquared = 0.0, xSum = 0.0, ySum = 0.0, wSum = 0.0;
             double eX = 0.0, eY = 0.0, x = 0.0, y = 0.0;
 
-            DataColumn xData = dataForFit.getData(DataDimension.X);
-            DataColumn yData = dataForFit.getData(DataDimension.Y);
-            DataColumn xErrorData = dataForFit.getErrorData(DataDimension.X);
-            DataColumn yErrorData = dataForFit.getErrorData(DataDimension.Y);
+            double[][] data = dataForFit.getAllValidPointsData(true);
+            double[] xData = data[DataDimension.X.getColumnIndex()];
+            double[] yData = data[DataDimension.Y.getColumnIndex()];
+            double[] xErrorData = data[DataDimension.X.getErrorColumnIndex()];
+            double[] yErrorData = data[DataDimension.Y.getErrorColumnIndex()];
 
             // calculates the intercept with the current slope
-            for (int i = 0; i < xData.getData().size(); i++)
+            for (int i = 0; i < xData.length; i++)
             {
-                x = xData.readDouble(i);
-                y = yData.readDouble(i);
-                eX = xErrorData.readDouble(i);
-                eY = yErrorData.readDouble(i);
+                x = xData[i];
+                y = yData[i];
+                eX = xErrorData[i];
+                eY = yErrorData[i];
 
                 sigmaSquared = Math.pow(eY, 2) + (Math.pow(inSlope, 2) * Math.pow(eX, 2));
                 wSum += 1.0 / sigmaSquared;
@@ -103,17 +103,16 @@ public abstract class LinearFitStrategy
         }
     }
 
-    public double getChiSquaredWeight(FitType fitTypeToUse, int dataPointIndex)
+    public double getChiSquaredWeight(FitType fitTypeToUse, double xError, double yError)
     {
         double weight = 1;
 
         switch (fitTypeToUse)
         {
             case Y_ERROR:
-                double eY = dataForFit.getErrorData(DataDimension.Y).readDouble(dataPointIndex);
-                if (eY != 0.0)
+                if (yError != 0.0)
                 {
-                    weight = (double) (1.0 / (eY * eY));
+                    weight = (double) (1.0 / (yError * yError));
                 }
                 else
                 {
@@ -124,10 +123,9 @@ public abstract class LinearFitStrategy
                 System.out.println(
                         "Error: Default Chi Squared Algorithm does not support both x and y error fitting. Defaulting to X only fit");
             case X_ERROR:
-                double eX = dataForFit.getErrorData(DataDimension.X).readDouble(dataPointIndex);
-                if (eX != 0.0)
+                if (xError != 0.0)
                 {
-                    weight = (double) (1.0 / (eX * eX));
+                    weight = (double) (1.0 / (xError * xError));
                 }
                 else
                 {
@@ -157,10 +155,11 @@ public abstract class LinearFitStrategy
     {
         double x = 0.0, y = 0.0;
 
-        DataColumn xData = dataForFit.getData(DataDimension.X);
-        DataColumn yData = dataForFit.getData(DataDimension.Y);
-        DataColumn xErrorData = dataForFit.getErrorData(DataDimension.X);
-        DataColumn yErrorData = dataForFit.getErrorData(DataDimension.Y);
+        double[][] data = dataForFit.getAllValidPointsData(true);
+        double[] xData = data[DataDimension.X.getColumnIndex()];
+        double[] yData = data[DataDimension.Y.getColumnIndex()];
+        double[] xErrorData = data[DataDimension.X.getErrorColumnIndex()];
+        double[] yErrorData = data[DataDimension.Y.getErrorColumnIndex()];
 
         // if we have both fits then calculate the chi squared like this
         if (this.dataForFit.getFitType() == FitType.BOTH_ERRORS)
@@ -169,12 +168,12 @@ public abstract class LinearFitStrategy
             double sigmaSquared = 0.0, chiSquaredSum = 0.0;
 
             // now finds the chi squared sum using this slope and intercept
-            for (int i = 0; i < xData.getData().size(); i++)
+            for (int i = 0; i < xData.length; i++)
             {
-                x = xData.readDouble(i);
-                y = yData.readDouble(i);
-                eX = xErrorData.readDouble(i);
-                eY = yErrorData.readDouble(i);
+                x = xData[i];
+                y = yData[i];
+                eX = xErrorData[i];
+                eY = yErrorData[i];
 
                 sigmaSquared = Math.pow(eY, 2) + (Math.pow(inSlope, 2) * Math.pow(eX, 2));
 
@@ -188,22 +187,19 @@ public abstract class LinearFitStrategy
         else
         {
             double weight = 0.0, sumW = 0.0, sumX = 0.0, sumY = 0.0, sumXX = 0.0, sumXY = 0.0, sumYY = 0.0;
-            for (int i = 0; i < xData.getData().size(); i++)
+            for (int i = 0; i < xData.length; i++)
             {
-                if (!xData.isNull(i) && !yData.isNull(i))
-                {
-                    x = xData.readDouble(i);
-                    y = yData.readDouble(i);
+                x = xData[i];
+                y = yData[i];
 
-                    weight = getChiSquaredWeight(dataForFit.getFitType(), i);
+                weight = getChiSquaredWeight(dataForFit.getFitType(), xErrorData[i], yErrorData[i]);
 
-                    sumX += x * weight;
-                    sumY += y * weight;
-                    sumXX += x * x * weight;
-                    sumXY += x * y * weight;
-                    sumYY += y * y * weight;
-                    sumW += weight;
-                }
+                sumX += x * weight;
+                sumY += y * weight;
+                sumXX += x * x * weight;
+                sumXY += x * y * weight;
+                sumYY += y * y * weight;
+                sumW += weight;
             }
 
             return sumYY - (2.0 * slope * sumXY) - (2.0 * intercept * sumY) + (Math.pow(slope, 2) * sumXX) + (2.0 *
@@ -239,28 +235,27 @@ public abstract class LinearFitStrategy
         double x = 0, y = 0;
         double sumX = 0.0, sumY = 0.0, sumXX = 0.0, sumXY = 0.0, sumW = 0.0, weight = 0.0;
 
-        DataColumn xData = dataForFit.getData(DataDimension.X);
-        DataColumn yData = dataForFit.getData(DataDimension.Y);
+        double[][] data = dataForFit.getAllValidPointsData(true);
+        double[] xData = data[DataDimension.X.getColumnIndex()];
+        double[] yData = data[DataDimension.Y.getColumnIndex()];
+        double[] xErrorData = data[DataDimension.X.getErrorColumnIndex()];
+        double[] yErrorData = data[DataDimension.Y.getErrorColumnIndex()];
 
-        for (int i = 0; i < xData.getData().size(); i++)
+        for (int i = 0; i < xData.length; i++)
         {
-            // If both X and Y values exist, calculate, otherwise, don't.
-            if (!xData.isNull(i) && !yData.isNull(i))
-            {
-                // read the x and y data
-                x = xData.readDouble(i);
-                y = yData.readDouble(i);
+            // read the x and y data
+            x = xData[i];
+            y = yData[i];
 
-                // get the weight
-                weight = getChiSquaredWeight(fitTypeToUse, i);
+            // get the weight
+            weight = getChiSquaredWeight(fitTypeToUse, xErrorData[i], yErrorData[i]);
 
-                // sum the values we need later
-                sumX += x * weight;
-                sumY += y * weight;
-                sumXX += x * x * weight;
-                sumXY += x * y * weight;
-                sumW += weight;
-            }
+            // sum the values we need later
+            sumX += x * weight;
+            sumY += y * weight;
+            sumXX += x * x * weight;
+            sumXY += x * y * weight;
+            sumW += weight;
         }
 
         double delta = 0;
@@ -283,31 +278,25 @@ public abstract class LinearFitStrategy
             double xi = 0.0, xj = 0.0, yi = 0.0, yj = 0.0, wi = 0.0, wj = 0.0;
             double slopeSum = 0, interceptSum = 0;
 
-            for (int i = 0; i < xData.getData().size(); i++)
+            for (int i = 0; i < xData.length; i++)
             {
-                if (!xData.isNull(i) && !yData.isNull(i))
+                xi = xData[i];
+                yi = yData[i];
+                wi = getChiSquaredWeight(fitTypeToUse, xErrorData[i], yErrorData[i]);
+
+                double sumj = 0, sumjIntercept = 0;
+                for (int j = 0; j < xData.length; j++)
                 {
-                    xi = xData.readDouble(i);
-                    yi = yData.readDouble(i);
-                    wi = getChiSquaredWeight(fitTypeToUse, i);
+                    xj = xData[j];
+                    yj = yData[j];
+                    wj = getChiSquaredWeight(fitTypeToUse, xErrorData[j], yErrorData[j]);
 
-                    double sumj = 0, sumjIntercept = 0;
-                    for (int j = 0; j < xData.getData().size(); j++)
-                    {
-                        if (i != j && !xData.isNull(j) && !yData.isNull(j))
-                        {
-                            xj = xData.readDouble(j);
-                            yj = yData.readDouble(j);
-                            wj = getChiSquaredWeight(fitTypeToUse, j);
-
-                            sumj += (xi - xj) * wj;
-                            sumjIntercept += (xi - xj) * wj * yj;
-                        }
-                    }
-                    delta += sumj * xi * wi;
-                    slopeSum += sumj * yi * wi;
-                    interceptSum += sumjIntercept * xi * wi;
+                    sumj += (xi - xj) * wj;
+                    sumjIntercept += (xi - xj) * wj * yj;
                 }
+                delta += sumj * xi * wi;
+                slopeSum += sumj * yi * wi;
+                interceptSum += sumjIntercept * xi * wi;
             }
             slope = slopeSum / delta;
             intercept = interceptSum / delta;
@@ -403,11 +392,11 @@ public abstract class LinearFitStrategy
         if (dataForFit.getFitType() == FitType.REGULAR)
         {
             // we need to make sure that we have enough points so that we do not divide by 0!
-            if (dataForFit.getData(DataDimension.X).getData().size() > 2 && (this.whatIsFixed != FixedVariable.SLOPE ||
+            if (dataForFit.getDataSize(DataDimension.X) > 2 && (this.whatIsFixed != FixedVariable.SLOPE ||
                     !canFixSlope))
             {
-                return Math.sqrt(Math.abs(calculateChiSquared(this.slope, this.intercept)) / (dataForFit.getData(
-                        DataDimension.X).getData().size() - 2));
+                return Math.sqrt(Math.abs(calculateChiSquared(this.slope, this.intercept)) / (dataForFit.getDataSize(
+                        DataDimension.X) - 2));
             }
             else
             {

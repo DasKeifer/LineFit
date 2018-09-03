@@ -54,4 +54,12 @@ public enum DataDimension
     {
         return index;
     }
+    
+    /** Gets the display string of this FitType for display in the GUI
+     * 
+     * @return Returns a String that contains this FitData's display name */
+    public int getErrorColumnIndex()
+    {
+        return index + StaticFields.numDimensions;
+    }
 }

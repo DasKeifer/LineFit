@@ -599,23 +599,26 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
                 if (current.visibleGraph)
                 {
                     // Get the column associations
-                    DataColumn dataX = current.getData(DataDimension.X);
-                    DataColumn dataY = current.getData(DataDimension.Y);
-                    DataColumn dataXError = current.getErrorData(DataDimension.X);
-                    DataColumn dataYError = current.getErrorData(DataDimension.Y);;
+                    Double[][] data = current.getAllData(true);
+                    Double[] dataX = data[DataDimension.X.getColumnIndex()];
+                    Double[] dataY = data[DataDimension.Y.getColumnIndex()];
+                    Double[] dataXError = data[DataDimension.X.getErrorColumnIndex()];
+                    Double[] dataYError = data[DataDimension.Y.getErrorColumnIndex()];
                     Color currentColor = current.getColor();
                     Shape currentShape = current.getShape();
                     FitType dataFitType = current.getFitType();
 
-                    // Plot the points
-                    if (dataX != null && dataY != null)
+                    // set the color
+                    graphGraphics.setColor(currentColor);
+
+                    // Plot the points (all data have the same length)
+                    for (int i = 0; i < dataX.length; i++)
                     {
-                        for (int i = 0; i < Math.max(dataX.getData().size(), dataY.getData().size()); i++)
+                        if (dataX[i] != null && dataY[i] != null)
                         {
-                            graphGraphics.setColor(currentColor);
                             // Get the graph points
-                            double gpX = dataX.readDouble(i);
-                            double gpY = dataY.readDouble(i);
+                            double gpX = dataX[i];
+                            double gpY = dataY[i];
 
                             // Calculate the coordinate points
                             int cpX = convertXCoordinateToPixel(gpX);
@@ -628,56 +631,46 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
                             {
                                 // If both X and Y values exist, graph, otherwise,
                                 // don't.
-                                if (!dataX.isNull(i) && !dataY.isNull(i))
+                                Ellipse2D.Double ellipse = new Ellipse2D.Double();
+                                Rectangle2D.Double rectangle = new Rectangle2D.Double();
+                                Polygon triangle = new Polygon();
+                                if (currentShape.getClass() == ellipse.getClass())
                                 {
-                                    Ellipse2D.Double ellipse = new Ellipse2D.Double();
-                                    Rectangle2D.Double rectangle = new Rectangle2D.Double();
-                                    Polygon triangle = new Polygon();
-                                    if (currentShape.getClass() == ellipse.getClass())
-                                    {
-                                        ellipse.setFrame(cpX - (GRAPH_DATAPOINT_WIDTH / 2), cpY -
-                                                (GRAPH_DATAPOINT_WIDTH / 2), GRAPH_DATAPOINT_WIDTH,
-                                                GRAPH_DATAPOINT_WIDTH);
-                                        currentShape = (Shape) ellipse;
-                                    }
-                                    else if (currentShape.getClass() == triangle.getClass())
-                                    {
-                                        triangle.addPoint(cpX, cpY - GRAPH_DATAPOINT_WIDTH / 2);
-                                        triangle.addPoint(cpX - GRAPH_DATAPOINT_WIDTH / 2, cpY + GRAPH_DATAPOINT_WIDTH /
-                                                2);
-                                        triangle.addPoint(cpX + GRAPH_DATAPOINT_WIDTH / 2, cpY + GRAPH_DATAPOINT_WIDTH /
-                                                2);
-                                        currentShape = (Shape) triangle;
-                                    }
-                                    else
-                                    {
-                                        rectangle.setFrame(cpX - (GRAPH_DATAPOINT_WIDTH / 2), cpY -
-                                                (GRAPH_DATAPOINT_WIDTH / 2), GRAPH_DATAPOINT_WIDTH,
-                                                GRAPH_DATAPOINT_WIDTH);
-                                        currentShape = (Shape) rectangle;
-                                    }
-                                    // Ellipse2D.Double drawPoint = new
-                                    // Ellipse2D.Double(cpX-(POINT_WIDTH/2),cpY-(POINT_WIDTH/2),POINT_WIDTH,POINT_WIDTH);
-                                    graphGraphics.fill(currentShape);
-                                    // g2.setColor(Color.gray);
+                                    ellipse.setFrame(cpX - (GRAPH_DATAPOINT_WIDTH / 2), cpY - (GRAPH_DATAPOINT_WIDTH /
+                                            2), GRAPH_DATAPOINT_WIDTH, GRAPH_DATAPOINT_WIDTH);
+                                    currentShape = (Shape) ellipse;
+                                }
+                                else if (currentShape.getClass() == triangle.getClass())
+                                {
+                                    triangle.addPoint(cpX, cpY - GRAPH_DATAPOINT_WIDTH / 2);
+                                    triangle.addPoint(cpX - GRAPH_DATAPOINT_WIDTH / 2, cpY + GRAPH_DATAPOINT_WIDTH / 2);
+                                    triangle.addPoint(cpX + GRAPH_DATAPOINT_WIDTH / 2, cpY + GRAPH_DATAPOINT_WIDTH / 2);
+                                    currentShape = (Shape) triangle;
+                                }
+                                else
+                                {
+                                    rectangle.setFrame(cpX - (GRAPH_DATAPOINT_WIDTH / 2), cpY - (GRAPH_DATAPOINT_WIDTH /
+                                            2), GRAPH_DATAPOINT_WIDTH, GRAPH_DATAPOINT_WIDTH);
+                                    currentShape = (Shape) rectangle;
+                                }
+                                graphGraphics.fill(currentShape);
 
-                                    // Draw the X Error Bars
-                                    if (dataXError != null)
-                                    {
-                                        double heB = dataXError.readDouble(i);
-                                        int heBa = (int) ((heB) * tickMarkRelativeValueX * -1);
-                                        Line2D.Double hErrorBar = new Line2D.Double(cpX + heBa, cpY, cpX - heBa, cpY);
-                                        graphGraphics.draw(hErrorBar);
-                                    }
+                                // Draw the X Error Bars
+                                if (dataXError[i] != null)
+                                {
+                                    double heB = dataXError[i];
+                                    int heBa = (int) ((heB) * tickMarkRelativeValueX * -1);
+                                    Line2D.Double hErrorBar = new Line2D.Double(cpX + heBa, cpY, cpX - heBa, cpY);
+                                    graphGraphics.draw(hErrorBar);
+                                }
 
-                                    // Draw the Y Error Bars
-                                    if (dataYError != null)
-                                    {
-                                        double veB = dataYError.readDouble(i);
-                                        int veBa = (int) ((veB) * tickMarkRelativeValueY);
-                                        Line2D.Double vErrorBar = new Line2D.Double(cpX, cpY + veBa, cpX, cpY - veBa);
-                                        graphGraphics.draw(vErrorBar);
-                                    }
+                                // Draw the Y Error Bars
+                                if (dataYError[i] != null)
+                                {
+                                    double veB = dataYError[i];
+                                    int veBa = (int) ((veB) * tickMarkRelativeValueY);
+                                    Line2D.Double vErrorBar = new Line2D.Double(cpX, cpY + veBa, cpX, cpY - veBa);
+                                    graphGraphics.draw(vErrorBar);
                                 }
                             }
                         }
@@ -690,7 +683,6 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
                     // draw the line for the dataset
                     if (dataFitType != FitType.NONE)
                     {
-                        graphGraphics.setColor(currentColor);
                         Line2D.Double fitLine = new Line2D.Double(graphAreaLeftSpacing, convertYCoordinateToPixel(
                                 xAxisMinimumValue * current.linearFitStrategy.getSlope() + current.linearFitStrategy
                                         .getIntercept()), graphMaximumDimensions.width - graphAreaRightSpacing,

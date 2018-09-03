@@ -12,7 +12,9 @@
 
 package linefit;
 
+
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import linefit.IO.ChangeTracker;
 
@@ -137,14 +139,6 @@ public class DataColumn
     }
 
     // Getters
-    /** Gets an array list that contains the double values of all the rows in this column
-     * 
-     * @return Returns an array with all the row's data in it */
-    public ArrayList<Double> getData()
-    {
-        return data;
-    }
-
     /** Gets the name of this GraphColumn
      * 
      * @return Returns the String that is this GraphColumn's name */
@@ -153,12 +147,42 @@ public class DataColumn
         return columnName;
     }
 
+    /** Gets an array list that contains the double values of all the rows in this column
+     * 
+     * @return Returns an array with all the row's data in it */
+    public Double[] getData()
+    {
+        return data.toArray(new Double[data.size()]);
+    }
+
+    public Double[] getDataNonNull()
+    {
+        return data.toArray(new Double[data.size()]);
+    }
+
+    public Double getDataAt(int index)
+    {
+        try
+        {
+            return data.get(index);
+        }
+        catch (IndexOutOfBoundsException iobe)
+        {
+            return null;
+        }
+    }
+
+    public int getDataSize()
+    {
+        return data.size();
+    }
+
     // Setters
     /** Sets the data in the rows of this GraphColumn to the values in the passed array list
      * 
      * @param data The array list of data to be put into the Graph Column */
-    public void setData(ArrayList<Double> data)
+    private void setData(Double[] data)
     {
-        this.data = data;
+        this.data = new ArrayList<>(Arrays.asList(data));
     }
 }

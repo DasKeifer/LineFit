@@ -170,6 +170,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
 
     public void setErrorColumnOrder(DataDimension[] columnOrder)
     {
+        // TODO: ensure all dimensions are specified
         int numCurrentlyDisplayed = errorColumnsDisplayed;
         while (errorColumnsDisplayed > 0)
         {
@@ -715,7 +716,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
 
     public int getNumberOfDisplayedColumns()
     {
-        return DataDimension.getNumberOfDimensions() + errorColumnsDisplayed;
+        return dataColumns.length + errorColumnsDisplayed;
     }
 
     /** Gets the current Color that is being used by this DataSet
@@ -763,38 +764,74 @@ public class DataSet extends JScrollPane implements HasDataToSave
         return dataSetFitType;
     }
 
-    private int convertDisplayedErrorIndex(int columnIndex)
+    private int convertErrorIndexDisplayedToInternal(int columnIndex)
     {
         return errorColumnsOrder[columnIndex - DataDimension.getNumberOfDimensions()].getColumnIndex();
     }
 
-    private DataColumn getDisplaydColumn(int columnIndex)
+    private int convertErrorIndexInternalToDisplayed(int columnIndex)
+    {
+        for (int i = 0; i < errorColumnsOrder.length; i++)
+        {
+            if (columnIndex == errorColumnsOrder[i].getColumnIndex())
+            {
+                return i;
+            }
+        }
+
+        // shouldn't really ever happen - a developer issue
+        System.err.println(
+                "Warning: Matching displayed index doesn't match - most likely the index passed is larger than the number of error columns");
+        return -1;
+    }
+
+    private DataColumn getDisplayedColumn(int columnIndex)
     {
         if (columnIndex < DataDimension.getNumberOfDimensions())
         {
             return dataColumns[columnIndex];
         }
-        else
+        else if (columnIndex < getNumberOfDisplayedColumns())
         {
-            return errorColumns[convertDisplayedErrorIndex(columnIndex)];
+            return errorColumns[convertErrorIndexDisplayedToInternal(columnIndex)];
+        }
+        else // shouldn't really ever happen - a developer issue
+        {
+            System.err.println("Warning: Index passed (" + columnIndex +
+                    ") is larger than the number of currently displayed columns (" + getNumberOfDisplayedColumns() +
+                    ")");
+            return null;
         }
     }
 
-    public Double[] getDisplaydData(int columnIndex)
+    public Double[] getDisplayedData(int columnIndex)
     {
-        if (columnIndex < DataDimension.getNumberOfDimensions())
+        try
         {
-            return dataColumns[columnIndex].getData();
+            return getDisplayedColumn(columnIndex).getData();
         }
-        else
+        catch (NullPointerException npe) // shouldn't really ever happen - a developer issue
         {
-            return getErrorData(errorColumnsOrder[columnIndex - DataDimension.getNumberOfDimensions()]);
+            return new Double[0];
+        }
+    }
+
+    private Double[] getData(int index)
+    {
+        try
+        {
+            return dataColumns[index].getData();
+        }
+        catch (IndexOutOfBoundsException iobe) // shouldn't really ever happen - a developer issue
+        {
+            System.err.println("Warning: Index passed is larger than the number of non-error columns");
+            return new Double[0];
         }
     }
 
     public Double[] getData(DataDimension data)
     {
-        return getDisplaydData(data.getColumnIndex());
+        return getData(data.getColumnIndex());
     }
 
     public int getDataSize(DataDimension data)
@@ -808,12 +845,20 @@ public class DataSet extends JScrollPane implements HasDataToSave
 
     public Double[] getErrorData(DataDimension data)
     {
-        return getDisplaydData(dataColumns.length + data.getColumnIndex());
+        if (convertErrorIndexInternalToDisplayed(data.getColumnIndex()) < errorColumnsDisplayed)
+        {
+            return errorColumns[data.getColumnIndex()].getData();
+        }
+        return new Double[0];
     }
 
     public int getErrorDataSize(DataDimension data)
     {
-        return errorColumns[data.getColumnIndex()].getDataSize();
+        if (convertErrorIndexInternalToDisplayed(data.getColumnIndex()) < errorColumnsDisplayed)
+        {
+            return errorColumns[data.getColumnIndex()].getDataSize();
+        }
+        return 0;
     }
 
     public Double[][] getAllData(boolean withErrors)
@@ -822,24 +867,24 @@ public class DataSet extends JScrollPane implements HasDataToSave
 
         // Add all the data columns
         int longest = 0;
-        for (DataColumn column : dataColumns)
+        for (DataDimension dim : DataDimension.values())
         {
-            allData.add(column.getData());
-            if (column.getDataSize() > longest)
+            allData.add(getData(dim));
+            if (getDataSize(dim) > longest)
             {
-                longest = column.getDataSize();
+                longest = getDataSize(dim);
             }
         }
 
         // and the error columns
         if (withErrors)
         {
-            for (DataColumn column : errorColumns)
+            for (DataDimension dim : DataDimension.values())
             {
-                allData.add(column.getData());
-                if (column.getDataSize() > longest)
+                allData.add(getErrorData(dim));
+                if (getErrorDataSize(dim) > longest)
                 {
-                    longest = column.getDataSize();
+                    longest = getErrorDataSize(dim);
                 }
             }
         }
@@ -878,13 +923,20 @@ public class DataSet extends JScrollPane implements HasDataToSave
         double[] validData;
 
         // and the data columns
-        for (DataColumn column : dataColumns)
+        Double[] columnData;
+        for (DataDimension dim : DataDimension.values())
         {
             validIndex = 0;
             validData = new double[numPoints];
+            columnData = getData(dim);
+
             for (Integer index : validPoints)
             {
-                validData[validIndex] = column.readDouble(index);
+                if (index >= columnData.length)
+                {
+                    break;
+                }
+                validData[validIndex] = columnData[index];
                 validIndex++;
             }
             allData[columnsIndex++] = validData;
@@ -893,13 +945,19 @@ public class DataSet extends JScrollPane implements HasDataToSave
         // and the error columns if they wanted it
         if (withErrors)
         {
-            for (DataColumn column : errorColumns)
+            for (DataDimension dim : DataDimension.values())
             {
                 validIndex = 0;
                 validData = new double[numPoints];
+                columnData = getErrorData(dim);
+
                 for (Integer index : validPoints)
                 {
-                    validData[validIndex] = column.readDouble(index);
+                    if (index >= columnData.length)
+                    {
+                        break;
+                    }
+                    validData[validIndex] = columnData[index];
                     validIndex++;
                 }
                 allData[columnsIndex++] = validData;
@@ -969,7 +1027,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
 
         private void updateColumn(TableModelEvent e, int columnIndex)
         {
-            DataColumn data = getDisplaydColumn(columnIndex);
+            DataColumn data = getDisplayedColumn(columnIndex);
 
             // we should never have a negative here but add the check just in case
             if (e.getFirstRow() < 0)

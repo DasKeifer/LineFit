@@ -237,7 +237,10 @@ public class DataSet extends JScrollPane implements HasDataToSave
         if (errorColumnsDisplayed < DataDimension.getNumberOfDimensions())
         {
             int tableIndex = dataColumns.length + errorColumnsDisplayed;
-            DataColumn error = errorColumns[errorColumnsOrder[errorColumnsDisplayed++].getColumnIndex()];
+            DataColumn error = errorColumns[errorColumnsOrder[errorColumnsDisplayed].getColumnIndex()];
+
+            // increment first so the values are the new values when the listeners are called
+            errorColumnsDisplayed++;
             dataTableModel.addColumn(error.getName());
 
             for (int i = 0; i < error.dataSize(); i++)
@@ -254,8 +257,9 @@ public class DataSet extends JScrollPane implements HasDataToSave
     {
         if (errorColumnsDisplayed > 0)
         {
-            dataTableModel.removeLastColumn();
+            // decrement first so the values are the new values when the listeners are called
             errorColumnsDisplayed--;
+            dataTableModel.removeLastColumn();
         }
     }
 
@@ -263,27 +267,23 @@ public class DataSet extends JScrollPane implements HasDataToSave
     ArrayList<FitType> getAllowableFits()
     {
         ArrayList<FitType> fits = new ArrayList<FitType>();
-
         fits.add(FitType.NONE);
-        ArrayList<Integer> validPoints = getIndexesOfValidPoints();
+
+        ArrayList<Integer> validPoints = getIndexesOfValidPoints(); // TODO: Don't use valid points always?
         if (validPoints.size() > 1)
         {
             fits.add(FitType.REGULAR);
 
-            if (checkAllHaveErrors(validPoints, DataDimension.X))
+            ArrayList<DataDimension> validDims = new ArrayList<DataDimension>();
+            for (DataDimension dim : DataDimension.values())
             {
-                fits.add(FitType.X_ERROR);
-
-                if (checkAllHaveErrors(validPoints, DataDimension.Y))
+                if (isErrorDataVisible(dim) && checkAllHaveErrors(validPoints, dim))
                 {
-                    fits.add(FitType.Y_ERROR);
-                    fits.add(FitType.BOTH_ERRORS);
+                    validDims.add(dim);
                 }
             }
-            else if (checkAllHaveErrors(validPoints, DataDimension.Y))
-            {
-                fits.add(FitType.Y_ERROR);
-            }
+
+            FitType.appendAllAllowedFitsForErrorDimensions(fits, validDims);
         }
 
         return fits;
@@ -367,10 +367,9 @@ public class DataSet extends JScrollPane implements HasDataToSave
         return new double[] { dataMin, dataMax };
     }
 
-    /** Checks if all the points that have an x and a y also have an associated y error/uncertainty value. This is used
-     * to determine if we can do a fit with y errors/uncertainties
+    /** Checks if all the points at the specified indexes have an associated error/uncertainty value
      * 
-     * @return True if all the points of this DataSet have a y error/uncertainty associated with them and false
+     * @return True if all the points at the passed indexes have an error/uncertainty associated with them and false
      *         otherwise */
     private boolean checkAllHaveErrors(ArrayList<Integer> indexes, DataDimension dimension)
     {
@@ -764,6 +763,11 @@ public class DataSet extends JScrollPane implements HasDataToSave
         return dataSetFitType;
     }
 
+    boolean isIndexDisplayedErrorColumn(int columnIndex)
+    {
+        return columnIndex >= DataDimension.getNumberOfDimensions();
+    }
+
     private int convertErrorIndexDisplayedToInternal(int columnIndex)
     {
         return errorColumnsOrder[columnIndex - DataDimension.getNumberOfDimensions()].getColumnIndex();
@@ -842,23 +846,27 @@ public class DataSet extends JScrollPane implements HasDataToSave
     /** The DataColumn that keeps track of the x data for this DataSet
      * 
      * @return The DataColumn that keeps track of the x data values for this DataSet */
-
-    public Double[] getErrorData(DataDimension data)
+    public Double[] getErrorData(DataDimension dim)
     {
-        if (convertErrorIndexInternalToDisplayed(data.getColumnIndex()) < errorColumnsDisplayed)
+        if (convertErrorIndexInternalToDisplayed(dim.getColumnIndex()) < errorColumnsDisplayed)
         {
-            return errorColumns[data.getColumnIndex()].getData();
+            return errorColumns[dim.getColumnIndex()].getData();
         }
         return new Double[0];
     }
 
-    public int getErrorDataSize(DataDimension data)
+    public int getErrorDataSize(DataDimension dim)
     {
-        if (convertErrorIndexInternalToDisplayed(data.getColumnIndex()) < errorColumnsDisplayed)
+        if (convertErrorIndexInternalToDisplayed(dim.getColumnIndex()) < errorColumnsDisplayed)
         {
-            return errorColumns[data.getColumnIndex()].getDataSize();
+            return errorColumns[dim.getColumnIndex()].getDataSize();
         }
         return 0;
+    }
+
+    public boolean isErrorDataVisible(DataDimension dim)
+    {
+        return convertErrorIndexInternalToDisplayed(dim.getColumnIndex()) < errorColumnsDisplayed;
     }
 
     public Double[][] getAllData(boolean withErrors)
@@ -1043,7 +1051,8 @@ public class DataSet extends JScrollPane implements HasDataToSave
                 Double entry = null;
                 if (entryObj != null)
                 {
-                    // ensure it is a double and if not clear the entry
+                    // Get the value entered and see if it is a valud entry
+                    boolean badEntry = false;
                     try
                     {
                         entry = Double.parseDouble(entryObj.toString());
@@ -1051,12 +1060,24 @@ public class DataSet extends JScrollPane implements HasDataToSave
                         // ensure it is not infinity or any other strange value
                         if (!Double.isFinite(entry))
                         {
-                            entry = null;
+                            badEntry = true;
+                        }
+
+                        // Don't allow zero errors!
+                        if (isIndexDisplayedErrorColumn(columnIndex) && entry == 0)
+                        {
+                            badEntry = true;
                         }
                     }
                     catch (NumberFormatException nfe)
                     {
-                        entry = null;
+                        badEntry = true;
+                    }
+
+                    // If the entry was bad, set it back to what it was
+                    if (badEntry)
+                    {
+                        entry = data.getDataAt(e.getFirstRow());
                     }
                 }
 
@@ -1076,21 +1097,26 @@ public class DataSet extends JScrollPane implements HasDataToSave
         public void tableChanged(TableModelEvent e)
         {
             // if this event was fired while we were modifying the table, then ignore it because it was due to our
-            // modifications. Also, if we are adding a new column, its index will be -1
-            if (!(alreadyUpdatingTable || e.getColumn() < 0))
+            // modifications.
+            if (!(alreadyUpdatingTable))
             {
                 alreadyUpdatingTable = true;
 
-                if (e.getColumn() == TableModelEvent.ALL_COLUMNS)
+                // If we are adding or removing a new column, its index will be -1
+                if (e.getColumn() >= 0)
                 {
-                    for (int i = 0; i < dataTableModel.getColumnCount(); i++)
+                    if (e.getColumn() == TableModelEvent.ALL_COLUMNS)
                     {
-                        updateColumn(e, i);
+                        for (int i = 0; i < dataTableModel.getColumnCount(); i++)
+                        {
+                            updateColumn(e, i);
+                        }
                     }
-                }
-                else
-                {
-                    updateColumn(e, e.getColumn());
+                    else
+                    {
+                        updateColumn(e, e.getColumn());
+                    }
+
                 }
 
                 refreshFitData();

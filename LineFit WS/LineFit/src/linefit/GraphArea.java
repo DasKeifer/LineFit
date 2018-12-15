@@ -44,8 +44,8 @@ import linefit.IO.HasOptionsToSave;
 /** The main interface of LineFit. This class is responsible for drawing and calculating the graph as well as getting
  * and allowing users to input data (all but menus)
  * 
- * @author Unknown
- * @version 1.1.0
+ * @author Keith Rice
+ * @version 2.0.0
  * @since &lt;0.98.0 */
 public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
 {

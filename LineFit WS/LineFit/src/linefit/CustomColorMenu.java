@@ -38,7 +38,7 @@ import javax.swing.event.ChangeListener;
 /** A Class that extends JDialog that allows the user to choose custom colors to use for the lines
  * 
  * @author Keith Rice
- * @version 1.1
+ * @version 2.0
  * @since 0.98.1 */
 class CustomColorMenu extends JFrame
 {

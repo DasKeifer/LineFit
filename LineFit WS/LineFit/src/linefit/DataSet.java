@@ -40,8 +40,8 @@ import linefit.IO.HasDataToSave;
  * error/uncertainty value as well as the color and shape of the Set. Other names include: GraphDataSet, DataSet,
  * GraphSet
  * 
- * @author Unknown
- * @version 1.0
+ * @author Keith Rice
+ * @version 2.0
  * @since &lt;0.98.0 */
 public class DataSet extends JScrollPane implements HasDataToSave
 {
@@ -70,11 +70,13 @@ public class DataSet extends JScrollPane implements HasDataToSave
     /** If the current GraphDataSet is visible and should be drawn to the GraphArea */
     public boolean visibleGraph;
 
-    /** The list of all the visible DataColumns in this DataSet */
+    /** The list of all the DataColumns in this DataSet */
     final DataColumn[] dataColumns;
+    /** The list of all the error DataColumns in this DataSet regardless of if they are visible or not */
     final DataColumn[] errorColumns;
-
+    /** The number of error DataColumns that are displayed */
     int errorColumnsDisplayed = 0;
+    /** The order of the error DataDimension/DataColumns */
     DataDimension[] errorColumnsOrder = DataDimension.values();
 
     /** The FitAlgrorithm we are using to fit this DataSet that also keeps track of the fit's data */
@@ -83,18 +85,22 @@ public class DataSet extends JScrollPane implements HasDataToSave
     private FitType dataSetFitType;
     /** The color of this DataSet when drawn to the GraphArea */
     private Color dataSetColor;
+    /** The custom color of this DataSet */
     private Color dataSetCustomColor;
     /** The shape of this DataSet when drawn to the GraphArea */
     private Shape dataSetShape;
 
+    /** The predefined colors that are used for DataSets */
     public static final Color[] predefinedColors = new Color[] { Color.BLACK, Color.YELLOW, Color.BLUE, Color.GREEN,
             Color.ORANGE, Color.RED };
+    /** The names associated with the predefined colors for DataSets */
     public static final String[] predefinedColorNames = new String[] { "black", "yellow", "blue", "green", "orange",
             "red" };
 
     /** Creates a new empty DataSet that is linked to the GraphArea
      * 
-     * @param parentGraphArea The GraphArea that this DataSet belongs to and will be drawn to */
+     * @param parentsChangeTracker The ChangeTracker that is notified when this DataSet changes
+     * @param onUpdateFitTypesAction The function to call when this DataSet is updates */
     DataSet(ChangeTracker parentsChangeTracker, Runnable onUpdateFitTypesAction)
     {
         changeTracker = parentsChangeTracker;
@@ -168,9 +174,39 @@ public class DataSet extends JScrollPane implements HasDataToSave
         return placeHolder;
     }
 
-    public void setErrorColumnOrder(DataDimension[] columnOrder)
+    /** Sets the error/uncertainty column order to the passed order. All dimensions must be present in the passed list
+     * or else the order will not be updated.
+     * 
+     * @param columnOrder The order to use for the error/uncertainty columns
+     * @return true if the order was set successfully, false if it wasn't */
+    public boolean setErrorColumnOrder(DataDimension[] columnOrder)
     {
-        // TODO: ensure all dimensions are specified
+        if (columnOrder.length != DataDimension.getNumberOfDimensions())
+        {
+            System.err.println("setErrorColumnOrder: Incorrect number of DataDimension passed!");
+            return false;
+        }
+
+        for (DataDimension dim : DataDimension.values())
+        {
+            boolean found = false;
+            for (int i = 0; i < DataDimension.getNumberOfDimensions(); i++)
+            {
+                if (columnOrder[i] == dim)
+                {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found)
+            {
+                System.err.println("setErrorColumnOrder: Dimension " + dim.getDisplayString() +
+                        " was not found in passed order!");
+                return false;
+            }
+        }
+
         int numCurrentlyDisplayed = errorColumnsDisplayed;
         while (errorColumnsDisplayed > 0)
         {
@@ -183,8 +219,16 @@ public class DataSet extends JScrollPane implements HasDataToSave
         {
             showNextErrorColumn();
         }
+
+        return true;
     }
 
+    /** Gets the index of the error column of the passed DataDimension
+     * 
+     * @param toGetErrorIndexOf The DataDimension error/uncertainty values to get the index of
+     * @param relativeToErrors true if the index returned should be relative to the error/uncertainty columns or false
+     *        if it should be relative to all columns (both the data and the errors/uncertainties)
+     * @return The index for the error DataColumn of the passed dimension */
     public int getIndexOfErrorColumn(DataDimension toGetErrorIndexOf, boolean relativeToErrors)
     {
         for (int i = 0; i < errorColumnsOrder.length; i++)
@@ -197,7 +241,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
                 }
                 else
                 {
-                    return dataColumns.length;
+                    return dataColumns.length + i;
                 }
             }
         }
@@ -205,6 +249,10 @@ public class DataSet extends JScrollPane implements HasDataToSave
         return -1;
     }
 
+    /** Sets the number of visible columns (including data and error/uncertainty columns) to the passed number
+     * 
+     * @param numColumns The number of columns that should be visible
+     * @return True if successful, false if the passed number of columns is invalid */
     public boolean setNumberOfDisplayedColumns(int numColumns)
     {
         int errorColums = numColumns - DataDimension.getNumberOfDimensions();

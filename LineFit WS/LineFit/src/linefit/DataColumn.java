@@ -21,8 +21,8 @@ import linefit.IO.ChangeTracker;
 
 /** This class provides the columns for the GraphSet that are used to input and store data
  * 
- * @author Unknown
- * @version 1.0
+ * @author Keith Rice
+ * @version 2.0
  * @since &lt;0.98.0 */
 public class DataColumn
 {
@@ -147,19 +147,26 @@ public class DataColumn
         return columnName;
     }
 
-    /** Gets an array list that contains the double values of all the rows in this column
+    /** Gets an array list that contains the double values of all the rows in this column. This may have null values
+     * inbetween other valid values
      * 
-     * @return Returns an array with all the row's data in it */
+     * @return Returns an array with all the column's data in it */
     public Double[] getData()
     {
         return data.toArray(new Double[data.size()]);
     }
 
+    /** Gets an array list that contains the double values of all the rows in this column with any null values removed
+     * 
+     * @return Returns an array with all the columns non-null data in it */
     public Double[] getDataNonNull()
     {
         return data.toArray(new Double[data.size()]);
     }
 
+    /** Gets an array list that contains the double values of all the rows in this column with any null values removed
+     * 
+     * @return Returns an array with all the columns non-null data in it */
     public Double getDataAt(int index)
     {
         try
@@ -172,15 +179,18 @@ public class DataColumn
         }
     }
 
+    /** Gets the size/length of this DataColumn
+     * 
+     * @return Returns the size/length of this DataColumn */
     public int getDataSize()
     {
         return data.size();
     }
 
     // Setters
-    /** Sets the data in the rows of this GraphColumn to the values in the passed array list
+    /** Sets the data in the rows of this DataColumn to the values in the passed array
      * 
-     * @param data The array list of data to be put into the Graph Column */
+     * @param data The array of data to be put into the DataColumn */
     private void setData(Double[] data)
     {
         this.data = new ArrayList<>(Arrays.asList(data));

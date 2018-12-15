@@ -29,8 +29,8 @@ import javax.swing.ListCellRenderer;
  * renders a custom color option that users can select if none of the defined colors are suitable or more color options
  * are needed
  * 
- * @author Unknown
- * @version 1.1
+ * @author Keith Rice
+ * @version 2.0
  * @since &lt;0.98.0 */
 class ColorBoxRenderer extends JLabel implements ListCellRenderer<Object>
 {

@@ -21,7 +21,7 @@ import linefit.DataSet;
  * during run time, allowing the user to change the algorithm
  * 
  * @author Keith Rice
- * @version 1.0
+ * @version 1.1
  * @since 0.98.1 */
 class PartialDerivativeMinimizationFactory extends LinearFitFactory
 {

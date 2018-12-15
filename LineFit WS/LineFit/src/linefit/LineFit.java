@@ -26,7 +26,6 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
-import java.io.IOException;
 import java.util.ArrayList;
 
 import javax.swing.JButton;
@@ -49,6 +48,7 @@ import javax.swing.event.ChangeListener;
 import linefit.FitAlgorithms.FitType;
 import linefit.FitAlgorithms.LinearFitFactory;
 import linefit.IO.GeneralIO;
+import linefit.IO.HasDataToSave;
 import linefit.IO.HasOptionsToSave;
 
 
@@ -58,7 +58,7 @@ import linefit.IO.HasOptionsToSave;
  * @author Unknown
  * @version 2.0.0
  * @since &lt;0.98.0 */
-public class LineFit extends JFrame implements HasOptionsToSave
+public class LineFit extends JFrame implements HasOptionsToSave, HasDataToSave
 {
     /** Main - This is the method that starts up the instance of LineFit. If a File path is inputed in the args, it will
      * try to load the file at the specified location on startup
@@ -94,8 +94,10 @@ public class LineFit extends JFrame implements HasOptionsToSave
     /** The Panel that is part of the right side bar that contains the currently selected DataSet's linear fit results
      * if a fit is selected */
     private JPanel fitDataPanel;
-    /** The Layout that lets us position buttons where we desire */
-    private SpringLayout springLayout;
+    /** The main layout for LineFit that lets us position panels where we desire */
+    private SpringLayout mainLayout;
+    /** The Layout for the Quick Bar that lets us position buttons where we desire */
+    private SpringLayout quickBarLayout;
 
     // Sizing variables
     /** The height of the quick bar in pixels */
@@ -115,14 +117,12 @@ public class LineFit extends JFrame implements HasOptionsToSave
 
     // Variables for the drop downs and options on the quick bar
     /** The drop down menu that contains the DataSets as well as the currently selected DataSet */
-    private QuickBarListener quickBarListener = new QuickBarListener();
-    /** The drop down menu that contains the DataSets as well as the currently selected DataSet */
     private JComboBox<DataSet> dataSetSelector = new JComboBox<DataSet>();
     /** The drop down box that allows the user to select the FitType of the current DataSet */
     private JComboBox<FitType> fitSelector = new JComboBox<FitType>();
-    // TODO: extract to a self contained class
     /** The drop down box that allows the user to select the Color of the current DataSet */
     private JComboBox<Color> colorSelector = new JComboBox<Color>();
+    /** Renderer that is used to display the colors in the colorSelector combo box */
     private ColorBoxRenderer colorSelectorRenderer = new ColorBoxRenderer();
     /** The drop down box that allows the user to select the Shape of the current DataSet */
     private JComboBox<Shape> shapeSelector = new JComboBox<Shape>();
@@ -205,14 +205,19 @@ public class LineFit extends JFrame implements HasOptionsToSave
     private static final String menuTitles_CheckForUpdates_Shortcut = "F3";
 
     // Other variables
-    // this is an int so that we can go multiple layers deep
     // TODO: encapsulate in a class or make it a semaphore (seems like alot of overhead)
+    /** Tracks whether or not the quick menu listener is being called already. This is used to prevent it from being
+     * called when we programmatically make changes to it. It is an int so we can go multiple layers deep if need be */
     private int temporarilyDisableQuickMenuListener = 0;
 
     // Classes that should be set once upon initialization
+    /** The object that handles the IO for LineFit */
     private final GeneralIO ioHandler;
+    /** The action to perform when the allowable fit types for the displayed DataSet are updated */
     private final Runnable onUpdateFitTypesAction;
+    /** The action to perform when the color of the selected DataSet is updated */
     private final Runnable onUpdateColorAction;
+    /** The custom color menu object to allow users to custom choose colors for the DataSets */
     private CustomColorMenu customColorMenu;
 
     /** The default FitAlgorithm to use when creating linear fits for the DataSets */
@@ -225,11 +230,10 @@ public class LineFit extends JFrame implements HasOptionsToSave
         super("LineFit");
         setSize(1000, 750);
 
-        //
+        // Set up some of the update actions and the IO
         onUpdateFitTypesAction = new updateFitTypesAction();
         onUpdateColorAction = new updateDataSetColorAction();
         ioHandler = new GeneralIO(this, graphingArea);
-
         this.setIconImage(ioHandler.getLineFitIcon());
 
         // make the results area that looks like a label so it doesnt look out of place
@@ -398,46 +402,47 @@ public class LineFit extends JFrame implements HasOptionsToSave
     {
         // Set up the top bar
         quickBar = new JPanel();
-        springLayout = new SpringLayout();
+        quickBarLayout = new SpringLayout();
 
-        quickBar.setLayout(springLayout);
+        quickBar.setLayout(quickBarLayout);
 
         // Constraints items in the quickbar
-        Utils.inlayGuiItem(springLayout, quickBar, columnSelector, false, quickBar, -50, -8, 4, -4);
-        Utils.inlayGuiItem(springLayout, quickBar, columnLabel, true, columnSelector, -70, -4, 4, -4);
-        Utils.inlayGuiItem(springLayout, quickBar, dataSetSelector, true, columnLabel, -120, -4, 4, -4);
-        Utils.inlayGuiItem(springLayout, quickBar, colorSelector, true, dataSetSelector, -80, -4, 4, -4);
-        Utils.inlayGuiItem(springLayout, quickBar, shapeSelector, true, colorSelector, -50, -4, 4, -4);
-        Utils.inlayGuiItem(springLayout, quickBar, fitSelector, true, shapeSelector, -120, -4, 4, -4);
-        Utils.inlayGuiItem(springLayout, quickBar, visibleCheckBox, true, fitSelector, -80, -4, 4, -4);
-        Utils.inlayGuiItem(springLayout, quickBar, graphOptionsButton, true, quickBar, 8, 138, 4, -4);
+        Utils.inlayGuiItem(quickBarLayout, quickBar, columnSelector, false, quickBar, -50, -8, 4, -4);
+        Utils.inlayGuiItem(quickBarLayout, quickBar, columnLabel, true, columnSelector, -70, -4, 4, -4);
+        Utils.inlayGuiItem(quickBarLayout, quickBar, dataSetSelector, true, columnLabel, -120, -4, 4, -4);
+        Utils.inlayGuiItem(quickBarLayout, quickBar, colorSelector, true, dataSetSelector, -80, -4, 4, -4);
+        Utils.inlayGuiItem(quickBarLayout, quickBar, shapeSelector, true, colorSelector, -50, -4, 4, -4);
+        Utils.inlayGuiItem(quickBarLayout, quickBar, fitSelector, true, shapeSelector, -120, -4, 4, -4);
+        Utils.inlayGuiItem(quickBarLayout, quickBar, visibleCheckBox, true, fitSelector, -80, -4, 4, -4);
+        Utils.inlayGuiItem(quickBarLayout, quickBar, graphOptionsButton, true, quickBar, 8, 138, 4, -4);
     }
-
-    private SpringLayout layout = new SpringLayout();
 
     /** Sets up the layout of LineFit and places each panel in the right spot */
     private void setupLayout()
     {
-        layout = new SpringLayout();
+        mainLayout = new SpringLayout();
 
         mainDisplayPanel.removeAll();
 
-        mainDisplayPanel.setLayout(layout);
+        mainDisplayPanel.setLayout(mainLayout);
 
-        layout.putConstraint(SpringLayout.WEST, quickBar, 0, SpringLayout.WEST, mainDisplayPanel);
-        layout.putConstraint(SpringLayout.EAST, quickBar, 0, SpringLayout.EAST, mainDisplayPanel);
-        layout.putConstraint(SpringLayout.NORTH, quickBar, 0, SpringLayout.NORTH, mainDisplayPanel);
-        layout.putConstraint(SpringLayout.SOUTH, quickBar, QUICK_BAR_HEIGHT, SpringLayout.NORTH, mainDisplayPanel);
+        mainLayout.putConstraint(SpringLayout.WEST, quickBar, 0, SpringLayout.WEST, mainDisplayPanel);
+        mainLayout.putConstraint(SpringLayout.EAST, quickBar, 0, SpringLayout.EAST, mainDisplayPanel);
+        mainLayout.putConstraint(SpringLayout.NORTH, quickBar, 0, SpringLayout.NORTH, mainDisplayPanel);
+        mainLayout.putConstraint(SpringLayout.SOUTH, quickBar, QUICK_BAR_HEIGHT, SpringLayout.NORTH, mainDisplayPanel);
 
-        layout.putConstraint(SpringLayout.WEST, rightSideBar, -dataSetTableWidth, SpringLayout.EAST, mainDisplayPanel);
-        layout.putConstraint(SpringLayout.EAST, rightSideBar, 0, SpringLayout.EAST, mainDisplayPanel);
-        layout.putConstraint(SpringLayout.NORTH, rightSideBar, QUICK_BAR_HEIGHT, SpringLayout.NORTH, mainDisplayPanel);
-        layout.putConstraint(SpringLayout.SOUTH, rightSideBar, 0, SpringLayout.SOUTH, mainDisplayPanel);
+        mainLayout.putConstraint(SpringLayout.WEST, rightSideBar, -dataSetTableWidth, SpringLayout.EAST,
+                mainDisplayPanel);
+        mainLayout.putConstraint(SpringLayout.EAST, rightSideBar, 0, SpringLayout.EAST, mainDisplayPanel);
+        mainLayout.putConstraint(SpringLayout.NORTH, rightSideBar, QUICK_BAR_HEIGHT, SpringLayout.NORTH,
+                mainDisplayPanel);
+        mainLayout.putConstraint(SpringLayout.SOUTH, rightSideBar, 0, SpringLayout.SOUTH, mainDisplayPanel);
 
-        layout.putConstraint(SpringLayout.WEST, graphingArea, 0, SpringLayout.WEST, mainDisplayPanel);
-        layout.putConstraint(SpringLayout.EAST, graphingArea, 0, SpringLayout.WEST, rightSideBar);
-        layout.putConstraint(SpringLayout.NORTH, graphingArea, QUICK_BAR_HEIGHT, SpringLayout.NORTH, mainDisplayPanel);
-        layout.putConstraint(SpringLayout.SOUTH, graphingArea, 0, SpringLayout.SOUTH, mainDisplayPanel);
+        mainLayout.putConstraint(SpringLayout.WEST, graphingArea, 0, SpringLayout.WEST, mainDisplayPanel);
+        mainLayout.putConstraint(SpringLayout.EAST, graphingArea, 0, SpringLayout.WEST, rightSideBar);
+        mainLayout.putConstraint(SpringLayout.NORTH, graphingArea, QUICK_BAR_HEIGHT, SpringLayout.NORTH,
+                mainDisplayPanel);
+        mainLayout.putConstraint(SpringLayout.SOUTH, graphingArea, 0, SpringLayout.SOUTH, mainDisplayPanel);
 
         mainDisplayPanel.add(quickBar);
         mainDisplayPanel.add(rightSideBar);
@@ -447,15 +452,19 @@ public class LineFit extends JFrame implements HasOptionsToSave
         this.setVisible(true);
     }
 
+    /** updates the layout of LineFit for when the window is resized */
     private void updateLayout()
     {
-        layout.putConstraint(SpringLayout.WEST, rightSideBar, -dataSetTableWidth, SpringLayout.EAST, mainDisplayPanel);
+        mainLayout.putConstraint(SpringLayout.WEST, rightSideBar, -dataSetTableWidth, SpringLayout.EAST,
+                mainDisplayPanel);
 
         // validating causes the layout to be updated
         validate();
     }
 
-    /** Creates a new DataSet and makes it the currently selected DataSet */
+    /** Creates and returns a new DataSet and makes it the currently selected DataSet
+     * 
+     * @return The newly created DataSet */
     private DataSet createNewDataSet()
     {
         // create a new dataset
@@ -468,6 +477,7 @@ public class LineFit extends JFrame implements HasOptionsToSave
         return current;
     }
 
+    /** Updates the GUI for the DataSet that is being displayed. Normally used when switching displayed DataSets */
     private void updateDataSetDisplayed()
     {
         temporarilyDisableQuickMenuListener++;
@@ -534,6 +544,7 @@ public class LineFit extends JFrame implements HasOptionsToSave
         updateLayout();
     }
 
+    /** Updates the combo box containing the fit types for the DataSet being displayed */
     public void updateFitTypes()
     {
         // get the currently selected dataset
@@ -572,18 +583,21 @@ public class LineFit extends JFrame implements HasOptionsToSave
         JOptionPane.showMessageDialog(this, About.getAboutString(), "About LineFit", JOptionPane.PLAIN_MESSAGE);
     }
 
-    /** Opens the given LineFit file in this instance of LineFit using a recursive based opening scheme
+    /** Reads in the options associated with exporting in from the LineFit data file
      * 
-     * @param inputFileReader the BufferedReader that is being used to read in the LineFit file
-     * @param importSettings Whether or not to read in the graph settings/options along with the DataSets from the
-     *        passed BufferedReader containing the input file's data
-     * @throws IOException throws any IO exceptions to be dealt with at a higher level */
+     * @returns True if an export option was found in the passed line and False if the line did not contain an export
+     *          option */
     public boolean readInOption(String line)
     {
         return graphingArea.readInOption(line);
     }
 
-    public boolean readInData(String line, boolean newDataSet)
+    /** Reads in data or an option related to the data from the passed in line
+     * 
+     * @param line The line that contains the data or option related to the data
+     * @param newDataSet Signals that the line passed in is the beginning of a new data set
+     * @return Returns true if the data or option for the data was read in from the line */
+    public boolean readInDataAndDataOptions(String line, boolean newDataSet)
     {
         if (newDataSet && graphingArea.hasData())
         {
@@ -592,6 +606,8 @@ public class LineFit extends JFrame implements HasOptionsToSave
         return graphingArea.readInDataAndDataOptions(line, newDataSet);
     }
 
+    /** Refreshes/redraws the graph. This should be called when a change is made that will impact what is shown on the
+     * graph */
     public void refreshGraph()
     {
         // this just makes it so that it updates our quickbar
@@ -599,23 +615,27 @@ public class LineFit extends JFrame implements HasOptionsToSave
         graphingArea.repaint();
     }
 
-    /** Recursively saves the LineFit file to a text document by calling GraphArea's recursivelySave function which
-     * calls the DataSets' recursivelySave function
+    /** Adds the names of the options as saved in the LineFit file and the values associated with them to the respective
+     * passed ArrayLists
      * 
-     * @param outputFormatter The Formatter that is being used to save the LineFit file */
+     * @param variableNames The ArrayList of the names of the options
+     * @param variableValues The ArrayList of the values of the options (indexed matched to the names) */
     public void retrieveAllOptions(ArrayList<String> variableNames, ArrayList<String> variableValues)
     {
         // do a recursive save so we don't have to access graph area - it can take care of itself
         graphingArea.retrieveAllOptions(variableNames, variableValues);
     }
 
-    public void retrieveAllData(ArrayList<String> variableNames, ArrayList<String> variableValues)
+    /** Retrieve all the data and options associated with the data in the passed in array lists
+     * 
+     * @param variableNames The ArrayList of the names of the options
+     * @param variableValues The ArrayList of the values of the options (indexed matched to the names) */
+    public void retrieveAllDataAndDataOptions(ArrayList<String> variableNames, ArrayList<String> variableValues)
     {
         // do a recursive save so we don't have to access graph area - it can take care of itself
         graphingArea.retrieveAllDataAndDataOptions(variableNames, variableValues);
     }
 
-    /** Centers this instance of LineFit on the screen */
     /** Centers the LineFit window on the screen */
     void centerOnScreen()
     {
@@ -723,8 +743,8 @@ public class LineFit extends JFrame implements HasOptionsToSave
     /** A Listener class which handles the functionality of all the components on the Quick bar, which is below the Menu
      * Bar and above the GraphArea and the DataSet Table, with the exception of the number of columns selector buttons
      * 
-     * @author Unknown
-     * @version 1.0
+     * @author Keith Rice
+     * @version 2.0
      * @since &lt;0.98.0 */
     private class QuickBarListener implements ActionListener
     {
@@ -835,8 +855,15 @@ public class LineFit extends JFrame implements HasOptionsToSave
         }
     }
 
+    /** A Runnable class that handles the actions that should be performed when the color for the displayed DataSet is
+     * updated
+     * 
+     * @author Keith Rice
+     * @version 1.0
+     * @since 0.99.0 */
     private class updateDataSetColorAction implements Runnable
     {
+        /** The action that is performed when the color is updated for the displayed DataSet */
         @Override
         public void run()
         {
@@ -862,8 +889,15 @@ public class LineFit extends JFrame implements HasOptionsToSave
         }
     }
 
+    /** A Runnable class that handles the actions that should be performed when the allowable fit types for the
+     * displayed DataSet are updated
+     * 
+     * @author Keith Rice
+     * @version 1.0
+     * @since 0.99.0 */
     private class updateFitTypesAction implements Runnable
     {
+        /** The action that is performed when the fit types are updated for the displayed DataSet */
         @Override
         public void run()
         {

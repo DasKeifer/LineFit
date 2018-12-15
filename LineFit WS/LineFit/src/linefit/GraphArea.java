@@ -41,6 +41,9 @@ import linefit.IO.HasDataToSave;
 import linefit.IO.HasOptionsToSave;
 
 
+// TODO: make sx and y display in the same order when both are displayed
+// TODO: Currently the default is x first when starting which counters the option setting
+
 /** The main interface of LineFit. This class is responsible for drawing and calculating the graph as well as getting
  * and allowing users to input data (all but menus)
  * 
@@ -208,7 +211,9 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
      * DataSet. True means to use x errors/uncertainties and false means to use y errors/uncertainties. */
     boolean xErrorsOnly = false;
 
+    /** The array of the DataDimensions to use when the x error/uncertainty should be displayed first */
     private static final DataDimension[] xDimensionFirst = new DataDimension[] { DataDimension.X, DataDimension.Y };
+    /** The array of the DataDimensions to use when the y error/uncertainty should be displayed first */
     private static final DataDimension[] yDimensionFirst = new DataDimension[] { DataDimension.Y, DataDimension.X };
 
 
@@ -541,9 +546,9 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
      * 
      * @param graphGraphics The graphics we are using to draw the graph with
      * @param graphMaximumDimensions The dimensions of the Graph area to which we are drawing
-     * @param areExporting Whether or not this graph is being drawn to be exported to a file. This changes the top
-     *        spacing proportions slightly and changes the font size and the spacing to account for the size
-     *        differnce */
+     * @param leaveSpaceForCursorLocation true if space should be left to draw the cursor position (i.e. if it is not
+     *        being drawn for an export)
+     * @param fontToUse The font to use for drawing the graph */
     public void makeGraph(Graphics2D graphGraphics, Dimension graphMaximumDimensions,
             boolean leaveSpaceForCursorLocation, Font fontToUse)
     {
@@ -935,8 +940,10 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
         return currentFontMeasurements.stringWidth(longString);
     }
 
-    /** Makes sure all the dataset's third columns are updated so we can change whether we use only x errors of y errors
-     * This has to be done because the third column can be either x or y errors/uncertainties */
+    /** Sets the dataset's third column order so we can change whether we use only x errors of y errors
+     * 
+     * @param xErrors True if x errors should be displayed when there are only 3 errors. False if y errors should be
+     *        displayed when there are only 3 errors */
     void setThirdColumn(boolean xErrors)
     {
         if (xErrors != xErrorsOnly)
@@ -961,21 +968,29 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
         }
     }
 
+    /** Checks to see if the Graph Area has any data in it
+     * 
+     * @return True if the GraphArea has some data. False otherwise */
     public boolean hasData()
     {
         return dataSetSelector.getItemCount() != 2 || dataSetSelector.getItemAt(0).hasData();
     }
 
+    /** Reads in data or an option related to the data from the passed in line
+     * 
+     * @param line The line that contains the data or option related to the data
+     * @param newDataSet Signals that the line passed in is the beginning of a new data set
+     * @return Returns true if the data or option for the data was read in from the line */
     public boolean readInDataAndDataOptions(String line, boolean newDataSet)
     {
         // We have to subtract one for the "new dataset" placeholder too
         return ((DataSet) dataSetSelector.getSelectedItem()).readInDataAndDataOptions(line, newDataSet);
     }
 
-    /** Reads in the graph settings from the passed String and stores it in its proper value
+    /** Reads in the options associated with exporting in from the LineFit data file
      * 
-     * @param lineRead The String that contains the line of data which contains a particular graph setting and its
-     *        value */
+     * @returns True if an export option was found in the passed line and False if the line did not contain an export
+     *          option */
     public boolean readInOption(String lineRead)
     {
         // split the input into the two parts
@@ -1110,10 +1125,11 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
         return found;
     }
 
-    /** Continues the recursive save of the LineFit File. This function saves the GraphArea and down's data. Note: Not
-     * to be used independently of LineFit.RecursivelySaveLineFitFile()!
+    /** Adds the names of the options as saved in the LineFit file and the values associated with them to the respective
+     * passed ArrayLists
      * 
-     * @param output The Formatter being used to write the file */
+     * @param variableNames The ArrayList of the names of the options
+     * @param variableValues The ArrayList of the values of the options (indexed matched to the names) */
     public void retrieveAllOptions(ArrayList<String> variableNames, ArrayList<String> variableValues)
     {
         variableNames.add("GraphName");
@@ -1180,6 +1196,10 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
         variableValues.add(LineFit.currentFitAlgorithmFactory.toString());
     }
 
+    /** Retrieve all the data and options associated with the data in the passed in array lists
+     * 
+     * @param variableNames The ArrayList of the names of the options
+     * @param variableValues The ArrayList of the values of the options (indexed matched to the names) */
     public void retrieveAllDataAndDataOptions(ArrayList<String> variableNames, ArrayList<String> variableValues)
     {
         // pass it on to our datasets
@@ -1245,6 +1265,12 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
         return graphName;
     }
 
+    /** A class for holding the ranges of the axes in the graph mainly used to return multiple values from getter
+     * functions
+     * 
+     * @author Keith Rice
+     * @version 1.0
+     * @since 0.99.0 */
     public class GraphAxesRanges
     {
         public double xAxisMinimumValue = 0;
@@ -1253,7 +1279,10 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
         public double yAxisMaximumValue = 0;
     }
 
-    public GraphAxesRanges GetGraphAxesRanges()
+    /** Gets the current ranges of the axes of the graph
+     * 
+     * @return The GraphAxesRanges holding the current ranges of the graph area axes */
+    public GraphAxesRanges getGraphAxesRanges()
     {
         GraphAxesRanges rangesData = new GraphAxesRanges();
         rangesData.xAxisMinimumValue = xAxisMinimumValue;
@@ -1263,13 +1292,22 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
         return rangesData;
     }
 
+    /** A class for holding the powers of the axes in the graph mainly used to return multiple values from getter
+     * functions
+     * 
+     * @author Keith Rice
+     * @version 1.0
+     * @since 0.99.0 */
     public class GraphAxesPowers
     {
         public int xAxisPower = 0;
         public int yAxisPower = 0;
     }
 
-    public GraphAxesPowers GetGraphAxesPowers()
+    /** Gets the current powers of the axes of the graph
+     * 
+     * @return The GraphAxesPowers holding the current powers of the graph area axes */
+    public GraphAxesPowers getGraphAxesPowers()
     {
         GraphAxesPowers powerData = new GraphAxesPowers();
         powerData.xAxisPower = xAxisPower;
@@ -1277,6 +1315,11 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
         return powerData;
     }
 
+    /** A class for holding the metadata of the graph mainly used to return multiple values from getter functions
+     * 
+     * @author Keith Rice
+     * @version 1.0
+     * @since 0.99.0 */
     public class GraphMetaData
     {
         public String graphName = "";
@@ -1290,7 +1333,10 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
         public int yAxisDecimalPlaces = 0;
     }
 
-    public GraphMetaData GetGraphMetaData()
+    /** Gets the current metadata of the graph
+     * 
+     * @return The GraphMetaData holding the current metadata of the graph */
+    public GraphMetaData getGraphMetaData()
     {
         GraphMetaData metaData = new GraphMetaData();
         metaData.graphName = graphName;
@@ -1305,6 +1351,12 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
         return metaData;
     }
 
+    /** A class for holding the displayed results data of the graph mainly used to return multiple values from getter
+     * functions
+     * 
+     * @author Keith Rice
+     * @version 1.0
+     * @since 0.99.0 */
     public class ResultsDisplayData
     {
         public int graphWidthAfterPadding = 0;
@@ -1315,6 +1367,9 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
         public boolean resultsUseScientificNotation = false;
     }
 
+    /** Gets the displayed results of the graph
+     * 
+     * @return The ResultsDisplayData holding the currently displayed results of the graph */
     public ResultsDisplayData GetResultsDisplayData()
     {
         ResultsDisplayData displayData = new ResultsDisplayData();
@@ -1327,6 +1382,9 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
         return displayData;
     }
 
+    /** Gets the FontMetrics for the graph area
+     * 
+     * @return The FontMetrics for the font currently being used */
     public FontMetrics GetGraphFontMetrics()
     {
         // FontMetrics and its Font are both immutable so it is safe to let the

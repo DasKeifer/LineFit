@@ -12,6 +12,7 @@
 
 package linefit.IO;
 
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -226,7 +227,7 @@ public class LineFitFileIO
 
                             // if we didn't find it as valid setting give a warning an continue -
                             // it may just be a currently unsupported setting
-                            if (!lineFit.readInData(trimmedLine, newDataSet))
+                            if (!lineFit.readInDataAndDataOptions(trimmedLine, newDataSet))
                             {
                                 System.err.println("Error reading in DataSet - Continuing: " + lineRead);
                             }
@@ -412,7 +413,7 @@ public class LineFitFileIO
         // get and save all the datasets variables
         lineNames.clear();
         lineValues.clear();
-        lineFit.retrieveAllData(lineNames, lineValues);
+        lineFit.retrieveAllDataAndDataOptions(lineNames, lineValues);
         for (int i = 0; i < lineNames.size(); i++)
         {
             // use the graph level line starter for new datasets and add a empty line for ease of readability

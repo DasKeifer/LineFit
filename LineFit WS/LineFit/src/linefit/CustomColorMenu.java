@@ -58,7 +58,7 @@ class CustomColorMenu extends JFrame
 
     /** Creates a new Color Selector that is paired with the passed in dataset
      * 
-     * @param dataSetThisGoesWith The DataSet that this CustomColorMenu is linked with */
+     * @param inOnColorChangeAction The action to perform when the color is changed */
     public CustomColorMenu(Runnable inOnColorChangeAction)
     {
         setSize(600, 400);
@@ -210,7 +210,7 @@ class CustomColorMenu extends JFrame
     /** A Listener class that is used to change the currently selected color for the DataSet to the selected one
      * 
      * @author Keith Rice
-     * @version 1.1
+     * @version 2.0
      * @since 0.98.0 */
     private class ColorChangedListener implements ChangeListener
     {

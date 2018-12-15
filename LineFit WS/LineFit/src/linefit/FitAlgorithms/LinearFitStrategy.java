@@ -22,7 +22,7 @@ import linefit.ScientificNotation;
  * created as a private class inside a factory class for the fit algorithm
  * 
  * @author Keith Rice
- * @version 1.0
+ * @version 2.0
  * @since 0.98.1 */
 public abstract class LinearFitStrategy
 {
@@ -103,6 +103,12 @@ public abstract class LinearFitStrategy
         }
     }
 
+    /** Gets the appropriate weight to use for Chi Squared based on the fit type
+     * 
+     * @param fitTypeToUse The fit type that is being used
+     * @param xError The x error value for the point
+     * @param yError The y error value for the point
+     * @return The weight to use for calculating Chi Squared */
     public double getChiSquaredWeight(FitType fitTypeToUse, double xError, double yError)
     {
         double weight = 1;

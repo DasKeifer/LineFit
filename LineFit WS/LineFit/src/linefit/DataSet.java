@@ -100,7 +100,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
     /** Creates a new empty DataSet that is linked to the GraphArea
      * 
      * @param parentsChangeTracker The ChangeTracker that is notified when this DataSet changes
-     * @param onUpdateFitTypesAction The function to call when this DataSet is updates */
+     * @param onUpdateFitTypesAction The function to call when this DataSet is updated */
     DataSet(ChangeTracker parentsChangeTracker, Runnable onUpdateFitTypesAction)
     {
         changeTracker = parentsChangeTracker;
@@ -280,6 +280,8 @@ public class DataSet extends JScrollPane implements HasDataToSave
         }
     }
 
+    /** Shows the next error column that should be displayed based on the currently set order for error dimensions if
+     * there are more columns to show */
     public void showNextErrorColumn()
     {
         if (errorColumnsDisplayed < DataDimension.getNumberOfDimensions())
@@ -301,6 +303,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
         }
     }
 
+    /** Hides the last displayed error column if there is at least one error column to hide */
     public void hideLastErrorColumn()
     {
         if (errorColumnsDisplayed > 0)
@@ -311,7 +314,9 @@ public class DataSet extends JScrollPane implements HasDataToSave
         }
     }
 
-    /** Updates the available FitTypes we can use on this DataSet based on the amount of data in them */
+    /** Updates the available FitTypes we can use on this DataSet based on the amount of data in them
+     * 
+     * @return Returns the array list of the fit types that can be used for this dataset */
     ArrayList<FitType> getAllowableFits()
     {
         ArrayList<FitType> fits = new ArrayList<FitType>();
@@ -371,6 +376,11 @@ public class DataSet extends JScrollPane implements HasDataToSave
         return validPoints;
     }
 
+    /** Returns the min and max values of the passed data dimension taking into account errors if told to do so
+     * 
+     * @param dim The dimension to get the min and max values of
+     * @param withErrors True if the min and max values should include the error values of the passed dimension
+     * @return An array containing the min value at 0 and the max at 1 */
     public double[] getMinMax(DataDimension dim, boolean withErrors)
     {
         boolean hasInit = false;
@@ -415,10 +425,13 @@ public class DataSet extends JScrollPane implements HasDataToSave
         return new double[] { dataMin, dataMax };
     }
 
-    /** Checks if all the points at the specified indexes have an associated error/uncertainty value
+    /** Checks if all the points at the specified indexes in the passed dimension has an associated error/uncertainty
+     * value
      * 
-     * @return True if all the points at the passed indexes have an error/uncertainty associated with them and false
-     *         otherwise */
+     * @param indexes The list of the indexes to check for error values at
+     * @param dimension The data dimension to check the errors for
+     * @return True if all the points at the passed indexes have an error/uncertainty associated with them for the
+     *         passed dimension and false otherwise */
     private boolean checkAllHaveErrors(ArrayList<Integer> indexes, DataDimension dimension)
     {
         DataColumn error = errorColumns[dimension.getColumnIndex()];
@@ -445,7 +458,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
     /** Reads in data or an option related to the data from the passed in line
      * 
      * @param line The line that contains the data or option related to the data
-     * @param newDataSet Signals that the line passed in is the beginning of a new data set
+     * @param unused Unused parameter required for the HasDataToSave interface
      * @return Returns true if the data or option for the data was read in from the line */
     public boolean readInDataAndDataOptions(String line, boolean unused)
     {
@@ -743,6 +756,10 @@ public class DataSet extends JScrollPane implements HasDataToSave
         return dataSetColor.getRed() + " " + dataSetColor.getGreen() + " " + dataSetColor.getBlue();
     }
 
+    /** Checks to see if the passed color is a custom color or one of the default colors provided
+     * 
+     * @param color The color to check to see if it is a custom color or not
+     * @return true if it is a custom color, false if it is a predefined color */
     public static boolean isColorACustomColor(Color color)
     {
         for (int i = 0; i < predefinedColorNames.length; i++)
@@ -756,11 +773,18 @@ public class DataSet extends JScrollPane implements HasDataToSave
         return true;
     }
 
+    /** Checks to see if the dataset is using a custom color or a predefined color
+     * 
+     * @return true if the dataset is using a custom color. False if it uses a predefined color */
     public boolean isColorCustom()
     {
         return isColorACustomColor(dataSetColor);
     }
 
+    /** Gets the number of columns that are currently being displayed. This includes both the data columns and any error
+     * columns
+     * 
+     * @return The number of displayed columns */
     public int getNumberOfDisplayedColumns()
     {
         return dataColumns.length + errorColumnsDisplayed;
@@ -774,6 +798,9 @@ public class DataSet extends JScrollPane implements HasDataToSave
         return dataSetColor;
     }
 
+    /** Gets the last custom color that was used for this dataset
+     * 
+     * @return The last custom color that was selected for this dataset */
     public Color getLastCustomColor()
     {
         return dataSetCustomColor;
@@ -811,16 +838,31 @@ public class DataSet extends JScrollPane implements HasDataToSave
         return dataSetFitType;
     }
 
+    /** Checks to see if the passed index is an error column or a data column. The passed index must be the "displayed"
+     * index which is the index as it appears in the GUI (i.e. includes both data columns and error columns)
+     * 
+     * @param columnIndex The index to check
+     * @return true if the passed index corresponds to an error index. False if it is a data column */
     boolean isIndexDisplayedErrorColumn(int columnIndex)
     {
         return columnIndex >= DataDimension.getNumberOfDimensions();
     }
 
+    /** Converts the passed "displayed" error column index (index as it appears in the display including the data and
+     * error columns) into the internal error column index for accessing the internal data structure
+     * 
+     * @param columnIndex The "displayed" index to convert into the internal index for accessing data structures
+     * @return Returns the internal error index of the passed "displayed" index for accessing data structures */
     private int convertErrorIndexDisplayedToInternal(int columnIndex)
     {
         return errorColumnsOrder[columnIndex - DataDimension.getNumberOfDimensions()].getColumnIndex();
     }
 
+    /** Converts the passed internal error column index into the "displayed" error column index (index as it appears in
+     * the display including the data and error columns)
+     * 
+     * @param columnIndex The internal index to convert into the "displayed" index for showing in the GUI
+     * @return Returns the "displayed" error index of the passed internal for showing in the GUI */
     private int convertErrorIndexInternalToDisplayed(int columnIndex)
     {
         for (int i = 0; i < errorColumnsOrder.length; i++)
@@ -837,6 +879,10 @@ public class DataSet extends JScrollPane implements HasDataToSave
         return -1;
     }
 
+    /** Gets the DataColumn (data or error) at the passed "displayed" index
+     * 
+     * @param columnIndex The "displayed" index to get the DataColumn of
+     * @return The DataColumn at the passed index */
     private DataColumn getDisplayedColumn(int columnIndex)
     {
         if (columnIndex < DataDimension.getNumberOfDimensions())
@@ -856,6 +902,12 @@ public class DataSet extends JScrollPane implements HasDataToSave
         }
     }
 
+    /** Gets an array of the data or errors/uncertainties at the passed "displayed" index. This array may contain null
+     * values
+     * 
+     * @param columnIndex The "displayed" index to get the data column of
+     * @return An array of Double containing the data in the column at the passed index (potentially with null
+     *         values) */
     public Double[] getDisplayedData(int columnIndex)
     {
         try
@@ -868,6 +920,11 @@ public class DataSet extends JScrollPane implements HasDataToSave
         }
     }
 
+    /** Gets an array of the data (non-error data) at the passed index. This array may contain null values
+     * 
+     * @param index The index of the data column to get the data of
+     * @return An array of Double containing the data in the column at the passed index (potentially with null
+     *         values) */
     private Double[] getData(int index)
     {
         try
@@ -881,19 +938,31 @@ public class DataSet extends JScrollPane implements HasDataToSave
         }
     }
 
-    public Double[] getData(DataDimension data)
+    /** Gets an array of the data of the passed dimension. This array may contain null values
+     * 
+     * @param dim The dimension to get the data of
+     * @return An array of Double containing the data for the passed dimension (potentially with null values) */
+    public Double[] getData(DataDimension dim)
     {
-        return getData(data.getColumnIndex());
+        return getData(dim.getColumnIndex());
     }
 
+    /** Gets the length of the data at the passed dimension. This includes any null values in between non-null values.
+     * Or to put another way, the 1 based row index of the last populated value for this dimension
+     * 
+     * @param dim The dimension to get the length of the data of
+     * @return The length of the data in the passed dimension */
     public int getDataSize(DataDimension data)
     {
         return dataColumns[data.getColumnIndex()].getDataSize();
     }
 
-    /** The DataColumn that keeps track of the x data for this DataSet
+    /** Gets an array of the error/uncertainty values for the passed dimension. This array may contain null values. If
+     * the errors/uncertainties for the passed dimension are not displayed, then it returns an empty array
      * 
-     * @return The DataColumn that keeps track of the x data values for this DataSet */
+     * @param dim The dimension to get the error/uncertainty values of
+     * @return An array of Double containing the error/uncertainty values for the passed dimension (potentially with
+     *         null values) or null if the error for the passed dimension is not displayed */
     public Double[] getErrorData(DataDimension dim)
     {
         if (convertErrorIndexInternalToDisplayed(dim.getColumnIndex()) < errorColumnsDisplayed)
@@ -903,6 +972,12 @@ public class DataSet extends JScrollPane implements HasDataToSave
         return new Double[0];
     }
 
+    /** Gets the length of the error/uncertainty values at the passed dimension. This includes any null values in
+     * between non-null values. Or to put another way, the 1 based row index of the last populated value for this
+     * error/uncertainty data associated with the passed dimension
+     * 
+     * @param dim The dimension to get the length of the error/uncertainty values of
+     * @return The length of the error/uncertainty values in the passed dimension */
     public int getErrorDataSize(DataDimension dim)
     {
         if (convertErrorIndexInternalToDisplayed(dim.getColumnIndex()) < errorColumnsDisplayed)
@@ -912,11 +987,26 @@ public class DataSet extends JScrollPane implements HasDataToSave
         return 0;
     }
 
+    /** Checks if the error/uncertainty values for the passed dimension are displayed/visible
+     * 
+     * @param dim The dimension to check if the error/uncertainty values are visible for
+     * @return True if the error/uncertainty for the passed dimension are visible and false otherwise */
     public boolean isErrorDataVisible(DataDimension dim)
     {
         return convertErrorIndexInternalToDisplayed(dim.getColumnIndex()) < errorColumnsDisplayed;
     }
 
+    /** Gets all the data (potentially including null values)in the DataSet including the error values if specified. If
+     * getting all the data including errors is specified, then any dimension whose errors are not displayed will have
+     * an empty array at the respective index in the returned data.
+     * 
+     * The returned data is a 2-D array of each of the dimensions' data followed by the error values of each of the
+     * dimensions in the same order. For example:
+     * 
+     * [Dimesnion1Data, Dimension2Data, Dimension1Error, Dimension2Error]
+     * 
+     * @param withErrors True if the data should also contain the error/uncertainty values for the columns
+     * @return A 2-D array containing the data for this dataset as specified in the description */
     public Double[][] getAllData(boolean withErrors)
     {
         ArrayList<Double[]> allData = new ArrayList<Double[]>();
@@ -957,7 +1047,17 @@ public class DataSet extends JScrollPane implements HasDataToSave
         return alignedData;
     }
 
-
+    /** Gets all the data of all the valid points in the DataSet including the error values if specified. If getting all
+     * the data including errors is specified, then any dimension whose errors are not displayed will have an empty
+     * array at the respective index in the returned data.
+     * 
+     * The returned data is a 2-D array of each of the dimensions' data followed by the error values of each of the
+     * dimensions in the same order. For example:
+     * 
+     * [Dimesnion1Data, Dimension2Data, Dimension1Error, Dimension2Error]
+     * 
+     * @param withErrors True if the data should also contain the error/uncertainty values for the columns
+     * @return A 2-D array containing the data for this dataset as specified in the description */
     public double[][] getAllValidPointsData(boolean withErrors)
     {
         int columnsIndex = 0;
@@ -1069,18 +1169,28 @@ public class DataSet extends JScrollPane implements HasDataToSave
      * columns
      * 
      * @author Keith Rice
-     * @version 1.0
+     * @version 2.0
      * @since &lt;0.98.0 */
     private class GraphSetListener implements TableModelListener
     {
+        /** True if we are in the process of updating the table so we can tell if we called ourself to prevent infinite
+         * recursion */
         boolean alreadyUpdatingTable = false;
+        /** The action to run when the allowable fit types are updated */
         Runnable onUpdateFitTypesAction;
 
+        /** Constructor for the GraphSetListener
+         * 
+         * @param inOnUpdateFitTypesAction The action to run when the fit types for this data are updated */
         GraphSetListener(Runnable inOnUpdateFitTypesAction)
         {
             onUpdateFitTypesAction = inOnUpdateFitTypesAction;
         }
 
+        /** Validates and Updates the data in the column at the passed index as appropriate
+         * 
+         * @param e The event containing information on what was changed
+         * @param columnIndex The index of the column that was changed */
         private void updateColumn(TableModelEvent e, int columnIndex)
         {
             DataColumn data = getDisplayedColumn(columnIndex);
@@ -1141,7 +1251,9 @@ public class DataSet extends JScrollPane implements HasDataToSave
             }
         }
 
-        /** The event that is called whenever the values in the table have been modified */
+        /** The event that is called whenever the values in the table have been modified
+         * 
+         * @param e The event containing information on what was changed */
         public void tableChanged(TableModelEvent e)
         {
             // if this event was fired while we were modifying the table, then ignore it because it was due to our

@@ -33,7 +33,10 @@ public class DataColumn
     /** The List of all the data stored this column */
     private ArrayList<Double> data;
 
-    /** The default constructor for this class */
+    /** The default constructor for this class
+     * 
+     * @param name The name of the data column
+     * @param parentChangeTracker The change tracker to notify if a change in the data column occurred */
     public DataColumn(String name, ChangeTracker parentChangeTracker)
     {
         columnName = name;
@@ -147,8 +150,8 @@ public class DataColumn
         return columnName;
     }
 
-    /** Gets an array list that contains the double values of all the rows in this column. This may have null values
-     * inbetween other valid values
+    /** Gets an array list that contains the double values of all the rows in this column. This may have null values in
+     * between other valid values
      * 
      * @return Returns an array with all the column's data in it */
     public Double[] getData()
@@ -158,15 +161,16 @@ public class DataColumn
 
     /** Gets an array list that contains the double values of all the rows in this column with any null values removed
      * 
-     * @return Returns an array with all the columns non-null data in it */
+     * @return Returns an array with all the column's non-null data in it */
     public Double[] getDataNonNull()
     {
         return data.toArray(new Double[data.size()]);
     }
 
-    /** Gets an array list that contains the double values of all the rows in this column with any null values removed
+    /** Gets the value of the column at the passed index of null if there is no data in the passed index
      * 
-     * @return Returns an array with all the columns non-null data in it */
+     * @param index The index to retrieve the data at
+     * @return Returns the value at the passed index or null if there is none */
     public Double getDataAt(int index)
     {
         try

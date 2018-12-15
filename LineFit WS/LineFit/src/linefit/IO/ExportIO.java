@@ -459,10 +459,10 @@ public class ExportIO implements HasOptionsToSave, HasOptionsToDisplay
         // if our values are too small than LaTex will handle them poorly so we adjust them so it draws them
         // like they are bigger
         // and label them so they are small again;
-        GraphAxesRanges origAxesRanges = graphingArea.GetGraphAxesRanges();
-        GraphAxesPowers origAxesPowers = graphingArea.GetGraphAxesPowers();
-        GraphAxesRanges axesRanges = graphingArea.GetGraphAxesRanges();
-        GraphAxesPowers axesPowers = graphingArea.GetGraphAxesPowers();
+        GraphAxesRanges origAxesRanges = graphingArea.getGraphAxesRanges();
+        GraphAxesPowers origAxesPowers = graphingArea.getGraphAxesPowers();
+        GraphAxesRanges axesRanges = graphingArea.getGraphAxesRanges();
+        GraphAxesPowers axesPowers = graphingArea.getGraphAxesPowers();
         FontMetrics currentFontMeasurements = graphingArea.GetGraphFontMetrics();
 
         double xAdjForSmall = 0;
@@ -767,7 +767,7 @@ public class ExportIO implements HasOptionsToSave, HasOptionsToDisplay
         // axes
 
         String graphName = "", xAxisDescription = "", yAxisDescription = "";
-        GraphMetaData metaData = graphingArea.GetGraphMetaData();
+        GraphMetaData metaData = graphingArea.getGraphMetaData();
 
         // put the begining part
         if (Math.abs(xAxisSpan) / Math.pow(10, origAxesPowers.xAxisPower) >= 0.1)

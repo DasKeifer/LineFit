@@ -55,7 +55,7 @@ import linefit.IO.HasOptionsToSave;
 /** The main operating class in LineFit that is called on start up and sets up the base and layout and that handles all
  * the functions calls and methods of the program
  * 
- * @author Unknown
+ * @author Keith Rice
  * @version 2.0.0
  * @since &lt;0.98.0 */
 public class LineFit extends JFrame implements HasOptionsToSave, HasDataToSave

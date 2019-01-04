@@ -42,7 +42,6 @@ import linefit.IO.HasOptionsToSave;
 
 
 // TODO: make sx and y display in the same order when both are displayed
-// TODO: Currently the default is x first when starting which counters the option setting
 
 /** The main interface of LineFit. This class is responsible for drawing and calculating the graph as well as getting
  * and allowing users to input data (all but menus)
@@ -249,6 +248,9 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
      * @param toRegister The DataSet to add to the DataSet selector box */
     void registerDataSet(DataSet toRegister)
     {
+        // Ensure the error data is in the correct order
+        updateDataSetErrorOrder(toRegister);
+
         // We have to subtract one for the "new dataset" placeholder
         DataSet newDataSet = dataSetSelector.getItemAt(dataSetSelector.getItemCount() - 1);
         dataSetSelector.removeItem(newDataSet);
@@ -940,6 +942,21 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
         return currentFontMeasurements.stringWidth(longString);
     }
 
+    /** Sets the dataset's error column order to the correct order based on the current graph settings
+     * 
+     * @param toUpdateErrorOrderOf The DataSet to update the error column order of to match the graph area */
+    void updateDataSetErrorOrder(DataSet toUpdateErrorOrderOf)
+    {
+        if (xErrorsOnly)
+        {
+            toUpdateErrorOrderOf.setErrorColumnOrder(xDimensionFirst);
+        }
+        else
+        {
+            toUpdateErrorOrderOf.setErrorColumnOrder(yDimensionFirst);
+        }
+    }
+
     /** Sets the dataset's third column order so we can change whether we use only x errors of y errors
      * 
      * @param xErrors True if x errors should be displayed when there are only 3 errors. False if y errors should be
@@ -953,15 +970,7 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
             for (int i = 0; i < dataSetSelector.getItemCount() - 1; i++)
             {
                 DataSet current = (DataSet) dataSetSelector.getItemAt(i);
-
-                if (xErrors)
-                {
-                    current.setErrorColumnOrder(xDimensionFirst);
-                }
-                else
-                {
-                    current.setErrorColumnOrder(yDimensionFirst);
-                }
+                updateDataSetErrorOrder(current);
             }
 
             calculateAxesMinimumAndMaximumValues();

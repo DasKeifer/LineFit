@@ -41,8 +41,6 @@ import linefit.IO.HasDataToSave;
 import linefit.IO.HasOptionsToSave;
 
 
-// TODO: make sx and y display in the same order when both are displayed
-
 /** The main interface of LineFit. This class is responsible for drawing and calculating the graph as well as getting
  * and allowing users to input data (all but menus)
  * 

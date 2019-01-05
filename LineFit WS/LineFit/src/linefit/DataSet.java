@@ -287,11 +287,17 @@ public class DataSet extends JScrollPane implements HasDataToSave
         if (errorColumnsDisplayed < DataDimension.getNumberOfDimensions())
         {
             int tableIndex = dataColumns.length + errorColumnsDisplayed;
-            DataColumn error = errorColumns[errorColumnsOrder[errorColumnsDisplayed].getColumnIndex()];
+            DataDimension toAdd = errorColumnsOrder[errorColumnsDisplayed];
+            DataColumn error = errorColumns[toAdd.getColumnIndex()];
 
             // increment first so the values are the new values when the listeners are called
             errorColumnsDisplayed++;
             dataTableModel.addColumn(error.getName());
+
+            if (toAdd.getErrorColumnIndex() < tableIndex)
+            {
+                tableContainingData.moveColumn(tableIndex, toAdd.getErrorColumnIndex());
+            }
 
             for (int i = 0; i < error.dataSize(); i++)
             {

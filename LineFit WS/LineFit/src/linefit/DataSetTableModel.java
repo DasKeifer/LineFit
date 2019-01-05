@@ -21,14 +21,20 @@ import javax.swing.table.DefaultTableModel;
 /** This class Creates the Table Model for the GraphSet's data and controls the behavior for the GraphSet data table so
  * that we can remove columns and see if it is empty
  * 
- * @author Unknown
- * @version 1.0
+ * @author Unknown, Keith Rice
+ * @version 1.1
  * @since &lt;0.98.0 */
 class DataSetTableModel extends DefaultTableModel
 {
     /** The Serial Version UID so that we know what version it is when we are using it. See
      * http://docs.oracle.com/javase/7/docs/api/java/io/Serializable.html for full discussion on its uses and purpose */
     private final static long serialVersionUID = 42L;
+
+    /** Removes the last column from the table */
+    void removeLastColumn()
+    {
+        removeColumn(getColumnCount() - 1);
+    }
 
     /** Removes the column with the given index from the table
      * 

@@ -12,6 +12,7 @@
 
 package linefit.IO;
 
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
@@ -44,6 +45,7 @@ import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.pdf.PdfWriter;
 
+import linefit.DataDimension;
 import linefit.DataSet;
 import linefit.GraphArea;
 import linefit.GraphArea.GraphAxesPowers;
@@ -127,7 +129,7 @@ public class ExportIO implements HasOptionsToSave, HasOptionsToDisplay
     /** The constructor for ExportIO that associates this instance with the passed instances
      * 
      * @param parentIO The GeneralIO instance that this LineFitFileIO belongs to and uses for common IO related
-     * functionality
+     *        functionality
      * @param frameToCenterOn The JFrame to center dialogs on or null to center them on the screen
      * @param graphToExport The GraphArea that this ExportIO instance will export */
     public ExportIO(GeneralIO parentIO, JFrame frameToCenterOn, GraphArea graphToExport)
@@ -140,7 +142,7 @@ public class ExportIO implements HasOptionsToSave, HasOptionsToDisplay
     /** Reads in the options associated with exporting in from the LineFit data file
      * 
      * @returns True if an export option was found in the passed line and False if the line did not contain an export
-     * option */
+     *          option */
     public boolean readInOption(String lineRead)
     {
         // split the input into the two parts
@@ -255,9 +257,9 @@ public class ExportIO implements HasOptionsToSave, HasOptionsToDisplay
      * 
      * @param insets The Insets of the Container the GUI elements reside in
      * @param xOffset The x offset to apply to the GUI elements so that they fit with any other GUI elements being
-     * displayed by other classes
+     *        displayed by other classes
      * @param yOffset The y offset to apply to the GUI elements so that they fit with any other GUI elements being
-     * displayed by other classes */
+     *        displayed by other classes */
     public void positionOptionsGuiElements(Insets insets, int xOffset, int yOffset)
     {
         // PDF Sizes
@@ -323,7 +325,7 @@ public class ExportIO implements HasOptionsToSave, HasOptionsToDisplay
     /** Creates the linefit.sty file for the user to use for LaTex exports
      * 
      * @param destinationFolderPath The File path to create the .sty file at. This must contain the ending "\" to denote
-     * a folder */
+     *        a folder */
     public void createLineFitStyFile(String destinationFolderPath)
     {
         generalIO.copyResourceFileToContainingFolder("linefit.sty", destinationFolderPath);
@@ -457,10 +459,10 @@ public class ExportIO implements HasOptionsToSave, HasOptionsToDisplay
         // if our values are too small than LaTex will handle them poorly so we adjust them so it draws them
         // like they are bigger
         // and label them so they are small again;
-        GraphAxesRanges origAxesRanges = graphingArea.GetGraphAxesRanges();
-        GraphAxesPowers origAxesPowers = graphingArea.GetGraphAxesPowers();
-        GraphAxesRanges axesRanges = graphingArea.GetGraphAxesRanges();
-        GraphAxesPowers axesPowers = graphingArea.GetGraphAxesPowers();
+        GraphAxesRanges origAxesRanges = graphingArea.getGraphAxesRanges();
+        GraphAxesPowers origAxesPowers = graphingArea.getGraphAxesPowers();
+        GraphAxesRanges axesRanges = graphingArea.getGraphAxesRanges();
+        GraphAxesPowers axesPowers = graphingArea.getGraphAxesPowers();
         FontMetrics currentFontMeasurements = graphingArea.GetGraphFontMetrics();
 
         double xAdjForSmall = 0;
@@ -564,224 +566,194 @@ public class ExportIO implements HasOptionsToSave, HasOptionsToDisplay
                                 .getGreen() + "," + current.getColor().getBlue() + "}\n");
                     }
 
-                    if (current.xData != null && current.yData != null)
+                    String symbol = "{\\symFilledSquare}";
+                    Ellipse2D.Double ellipse = new Ellipse2D.Double();
+                    Polygon triangle = new Polygon();
+
+                    if (current.getShape().getClass() == ellipse.getClass())
                     {
-                        String symbol = "{\\symFilledSquare}";
-                        Ellipse2D.Double ellipse = new Ellipse2D.Double();
-                        Polygon triangle = new Polygon();
+                        symbol = "{\\symFilledCircle}";
+                    }
+                    else if (current.getShape().getClass() == triangle.getClass())
+                    {
+                        symbol = "{\\symFilledTriangle}";
+                    }
 
-                        if (current.getShape().getClass() == ellipse.getClass())
-                        {
-                            symbol = "{\\symFilledCircle}";
-                        }
-                        else if (current.getShape().getClass() == triangle.getClass())
-                        {
-                            symbol = "{\\symFilledTriangle}";
-                        }
+                    // get the data with valid points (X and Y)
+                    double[][] data = current.getAllValidPointsData(true);
+                    double[] xData = data[DataDimension.X.getColumnIndex()];
+                    double[] yData = data[DataDimension.Y.getColumnIndex()];
+                    double[] xErrorData = data[DataDimension.X.getErrorColumnIndex()];
+                    double[] yErrorData = data[DataDimension.Y.getErrorColumnIndex()];
 
-                        if (current.xData.getNonNullDataSize() > 0 && current.yData.getNonNullDataSize() > 0)
+                    for (int l = 0; l < xData.length; l++)
+                    {
+                        output.append("\t\\putpoint");
+                        if (xErrorData[l] != 0.0)
                         {
-                            for (int l = 0; l < Math.max(current.xData.getData().size(), current.yData.getData()
-                                    .size()); l++)
+                            if (yErrorData[l] != 0.0)
                             {
-                                if (!current.xData.isNull(l) && !current.yData.isNull(l))
-                                {
-                                    output.append("\t\\putpoint");
-                                    if (current.xErrorData != null && !current.xErrorData.isNull(l) &&
-                                            current.xErrorData.readDouble(l) != 0.0)
-                                    {
-                                        if (current.yErrorData != null && !current.yErrorData.isNull(l) &&
-                                                current.yErrorData.readDouble(l) != 0.0)
-                                        {
-                                            output.append("xyerr");
-                                        }
-                                        else
-                                        {
-                                            output.append("xerr");
-                                        }
-                                    }
-                                    else if (current.yErrorData != null && !current.yErrorData.isNull(l) &&
-                                            current.yErrorData.readDouble(l) != 0.0)
-                                    {
-                                        output.append("yerr");
-                                    }
-
-                                    output.append(symbol);
-                                    output.append("{");
-                                    output.append(ScientificNotation.WithNoErrorAndZeroPower((current.xData.readDouble(
-                                            l) - xAdjForSmall) / Math.pow(10, axesPowers.xAxisPower)));
-                                    output.append("}{");
-                                    output.append(ScientificNotation.WithNoErrorAndZeroPower((current.yData.readDouble(
-                                            l) - yAdjForSmall) / Math.pow(10, axesPowers.yAxisPower)));
-                                    output.append("}");
-
-                                    if (current.xErrorData != null && !current.xErrorData.isNull(l) &&
-                                            current.xErrorData.readDouble(l) != 0.0)
-                                    {
-                                        output.append("{");
-                                        output.append(ScientificNotation.WithNoErrorAndZeroPower(current.xErrorData
-                                                .readDouble(l) / Math.pow(10, axesPowers.xAxisPower)));
-                                        output.append("}");
-                                    }
-
-                                    if (current.yErrorData != null && !current.yErrorData.isNull(l) &&
-                                            current.yErrorData.readDouble(l) != 0.0)
-                                    {
-                                        output.append("{");
-                                        output.append(ScientificNotation.WithNoErrorAndZeroPower(current.yErrorData
-                                                .readDouble(l) / Math.pow(10, axesPowers.yAxisPower)));
-                                        output.append("}");
-                                    }
-                                    output.append("\n");
-                                }
+                                output.append("xyerr");
+                            }
+                            else
+                            {
+                                output.append("xerr");
                             }
                         }
-
-                        // put the line on the graph if we have a fit
-                        if (current.getFitType() != FitType.NONE)
+                        else if (yErrorData[l] != 0.0)
                         {
-                            // finds out which axis the line starts and ends on and draws it off of those
-                            // otherwise we would get lines that go outside the graph
-                            double xStart = (origAxesRanges.xAxisMinimumValue) / Math.pow(10, axesPowers.xAxisPower);
-                            double yStart = (current.linearFitStrategy.getYOfXPoint(origAxesRanges.xAxisMinimumValue)) /
-                                    Math.pow(10, axesPowers.yAxisPower);
+                            output.append("yerr");
+                        }
 
-                            if (yStart < origAxesRanges.yAxisMinimumValue / Math.pow(10, axesPowers.yAxisPower) ||
-                                    yStart > origAxesRanges.yAxisMaximumValue / Math.pow(10, axesPowers.yAxisPower))
-                            { // if its not on the graph then the other must be
-                                yStart = origAxesRanges.yAxisMinimumValue / Math.pow(10, axesPowers.yAxisPower);
-                                xStart = current.linearFitStrategy.getXOfYPoint(origAxesRanges.yAxisMinimumValue) / Math
+                        output.append(symbol);
+                        output.append("{");
+                        output.append(ScientificNotation.WithNoErrorAndZeroPower((xData[l] - xAdjForSmall) / Math.pow(
+                                10, axesPowers.xAxisPower)));
+                        output.append("}{");
+                        output.append(ScientificNotation.WithNoErrorAndZeroPower((yData[l] - yAdjForSmall) / Math.pow(
+                                10, axesPowers.yAxisPower)));
+                        output.append("}");
+
+                        if (xErrorData[l] != 0.0)
+                        {
+                            output.append("{");
+                            output.append(ScientificNotation.WithNoErrorAndZeroPower(xErrorData[l] / Math.pow(10,
+                                    axesPowers.xAxisPower)));
+                            output.append("}");
+                        }
+
+                        if (yErrorData[l] != 0.0)
+                        {
+                            output.append("{");
+                            output.append(ScientificNotation.WithNoErrorAndZeroPower(yErrorData[l] / Math.pow(10,
+                                    axesPowers.yAxisPower)));
+                            output.append("}");
+                        }
+                        output.append("\n");
+                    }
+
+                    // put the line on the graph if we have a fit
+                    if (current.getFitType() != FitType.NONE)
+                    {
+                        // finds out which axis the line starts and ends on and draws it off of those
+                        // otherwise we would get lines that go outside the graph
+                        double xStart = (origAxesRanges.xAxisMinimumValue) / Math.pow(10, axesPowers.xAxisPower);
+                        double yStart = (current.linearFitStrategy.getYOfXPoint(origAxesRanges.xAxisMinimumValue)) /
+                                Math.pow(10, axesPowers.yAxisPower);
+
+                        if (yStart < origAxesRanges.yAxisMinimumValue / Math.pow(10, axesPowers.yAxisPower) ||
+                                yStart > origAxesRanges.yAxisMaximumValue / Math.pow(10, axesPowers.yAxisPower))
+                        { // if its not on the graph then the other must be
+                            yStart = origAxesRanges.yAxisMinimumValue / Math.pow(10, axesPowers.yAxisPower);
+                            xStart = current.linearFitStrategy.getXOfYPoint(origAxesRanges.yAxisMinimumValue) / Math
+                                    .pow(10, axesPowers.xAxisPower);
+                        }
+
+                        double xEnd = (origAxesRanges.xAxisMaximumValue) / Math.pow(10, axesPowers.xAxisPower);
+                        double yEnd = (current.linearFitStrategy.getYOfXPoint(origAxesRanges.xAxisMaximumValue)) / Math
+                                .pow(10, axesPowers.yAxisPower);
+                        if (yEnd > origAxesRanges.yAxisMaximumValue / Math.pow(10, axesPowers.yAxisPower) ||
+                                yEnd < origAxesRanges.yAxisMinimumValue / Math.pow(10, axesPowers.yAxisPower))
+                        { // if its not on the graph then the other must be
+                            yEnd = origAxesRanges.yAxisMaximumValue / Math.pow(10, axesPowers.yAxisPower);
+                            xEnd = current.linearFitStrategy.getXOfYPoint(origAxesRanges.yAxisMaximumValue) / Math.pow(
+                                    10, axesPowers.xAxisPower);
+                            if (xEnd > (origAxesRanges.xAxisMaximumValue) / Math.pow(10, axesPowers.xAxisPower) ||
+                                    xEnd < (origAxesRanges.xAxisMinimumValue) / Math.pow(10, axesPowers.xAxisPower))
+                            {
+                                yEnd = origAxesRanges.yAxisMinimumValue / Math.pow(10, axesPowers.yAxisPower);
+                                xEnd = current.linearFitStrategy.getXOfYPoint(origAxesRanges.yAxisMinimumValue) / Math
                                         .pow(10, axesPowers.xAxisPower);
                             }
+                        }
 
-                            double xEnd = (origAxesRanges.xAxisMaximumValue) / Math.pow(10, axesPowers.xAxisPower);
-                            double yEnd = (current.linearFitStrategy.getYOfXPoint(origAxesRanges.xAxisMaximumValue)) /
-                                    Math.pow(10, axesPowers.yAxisPower);
-                            if (yEnd > origAxesRanges.yAxisMaximumValue / Math.pow(10, axesPowers.yAxisPower) ||
-                                    yEnd < origAxesRanges.yAxisMinimumValue / Math.pow(10, axesPowers.yAxisPower))
-                            { // if its not on the graph then the other must be
-                                yEnd = origAxesRanges.yAxisMaximumValue / Math.pow(10, axesPowers.yAxisPower);
-                                xEnd = current.linearFitStrategy.getXOfYPoint(origAxesRanges.yAxisMaximumValue) / Math
-                                        .pow(10, axesPowers.xAxisPower);
-                                if (xEnd > (origAxesRanges.xAxisMaximumValue) / Math.pow(10, axesPowers.xAxisPower) ||
-                                        xEnd < (origAxesRanges.xAxisMinimumValue) / Math.pow(10, axesPowers.xAxisPower))
-                                {
-                                    yEnd = origAxesRanges.yAxisMinimumValue / Math.pow(10, axesPowers.yAxisPower);
-                                    xEnd = current.linearFitStrategy.getXOfYPoint(origAxesRanges.yAxisMinimumValue) /
-                                            Math.pow(10, axesPowers.xAxisPower);
-                                }
-                            }
+                        if (Double.isNaN(xStart) || Double.isNaN(xEnd))
+                        {
+                            xStart = origAxesRanges.xAxisMaximumValue;
+                            xEnd = origAxesRanges.xAxisMaximumValue;
+                        }
 
-                            if (Double.isNaN(xStart) || Double.isNaN(xEnd))
+                        if (Double.isNaN(yStart) || Double.isNaN(yEnd))
+                        {
+                            yStart = origAxesRanges.yAxisMaximumValue;
+                            yEnd = origAxesRanges.yAxisMaximumValue;
+                        }
+
+                        output.append("\t\\putline{");
+                        output.append(ScientificNotation.WithNoErrorAndZeroPower(xStart - xAdjForSmall /
+                                yAxisPowerMultiplier));
+                        output.append("}{");
+                        output.append(ScientificNotation.WithNoErrorAndZeroPower(yStart - yAdjForSmall /
+                                yAxisPowerMultiplier));
+                        output.append("}{");
+                        output.append(ScientificNotation.WithNoErrorAndZeroPower(xEnd - xAdjForSmall /
+                                xAxisPowerMultiplier));
+                        output.append("}{");
+                        output.append(ScientificNotation.WithNoErrorAndZeroPower(yEnd - yAdjForSmall /
+                                xAxisPowerMultiplier));
+                        output.append("}\n");
+
+                        // do the result on graphs part if they are selected to be displayed
+                        if (graphingArea.resultsAreDisplayedOnGraph)
+                        {
+                            ResultsDisplayData resultsDisplay = graphingArea.GetResultsDisplayData();
+
+                            String kStr = "";
+                            if (graphingArea.dataSetSelector.getItemCount() > 1)
                             {
-                                xStart = origAxesRanges.xAxisMaximumValue;
-                                xEnd = origAxesRanges.xAxisMaximumValue;
+                                kStr = "$_{" + (k + 1) + "}$";
                             }
 
-                            if (Double.isNaN(yStart) || Double.isNaN(yEnd))
-                            {
-                                yStart = origAxesRanges.yAxisMaximumValue;
-                                yEnd = origAxesRanges.yAxisMaximumValue;
-                            }
+                            double defaultResultsLength = currentFontMeasurements.stringWidth("m = 0.0000");
+                            double currentResultsLength = graphingArea.getLongestResultsLength();
+                            // this is y = mx + b from plotting desired spacing at 3 different font sizes and then
+                            // fitting a line to it
+                            String xPosStr = "" + (laTexGraphWidthInCm - (1 + exportFontSize * 0.1) *
+                                    (currentResultsLength / defaultResultsLength) -
+                                    (double) resultsDisplay.resultsPositionX / resultsDisplay.graphWidthAfterPadding *
+                                            laTexGraphWidthInCm);
 
-                            output.append("\t\\putline{");
-                            output.append(ScientificNotation.WithNoErrorAndZeroPower(xStart - xAdjForSmall /
-                                    yAxisPowerMultiplier));
+                            double yFontSizeInGraphUnits = 0.35 * (exportFontSize / 12.0);
+                            double yResPos = -yFontSizeInGraphUnits / 2 + (double) resultsDisplay.resultsPositionY /
+                                    resultsDisplay.graphHeightAfterPadding * laTexGraphHeightInCm;
+
+                            String resultsSuffixString = "}{" + axesRanges.xAxisMinimumValue / xAxisPowerMultiplier +
+                                    "}{" + axesRanges.yAxisMinimumValue / yAxisPowerMultiplier + "}\n";
+                            output.append("\t\\putresults{y");
+                            output.append(kStr);
+                            output.append(" = m");
+                            output.append(kStr);
+                            output.append("x + b");
+                            output.append(kStr);
                             output.append("}{");
-                            output.append(ScientificNotation.WithNoErrorAndZeroPower(yStart - yAdjForSmall /
-                                    yAxisPowerMultiplier));
+                            output.append(xPosStr);
                             output.append("}{");
-                            output.append(ScientificNotation.WithNoErrorAndZeroPower(xEnd - xAdjForSmall /
-                                    xAxisPowerMultiplier));
+                            output.append(ScientificNotation.WithNoErrorAndZeroPower(yResPos + yFontSizeInGraphUnits *
+                                    3));
+                            output.append(resultsSuffixString);
+                            output.append("\t\\putresults{m");
+                            output.append(kStr);
+                            output.append(" = ");
+                            output.append(current.linearFitStrategy.getSlopeAsString(
+                                    resultsDisplay.resultsDecimalPlaces, resultsDisplay.resultsUseScientificNotation,
+                                    true));
                             output.append("}{");
-                            output.append(ScientificNotation.WithNoErrorAndZeroPower(yEnd - yAdjForSmall /
-                                    xAxisPowerMultiplier));
-                            output.append("}\n");
-
-                            // do the result on graphs part if they are selected to be displayed
-                            if (graphingArea.resultsAreDisplayedOnGraph)
-                            {
-                                ResultsDisplayData resultsDisplay = graphingArea.GetResultsDisplayData();
-
-                                String kStr = "";
-                                if (graphingArea.dataSetSelector.getItemCount() > 1)
-                                {
-                                    kStr = "$_{" + (k + 1) + "}$";
-                                }
-
-                                double defaultResultsLength = currentFontMeasurements.stringWidth("m = 0.0000");
-                                double currentResultsLength = graphingArea.getLongestResultsLength();
-                                String xPosStr = "" + (laTexGraphWidthInCm - (1 + exportFontSize * 0.1) * // this
-                                                                                                          // is
-                                                                                                          // y
-                                                                                                          // =
-                                                                                                          // mx
-                                                                                                          // +
-                                                                                                          // b
-                                                                                                          // from
-                                                                                                          // plotting
-                                                                                                          // desired
-                                                                                                          // spacing
-                                                                                                          // at
-                                                                                                          // 3
-                                                                                                          // different
-                                                                                                          // font
-                                                                                                          // sizes
-                                                                                                          // and
-                                                                                                          // then
-                                                                                                          // fitting
-                                                                                                          // a
-                                                                                                          // line
-                                                                                                          // to
-                                                                                                          // it
-                                        (currentResultsLength / defaultResultsLength) -
-                                        (double) resultsDisplay.resultsPositionX /
-                                                resultsDisplay.graphWidthAfterPadding * laTexGraphWidthInCm);
-
-                                double yFontSizeInGraphUnits = 0.35 * (exportFontSize / 12.0);
-                                double yResPos = -yFontSizeInGraphUnits / 2 + (double) resultsDisplay.resultsPositionY /
-                                        resultsDisplay.graphHeightAfterPadding * laTexGraphHeightInCm;
-
-                                String resultsSuffixString = "}{" + axesRanges.xAxisMinimumValue /
-                                        xAxisPowerMultiplier + "}{" + axesRanges.yAxisMinimumValue /
-                                                yAxisPowerMultiplier + "}\n";
-                                output.append("\t\\putresults{y");
-                                output.append(kStr);
-                                output.append(" = m");
-                                output.append(kStr);
-                                output.append("x + b");
-                                output.append(kStr);
-                                output.append("}{");
-                                output.append(xPosStr);
-                                output.append("}{");
-                                output.append(ScientificNotation.WithNoErrorAndZeroPower(yResPos +
-                                        yFontSizeInGraphUnits * 3));
-                                output.append(resultsSuffixString);
-                                output.append("\t\\putresults{m");
-                                output.append(kStr);
-                                output.append(" = ");
-                                output.append(current.linearFitStrategy.getSlopeAsString(
-                                        resultsDisplay.resultsDecimalPlaces,
-                                        resultsDisplay.resultsUseScientificNotation, true));
-                                output.append("}{");
-                                output.append(xPosStr);
-                                output.append("}{");
-                                output.append(ScientificNotation.WithNoErrorAndZeroPower(yResPos +
-                                        yFontSizeInGraphUnits * 2));
-                                output.append(resultsSuffixString);
-                                output.append("\t\\putresults{b");
-                                output.append(kStr);
-                                output.append(" = ");
-                                output.append(current.linearFitStrategy.getInterceptAsString(
-                                        resultsDisplay.resultsDecimalPlaces, axesPowers.yAxisPower,
-                                        resultsDisplay.resultsUseScientificNotation, true));
-                                output.append("}{");
-                                output.append(xPosStr);
-                                output.append("}{");
-                                output.append(ScientificNotation.WithNoErrorAndZeroPower(yResPos +
-                                        yFontSizeInGraphUnits));
-                                output.append(resultsSuffixString);
-                            }
+                            output.append(xPosStr);
+                            output.append("}{");
+                            output.append(ScientificNotation.WithNoErrorAndZeroPower(yResPos + yFontSizeInGraphUnits *
+                                    2));
+                            output.append(resultsSuffixString);
+                            output.append("\t\\putresults{b");
+                            output.append(kStr);
+                            output.append(" = ");
+                            output.append(current.linearFitStrategy.getInterceptAsString(
+                                    resultsDisplay.resultsDecimalPlaces, axesPowers.yAxisPower,
+                                    resultsDisplay.resultsUseScientificNotation, true));
+                            output.append("}{");
+                            output.append(xPosStr);
+                            output.append("}{");
+                            output.append(ScientificNotation.WithNoErrorAndZeroPower(yResPos + yFontSizeInGraphUnits));
+                            output.append(resultsSuffixString);
                         }
                     }
                 }
@@ -795,7 +767,7 @@ public class ExportIO implements HasOptionsToSave, HasOptionsToDisplay
         // axes
 
         String graphName = "", xAxisDescription = "", yAxisDescription = "";
-        GraphMetaData metaData = graphingArea.GetGraphMetaData();
+        GraphMetaData metaData = graphingArea.getGraphMetaData();
 
         // put the begining part
         if (Math.abs(xAxisSpan) / Math.pow(10, origAxesPowers.xAxisPower) >= 0.1)

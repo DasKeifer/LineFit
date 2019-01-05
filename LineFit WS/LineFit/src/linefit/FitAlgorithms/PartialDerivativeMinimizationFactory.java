@@ -12,7 +12,8 @@
 
 package linefit.FitAlgorithms;
 
-import linefit.DataColumn;
+
+import linefit.DataDimension;
 import linefit.DataSet;
 
 
@@ -20,7 +21,7 @@ import linefit.DataSet;
  * during run time, allowing the user to change the algorithm
  * 
  * @author Keith Rice
- * @version 1.0
+ * @version 1.1
  * @since 0.98.1 */
 class PartialDerivativeMinimizationFactory extends LinearFitFactory
 {
@@ -50,7 +51,7 @@ class PartialDerivativeMinimizationFactory extends LinearFitFactory
      * 
      * @param dataSet The DataSet that the new FitStrategy will use for data and fit its line to
      * @return Returns a new LinearFitStrategy that is an instance of whatever the instance this is called on subclass
-     * Algorithm */
+     *         Algorithm */
     public LinearFitStrategy createNewLinearFitStartegy(DataSet dataSet)
     {
         return new PartialDerivativeMinimizationStrategy(dataSet);
@@ -114,14 +115,15 @@ class PartialDerivativeMinimizationFactory extends LinearFitFactory
         private void minimizePartialDerivatesOfErrors()
         {
             double scope;
-            // FitData fitData = new FitData();
             double m1, m2, m3, chi1, chi2, chi3, numerator, denominator, weight, delta;
-            double sumX = 0.0, sumXX = 0.0/* , sumYY = 0.0, sumXY = 0.0 */, sumW = 0.0;
+            double sumX = 0.0, sumXX = 0.0, sumW = 0.0;
 
-            DataColumn xData = dataForFit.getXData();
-            DataColumn yData = dataForFit.getYData();
-            DataColumn xErrorData = dataForFit.getXErrorData();
-            DataColumn yErrorData = dataForFit.getYErrorData();
+            // get the data that are valid (have x and y data)
+            double[][] data = dataForFit.getAllValidPointsData(true);
+            double[] xData = data[DataDimension.X.getColumnIndex()];
+            double[] yData = data[DataDimension.Y.getColumnIndex()];
+            double[] xErrorData = data[DataDimension.X.getErrorColumnIndex()];
+            double[] yErrorData = data[DataDimension.Y.getErrorColumnIndex()];
 
             // This is the minimization equation that is being used
             // ////////////////////////////////////////////////////////////////
@@ -165,44 +167,36 @@ class PartialDerivativeMinimizationFactory extends LinearFitFactory
             }
 
             double sigmaSquared = 0.0, xs = 0.0, ys = 0.0, ws = 0.0;
-            double eX = 0.0, eY = 0.0, x = 0.0, y = 0.0;
             if (whatIsFixed != FixedVariable.INTERCEPT)
             {
                 // now calculate the final intercept with our minimized error slope
-                for (int j = 0; j < xData.getData().size(); j++)
+                for (int j = 0; j < xData.length; j++)
                 {
-                    if (!xData.isNull(j) && !yData.isNull(j) && !xErrorData.isNull(j) && !yErrorData.isNull(j))
+                    if (xErrorData[j] != 0 && yErrorData[j] != 0)
                     {
-                        x = xData.readDouble(j);
-                        y = yData.readDouble(j);
-                        eX = xErrorData.readDouble(j);
-                        eY = yErrorData.readDouble(j);
-
-                        sigmaSquared = Math.pow(eY, 2) + (Math.pow(slope, 2) * Math.pow(eX, 2));
+                        sigmaSquared = Math.pow(yErrorData[j], 2) + (Math.pow(slope, 2) * Math.pow(xErrorData[j], 2));
                         ws += 1.0 / sigmaSquared;
-                        xs += x / sigmaSquared;
-                        ys += y / sigmaSquared;
+                        xs += xData[j] / sigmaSquared;
+                        ys += yData[j] / sigmaSquared;
                     }
                 }
                 intercept = (ys - slope * xs) / ws;
             }
 
             // After minimization, calculate errors to parameters again
-            for (int i = 0; i < xData.getData().size(); i++)
+            double x = 0.0, eY = 0.0, eX = 0.0;
+            for (int i = 0; i < xData.length; i++)
             {
-                if (!xData.isNull(i) && !yData.isNull(i) && !xErrorData.isNull(i) && !yErrorData.isNull(i))
+                if (xErrorData[i] != 0 && yErrorData[i] != 0)
                 {
-                    x = xData.readDouble(i);
-                    // double y = yData.readData(i);
-                    eX = xErrorData.readDouble(i);
-                    eY = yErrorData.readDouble(i);
+                    x = xData[i];
+                    eX = xErrorData[i];
+                    eY = yErrorData[i];
 
                     weight = 1.0 / (eY * eY + slope * slope * eX * eX);
 
                     sumX += x * weight;
                     sumXX += x * x * weight;
-                    // sumXY += x * y * weight;
-                    // sumYY += y * y * weight;
                     sumW += weight;
                 }
             }

@@ -12,19 +12,24 @@
 
 package linefit.FitAlgorithms;
 
+
+import java.util.ArrayList;
+
+import linefit.DataDimension;
+
+
 /** This enumeration is used to keep track of the FitType and handles its basic functions that allow it to be treated as
  * a string or a number
- * 
  * <ul>
- * <li>0 - Don't show fit
- * <li>1 - Show fit but don't factor errors into the fit
- * <li>2 - Factor horizontal errors into the fit only
- * <li>3 - Factor vertical errors into the fit only
- * <li>4 - Factor both horizontal errors and vertical errors into the fit
+ * <li>NONE - Don't show fit
+ * <li>REGULAR - Show fit but don't factor errors into the fit
+ * <li>X_ERROR - Factor horizontal errors into the fit only
+ * <li>Y_ERROR - Factor vertical errors into the fit only
+ * <li>BOTH_ERRORS - Factor both horizontal errors and vertical errors into the fit
  * </ul>
  * 
  * @author Keith Rice
- * @version 1.1.0
+ * @version 1.2.0
  * @since &lt;0.98.0 */
 public enum FitType
 {
@@ -57,5 +62,27 @@ public enum FitType
     public String toString()
     {
         return getDisplayString();
+    }
+
+    /** Appends the appropriate fit types for the passed list of error dimensions to the passed in list
+     * 
+     * @param allowedFits The list to append all valid fits based on error dimensions to
+     * @param dimensions The list of the valid error dimensions to add the fits for */
+    public static void appendAllAllowedFitsForErrorDimensions(ArrayList<FitType> allowedFits, ArrayList<
+            DataDimension> dimensions)
+    {
+        if (dimensions.contains(DataDimension.X))
+        {
+            allowedFits.add(X_ERROR);
+            if (dimensions.contains(DataDimension.Y))
+            {
+                allowedFits.add(Y_ERROR);
+                allowedFits.add(BOTH_ERRORS);
+            }
+        }
+        else if (dimensions.contains(DataDimension.Y))
+        {
+            allowedFits.add(Y_ERROR);
+        }
     }
 }

@@ -41,7 +41,7 @@ public abstract class LinearFitFactory
             if (fitAlgorithmFactories[i].toString().equalsIgnoreCase(passedName))
             {
                 return fitAlgorithmFactories[i];
-            }
+            } 
         }
         return fitAlgorithmFactories[0];
     }

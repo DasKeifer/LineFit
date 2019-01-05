@@ -12,6 +12,7 @@
 
 package linefit.IO;
 
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -162,7 +163,7 @@ public class LineFitFileIO
                 {
                     // read and determine which version of file we are using - we don't really do much with because
                     // right now the versions are similar enough we handle all of them with the same read methods
-                    readAndCheckVersion(inputReader);
+                    readAndCheckFileVersion(inputReader);
 
                     // now keep reading in the file
                     String lineRead = "";
@@ -226,7 +227,7 @@ public class LineFitFileIO
 
                             // if we didn't find it as valid setting give a warning an continue -
                             // it may just be a currently unsupported setting
-                            if (!lineFit.readInData(trimmedLine, newDataSet))
+                            if (!lineFit.readInDataAndDataOptions(trimmedLine, newDataSet))
                             {
                                 System.err.println("Error reading in DataSet - Continuing: " + lineRead);
                             }
@@ -278,7 +279,7 @@ public class LineFitFileIO
      * 
      * @param inputReader The BufferefReader for the LineFit file being read in
      * @throws IOException If the BufferedReader encounters and error */
-    private void readAndCheckVersion(BufferedReader inputReader) throws IOException
+    private void readAndCheckFileVersion(BufferedReader inputReader) throws IOException
     {
         // save our spot first - the original format doesn't have a version
         inputReader.mark(100);
@@ -294,17 +295,21 @@ public class LineFitFileIO
                 if (relationship.isNewerVersion())
                 {
                     // ask them if they want to still try reading in the file
-                    int confirm = JOptionPane.showConfirmDialog(lineFit,
-                            "This File was created with a newer LineFit file format protocol." +
-                                    " Because of this, data could be missed or read in incorrectly. " +
-                                    "Continue loading data from it?", "Time Traveling File",
-                            JOptionPane.OK_CANCEL_OPTION);
+                    int confirm = JOptionPane.showConfirmDialog(lineFit, "This file was created with a newer LineFit " +
+                            "file format. Because of this, data could be missed or read in incorrectly. Continue " +
+                            "loading data from it?", "Time Traveling File", JOptionPane.OK_CANCEL_OPTION);
                     if (confirm != JOptionPane.OK_OPTION)
                     {
                         // if they don't than close us of and return
                         inputReader.close();
                         return;
                     }
+                }
+                else if (relationship.isOlderVersion())
+                {
+                    JOptionPane.showMessageDialog(lineFit, "The file was created with an older LineFit file format." +
+                            " When the file is saved, the file format will be updated.", "Old File Version",
+                            JOptionPane.INFORMATION_MESSAGE);
                 }
                 else if (relationship.isBadComparison())
                 {
@@ -408,7 +413,7 @@ public class LineFitFileIO
         // get and save all the datasets variables
         lineNames.clear();
         lineValues.clear();
-        lineFit.retrieveAllData(lineNames, lineValues);
+        lineFit.retrieveAllDataAndDataOptions(lineNames, lineValues);
         for (int i = 0; i < lineNames.size(); i++)
         {
             // use the graph level line starter for new datasets and add a empty line for ease of readability

@@ -12,15 +12,17 @@
 
 package linefit;
 
+
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import linefit.IO.ChangeTracker;
 
 
 /** This class provides the columns for the GraphSet that are used to input and store data
  * 
- * @author Unknown
- * @version 1.0
+ * @author Keith Rice
+ * @version 2.0
  * @since &lt;0.98.0 */
 public class DataColumn
 {
@@ -31,20 +33,14 @@ public class DataColumn
     /** The List of all the data stored this column */
     private ArrayList<Double> data;
 
-    /** The default constructor for this class */
-    public DataColumn(ChangeTracker parentChangeTracker)
-    {
-        changeTracker = parentChangeTracker;
-        data = new ArrayList<Double>();
-    }
-
-    /** Creates a GraphColumn with the name "column " with the integer appended at the end
+    /** The default constructor for this class
      * 
-     * @param num the number one less than the number to use for the column number to account for zero indexing */
-    public DataColumn(int num)
+     * @param name The name of the data column
+     * @param parentChangeTracker The change tracker to notify if a change in the data column occurred */
+    public DataColumn(String name, ChangeTracker parentChangeTracker)
     {
-        // this adds one so to account for zero indexing
-        setColumnName("Column " + ++num);
+        columnName = name;
+        changeTracker = parentChangeTracker;
         data = new ArrayList<Double>();
     }
 
@@ -98,8 +94,8 @@ public class DataColumn
      * currently have
      * 
      * @param rowIndex The index of the row to write to
-     * @param toWrite The String to write into the row with the given index */
-    void writeData(int rowIndex, String toWrite)
+     * @param entry The Double to write into the row with the given index. This can be null. */
+    void writeData(int rowIndex, Double entry)
     {
         // We have to use a string so we can catch the null exception
         while (rowIndex >= data.size())
@@ -107,15 +103,8 @@ public class DataColumn
             data.add(null);
         }
 
-        try
-        {
-            changeTracker.setFileModified();
-            data.set(rowIndex, Double.parseDouble(toWrite));
-        }
-        catch (Exception e)
-        {
-            data.set(rowIndex, null);
-        }
+        changeTracker.setFileModified();
+        data.set(rowIndex, entry);
     }
 
     /** Reads the value from the row with the given index
@@ -153,53 +142,61 @@ public class DataColumn
     }
 
     // Getters
-    /** Gets an array list that contains the double values of all the rows in this column
-     * 
-     * @return Returns an array with all the row's data in it */
-    public ArrayList<Double> getData()
-    {
-        return data;
-    }
-
     /** Gets the name of this GraphColumn
      * 
      * @return Returns the String that is this GraphColumn's name */
     public String getName()
     {
-        return getColName();
+        return columnName;
+    }
+
+    /** Gets an array list that contains the double values of all the rows in this column. This may have null values in
+     * between other valid values
+     * 
+     * @return Returns an array with all the column's data in it */
+    public Double[] getData()
+    {
+        return data.toArray(new Double[data.size()]);
+    }
+
+    /** Gets an array list that contains the double values of all the rows in this column with any null values removed
+     * 
+     * @return Returns an array with all the column's non-null data in it */
+    public Double[] getDataNonNull()
+    {
+        return data.toArray(new Double[data.size()]);
+    }
+
+    /** Gets the value of the column at the passed index of null if there is no data in the passed index
+     * 
+     * @param index The index to retrieve the data at
+     * @return Returns the value at the passed index or null if there is none */
+    public Double getDataAt(int index)
+    {
+        try
+        {
+            return data.get(index);
+        }
+        catch (IndexOutOfBoundsException iobe)
+        {
+            return null;
+        }
+    }
+
+    /** Gets the size/length of this DataColumn
+     * 
+     * @return Returns the size/length of this DataColumn */
+    public int getDataSize()
+    {
+        return data.size();
     }
 
     // Setters
-    /** Sets the data in the rows of this GraphColumn to the values in the passed array list
+    /** Sets the data in the rows of this DataColumn to the values in the passed array
      * 
-     * @param data The array list of data to be put into the Graph Column */
-    public void setData(ArrayList<Double> data)
+     * @param data The array of data to be put into the DataColumn */
+    private void setData(Double[] data)
     {
-        this.data = data;
-    }
-
-    /** Sets the name of this GraphColumn
-     * 
-     * @param name The name to use */
-    public void setName(String name)
-    {
-        changeTracker.setFileModified();
-        setColumnName(name);
-    }
-
-    /** Sets this GraphColumn's name to the given name
-     * 
-     * @param columnName Sets this column's name to the passed name */
-    public void setColumnName(String columnName)
-    {
-        this.columnName = columnName;
-    }
-
-    /** Gets this GraphColumn's name
-     * 
-     * @return Returns a String containing the name of this GraphColumn */
-    public String getColName()
-    {
-        return columnName;
+        this.data = new ArrayList<>(Arrays.asList(data));
     }
 }

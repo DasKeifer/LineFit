@@ -65,6 +65,8 @@ public class DataSet extends JScrollPane implements HasDataToSave
     private JTable tableContainingData;
     /** The model of the Table to use for inputting and storing data */
     DataSetTableModel dataTableModel;
+    /** The model of the Table to use for inputting and storing data */
+    DataSetTableListener dataTableListener;
     /** The name of this graph set to be displayed to the user */
     private String dataSetName;
     /** If the current GraphDataSet is visible and should be drawn to the GraphArea */
@@ -114,6 +116,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
         dataColumns = new DataColumn[DataDimension.getNumberOfDimensions()];
         errorColumns = new DataColumn[DataDimension.getNumberOfDimensions()];
         dataTableModel = new DataSetTableModel();
+        dataTableListener = new DataSetTableListener(onUpdateFitTypesAction);
         tableContainingData = new JTable(dataTableModel);
         tableContainingData.setGridColor(Color.gray);
 
@@ -143,7 +146,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
             dataTableModel.addColumn(dataColumns[i].getName());
         }
 
-        dataTableModel.addTableModelListener(new GraphSetListener(onUpdateFitTypesAction));
+        dataTableModel.addTableModelListener(dataTableListener);
 
         tableContainingData.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_R, 0, false), "MY_CUSTOM_ACTION");
         dataSetColor = Color.BLACK;
@@ -482,7 +485,17 @@ public class DataSet extends JScrollPane implements HasDataToSave
                 case "colnum":
                 case "numberofcolumns":
                 {
-                    // Not used anymore
+                    try
+                    {
+                        setNumberOfDisplayedColumns(Integer.parseInt(valueForField));
+                    }
+                    catch (NumberFormatException e)
+                    {
+                        setNumberOfDisplayedColumns(DataDimension.getNumberOfDimensions() * 2);
+                        System.err.println(
+                                "Error reading in number of columns in DataSet - Defaulting to max number - Continuing: " +
+                                        line);
+                    }
                     break;
                 }
                 case "fittype":
@@ -502,6 +515,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
                     if (!foundFitType)
                     {
                         this.setFitType(FitType.NONE);
+                        System.err.println("Error reading fit type - Defaulting to None - Continuing: " + line);
                     }
                     break;
                 }
@@ -595,6 +609,9 @@ public class DataSet extends JScrollPane implements HasDataToSave
                 case "p":
                 case "datapoint":
                 {
+                    // Temporarily disable the dataset table listener to prevent it from updating prematurely
+                    dataTableListener.setListenerEnabled(false);
+
                     // split it up into the separate string parts
                     String[] splitPointValuesInput = valueForField.split(" ");
 
@@ -614,17 +631,26 @@ public class DataSet extends JScrollPane implements HasDataToSave
                         }
                         try
                         {
-                            dataColumns[column].writeData(row, value);
+                            if (column < DataDimension.getNumberOfDimensions())
+                            {
+                                dataColumns[column].writeData(row, value);
+                            }
+                            else
+                            {
+                                errorColumns[column - DataDimension.getNumberOfDimensions()].writeData(row, value);
+                            }
                             dataTableModel.setValueAt(value, row, column);
                         }
                         catch (IndexOutOfBoundsException iobe)
                         {
                             System.err.println(
-                                    "Error reading in DataPoint - More values specified than columns - Continuing: " +
+                                    "Error reading in DataPoint - More values specified than columns in data model - Continuing: " +
                                             line);
                             break;
                         }
                     }
+                    // Don't forget to reenable the dataset table listener
+                    dataTableListener.setListenerEnabled(true);
                     break;
                 }
                 default:
@@ -650,6 +676,8 @@ public class DataSet extends JScrollPane implements HasDataToSave
     {
         if (dataTableModel.hasData())
         {
+            variableNames.add("NumberOfColumns");
+            variableValues.add(Integer.toString(DataDimension.getNumberOfDimensions() + errorColumnsDisplayed));
             variableNames.add("FitType");
             variableValues.add(dataSetFitType.toString());
             variableNames.add("WhatIsFixed");
@@ -1177,20 +1205,42 @@ public class DataSet extends JScrollPane implements HasDataToSave
      * @author Keith Rice
      * @version 2.0
      * @since &lt;0.98.0 */
-    private class GraphSetListener implements TableModelListener
+    private class DataSetTableListener implements TableModelListener
     {
         /** True if we are in the process of updating the table so we can tell if we called ourself to prevent infinite
          * recursion */
         boolean alreadyUpdatingTable = false;
+        /** True if the listener is enabled, false otherwise. This allows us to change data internally without calling
+         * the listener */
+        boolean enabled = false;
         /** The action to run when the allowable fit types are updated */
         Runnable onUpdateFitTypesAction;
 
-        /** Constructor for the GraphSetListener
+        /** Constructor for the DataSetTableListener
          * 
          * @param inOnUpdateFitTypesAction The action to run when the fit types for this data are updated */
-        GraphSetListener(Runnable inOnUpdateFitTypesAction)
+        DataSetTableListener(Runnable inOnUpdateFitTypesAction)
         {
             onUpdateFitTypesAction = inOnUpdateFitTypesAction;
+        }
+
+        /** Enables or disables the listener to allow for data updates internally without triggering the listener
+         * 
+         * @param enable True to enable it, false to disable it */
+        public void setListenerEnabled(boolean enable)
+        {
+            enabled = enable;
+
+            if (enabled)
+            {
+                runTableUpdatedOrEnabledActions();
+            }
+        }
+
+        private void runTableUpdatedOrEnabledActions()
+        {
+            refreshFitData();
+            onUpdateFitTypesAction.run();
         }
 
         /** Validates and Updates the data in the column at the passed index as appropriate
@@ -1264,7 +1314,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
         {
             // if this event was fired while we were modifying the table, then ignore it because it was due to our
             // modifications.
-            if (!(alreadyUpdatingTable))
+            if (enabled && !alreadyUpdatingTable)
             {
                 alreadyUpdatingTable = true;
 
@@ -1285,8 +1335,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
 
                 }
 
-                refreshFitData();
-                onUpdateFitTypesAction.run();
+                runTableUpdatedOrEnabledActions();
                 alreadyUpdatingTable = false;
             }
         }

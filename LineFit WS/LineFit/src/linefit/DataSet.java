@@ -92,6 +92,11 @@ public class DataSet extends JScrollPane implements HasDataToSave
     /** The shape of this DataSet when drawn to the GraphArea */
     private Shape dataSetShape;
 
+
+    private ArrayList<DataDimension> errorColumnsInFile;
+
+    // TODO: Have a preferred fit type that was the last selected so that we can update it as the input data
+
     /** The predefined colors that are used for DataSets */
     public static final Color[] predefinedColors = new Color[] { Color.BLACK, Color.YELLOW, Color.BLUE, Color.GREEN,
             Color.ORANGE, Color.RED };
@@ -331,7 +336,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
         ArrayList<FitType> fits = new ArrayList<FitType>();
         fits.add(FitType.NONE);
 
-        ArrayList<Integer> validPoints = getIndexesOfValidPoints(); // TODO: Don't use valid points always?
+        ArrayList<Integer> validPoints = getIndexesOfValidPoints();
         if (validPoints.size() > 1)
         {
             fits.add(FitType.REGULAR);
@@ -485,17 +490,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
                 case "colnum":
                 case "numberofcolumns":
                 {
-                    try
-                    {
-                        setNumberOfDisplayedColumns(Integer.parseInt(valueForField));
-                    }
-                    catch (NumberFormatException e)
-                    {
-                        setNumberOfDisplayedColumns(DataDimension.getNumberOfDimensions() * 2);
-                        System.err.println(
-                                "Error reading in number of columns in DataSet - Defaulting to max number - Continuing: " +
-                                        line);
-                    }
+                    // No longer used
                     break;
                 }
                 case "fittype":
@@ -601,6 +596,14 @@ public class DataSet extends JScrollPane implements HasDataToSave
                     }
                     break;
                 }
+                case "UnsavedErrorDims":
+                    errorColumnsInFile = new ArrayList<DataDimension>();
+                    String[] splitDimValuesInput = valueForField.split(" ");
+                    for (int i = 0; i < splitDimValuesInput.length; i++)
+                    {
+                        errorColumnsInFile.add(DataDimension.valueOf(splitDimValuesInput[i]));
+                    }
+                    break;
                 case "colname":
                     break; // we don't use this anymore but we don't want to cause errors when reading old files int.
                            // visibleDataColumns.get(colNum).setName(valueForField); break;
@@ -619,6 +622,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
                     // can just use the data size of the first column to determine
                     // the next row to add at.
                     int row = dataColumns[0].dataSize();
+                    int nextErrorIdx = 0;
                     for (int column = 0; column < splitPointValuesInput.length; column++)
                     {
                         String pointValueString = splitPointValuesInput[column];
@@ -637,7 +641,16 @@ public class DataSet extends JScrollPane implements HasDataToSave
                             }
                             else
                             {
-                                errorColumns[column - DataDimension.getNumberOfDimensions()].writeData(row, value);
+                                // Check and get the next unskipped error
+                                // For each skipped error, check if the next column is this one
+                                for (int skip = 0; skip < errorColumnsInFile.size(); skip++)
+                                {
+                                    if (errorColumnsInFile.get(skip).getColumnIndex() == nextErrorIdx)
+                                    {
+                                        nextErrorIdx++;
+                                    }
+                                }
+                                errorColumns[nextErrorIdx].writeData(row, value);
                             }
                             dataTableModel.setValueAt(value, row, column);
                         }
@@ -676,8 +689,6 @@ public class DataSet extends JScrollPane implements HasDataToSave
     {
         if (dataTableModel.hasData())
         {
-            variableNames.add("NumberOfColumns");
-            variableValues.add(Integer.toString(DataDimension.getNumberOfDimensions() + errorColumnsDisplayed));
             variableNames.add("FitType");
             variableValues.add(dataSetFitType.toString());
             variableNames.add("WhatIsFixed");
@@ -703,6 +714,23 @@ public class DataSet extends JScrollPane implements HasDataToSave
             variableNames.add("Color");
             variableValues.add(getColorString());
 
+            if (errorColumnsDisplayed < DataDimension.getNumberOfDimensions())
+            {
+                variableNames.add("UnsavedErrorDims");
+                String skipDims = "";
+                for (int i = errorColumnsDisplayed; i < DataDimension.getNumberOfDimensions(); i++)
+                {
+                    skipDims += errorColumnsOrder[i].getDisplayString();
+
+                    // If its not the last dim, add a space
+                    if (i < DataDimension.getNumberOfDimensions() - 1)
+                    {
+                        skipDims += " ";
+                    }
+                }
+                variableValues.add(skipDims);
+            }
+
             String datapoint;
             ArrayList<Integer> indexes = getIndexesOfValidPoints();
             for (Integer index : indexes)
@@ -718,9 +746,17 @@ public class DataSet extends JScrollPane implements HasDataToSave
                     datapoint += dataColumns[j].getDataAt(index);
                 }
 
-                for (int j = 0; j < errorColumnsDisplayed; j++)
+                // For each data dimension (in order)
+                for (int j = 0; j < DataDimension.getNumberOfDimensions(); j++)
                 {
-                    datapoint += " " + errorColumns[j].getDataAt(index);
+                    // If we find its index in the columns being displayed, then add it to the line
+                    for (int k = 0; k < errorColumnsDisplayed; k++)
+                    {
+                        if (errorColumnsOrder[k].getColumnIndex() == j)
+                        {
+                            datapoint += " " + errorColumns[j].getDataAt(index);
+                        }
+                    }
                 }
 
                 variableValues.add(datapoint);

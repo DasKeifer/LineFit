@@ -141,9 +141,14 @@ public class ExportIO implements HasOptionsToSave, HasOptionsToDisplay
 
     /** Reads in the options associated with exporting in from the LineFit data file
      * 
+     * @param lineRead The line to attempt to read a setting from
+     * @param applyOption True if the option should be applied or false if the option should only be used for reading in
+     *        the data (for example something like reading and storing temporarily the option for determining if the
+     *        single error value is x error or y error)
+     * 
      * @returns True if an export option was found in the passed line and False if the line did not contain an export
      *          option */
-    public boolean readInOption(String lineRead)
+    public boolean readInOption(String lineRead, boolean applyOption)
     {
         // split the input into the two parts
         // we can't use split because it will mess up on names
@@ -158,13 +163,13 @@ public class ExportIO implements HasOptionsToSave, HasOptionsToDisplay
             switch (field)
             {
                 case "pdfpagewidth":
-                    pdfPageWidth = Double.parseDouble(valueForField);
+                    if (applyOption) pdfPageWidth = Double.parseDouble(valueForField);
                     break;
                 case "pdfpageheight":
-                    pdfPageHeight = Double.parseDouble(valueForField);
+                    if (applyOption) pdfPageHeight = Double.parseDouble(valueForField);
                     break;
                 case "exportfontsize":
-                    exportFontSize = Float.parseFloat(valueForField);
+                    if (applyOption) exportFontSize = Float.parseFloat(valueForField);
                     break;
                 default:
                     found = false;

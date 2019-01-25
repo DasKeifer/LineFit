@@ -585,11 +585,16 @@ public class LineFit extends JFrame implements HasOptionsToSave, HasDataToSave
 
     /** Reads in the options associated with exporting in from the LineFit data file
      * 
+     * @param lineRead The line to attempt to read a setting from
+     * @param applyOption True if the option should be applied or false if the option should only be used for reading in
+     *        the data (for example something like reading and storing temporarily the option for determining if the
+     *        single error value is x error or y error)
+     * 
      * @returns True if an export option was found in the passed line and False if the line did not contain an export
      *          option */
-    public boolean readInOption(String line)
+    public boolean readInOption(String line, boolean applyOption)
     {
-        return graphingArea.readInOption(line);
+        return graphingArea.readInOption(line, applyOption);
     }
 
     /** Reads in data or an option related to the data from the passed in line

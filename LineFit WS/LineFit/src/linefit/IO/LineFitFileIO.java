@@ -197,18 +197,19 @@ public class LineFitFileIO
                                 newDataSet = true;
                                 continue;
                             }
-                            // otherwise it is a "graph" setting and only import it if they
-                            // selected to read in the graph settings
-                            else if (importSettings)
+                            // otherwise it is a "graph" setting so let linefit know it should not be applied but it
+                            // still may be applicable such as the case with determining whether the x or y data is
+                            // first in the file
+                            else
                             {
                                 // first see if it is an export parameter and if it wasn't check
                                 // if it was a graph setting
-                                boolean found = generalIO.exportIO.readInOption(trimmedLine);
+                                boolean found = generalIO.exportIO.readInOption(trimmedLine, importSettings);
 
                                 // if it wasn't an export setting try loading it as a graph setting
                                 if (!found)
                                 {
-                                    found = lineFit.readInOption(trimmedLine);
+                                    found = lineFit.readInOption(trimmedLine, importSettings);
                                 }
 
                                 // if it wasn't either then print a warning and continue - it may
@@ -289,8 +290,9 @@ public class LineFitFileIO
             // if we found the version line then read it in
             if (versionLine.toLowerCase().startsWith("fileformatversion"))
             {
-                Version.VersionComparisonResult relationship = Version.checkLineFitFileFormatVersionString(versionLine
-                        .substring(versionLine.indexOf(' ') + 1));
+                String versionString = versionLine.substring(versionLine.indexOf(' ') + 1);
+                Version.VersionComparisonResult relationship = Version.checkLineFitFileFormatVersionString(
+                        versionString);
                 // if the version in the file is a newer version than LineFit
                 if (relationship.isNewerVersion())
                 {
@@ -307,6 +309,14 @@ public class LineFitFileIO
                 }
                 else if (relationship.isOlderVersion())
                 {
+                    if (Version.isLineFitFileVersionBefore(versionString, "2.0"))
+                    {
+                        JOptionPane.showMessageDialog(lineFit,
+                                "The file was created with an older LineFit file format that is not fully supported." +
+                                        " The error data columns may be loaded into the wrong columns",
+                                "Partially Supported File Version", JOptionPane.INFORMATION_MESSAGE);
+                    }
+
                     JOptionPane.showMessageDialog(lineFit, "The file was created with an older LineFit file format." +
                             " When the file is saved, the file format will be updated.", "Old File Version",
                             JOptionPane.INFORMATION_MESSAGE);

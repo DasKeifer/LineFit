@@ -39,10 +39,10 @@ public class Version
 
     /** The current LineFit file format's major version number that should only be updated when very significant changes
      * are made or backwards compatibility is broken &#46; It must be updated manually */
-    public static final int LINEFIT_FILE_FORMAT_MAJOR_VERSION = 1;
+    public static final int LINEFIT_FILE_FORMAT_MAJOR_VERSION = 2;
     /** The current LineFit file format's minor version number that should only be updated when new features are added
      * that do not break backwards compatibility&#46; It must be updated manually */
-    public static final int LINEFIT_FILE_FORMAT_MINOR_VERSION = 1;
+    public static final int LINEFIT_FILE_FORMAT_MINOR_VERSION = 0;
 
     /** The current LineFit file version */
     public static final String LINEFIT_FILE_FORMAT_VERSION = LINEFIT_FILE_FORMAT_MAJOR_VERSION + "." +
@@ -211,5 +211,18 @@ public class Version
         {
             return VersionComparisonResult.BAD_VERSION;
         }
+    }
+
+    public static boolean isLineFitFileVersionBefore(String isBefore, String toCheckAgainst)
+    {
+        String[] versionParts1 = isBefore.split("\\.");
+        int majorVersion1 = Integer.parseInt(versionParts1[0].trim());
+        int minorVersion1 = Integer.parseInt(versionParts1[1].trim());
+
+        String[] versionParts2 = toCheckAgainst.split("\\.");
+        int majorVersion2 = Integer.parseInt(versionParts2[0].trim());
+        int minorVersion2 = Integer.parseInt(versionParts2[1].trim());
+
+        return majorVersion1 < majorVersion2 || (majorVersion1 == majorVersion2 && minorVersion1 < minorVersion2);
     }
 }

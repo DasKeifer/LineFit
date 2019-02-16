@@ -76,11 +76,11 @@ public abstract class LinearFitStrategy
             double sigmaSquared = 0.0, xSum = 0.0, ySum = 0.0, wSum = 0.0;
             double eX = 0.0, eY = 0.0, x = 0.0, y = 0.0;
 
-            double[][] data = dataForFit.getAllValidPointsData(true);
-            double[] xData = data[DataDimension.X.getColumnIndex()];
-            double[] yData = data[DataDimension.Y.getColumnIndex()];
-            double[] xErrorData = data[DataDimension.X.getErrorColumnIndex()];
-            double[] yErrorData = data[DataDimension.Y.getErrorColumnIndex()];
+            Double[][] data = dataForFit.getAllValidPointsData(true);
+            Double[] xData = data[DataDimension.X.getColumnIndex()];
+            Double[] yData = data[DataDimension.Y.getColumnIndex()];
+            Double[] xErrorData = data[DataDimension.X.getErrorColumnIndex()];
+            Double[] yErrorData = data[DataDimension.Y.getErrorColumnIndex()];
 
             // calculates the intercept with the current slope
             for (int i = 0; i < xData.length; i++)
@@ -109,19 +109,19 @@ public abstract class LinearFitStrategy
      * @param xError The x error value for the point
      * @param yError The y error value for the point
      * @return The weight to use for calculating Chi Squared */
-    public double getChiSquaredWeight(FitType fitTypeToUse, double xError, double yError)
+    public double getChiSquaredWeight(FitType fitTypeToUse, Double xError, Double yError)
     {
         double weight = 1;
-
         switch (fitTypeToUse)
         {
             case Y_ERROR:
-                if (yError != 0.0)
+                if (yError != 0.0 && yError != null)
                 {
                     weight = (double) (1.0 / (yError * yError));
                 }
                 else
                 {
+                    // TODO: add warning?
                     weight = 1;
                 }
                 break;
@@ -129,12 +129,13 @@ public abstract class LinearFitStrategy
                 System.out.println(
                         "Error: Default Chi Squared Algorithm does not support both x and y error fitting. Defaulting to X only fit");
             case X_ERROR:
-                if (xError != 0.0)
+                if (xError != 0.0 && xError != null)
                 {
                     weight = (double) (1.0 / (xError * xError));
                 }
                 else
                 {
+                    // TODO: add warning?
                     weight = 1;
                 }
                 break;
@@ -161,11 +162,11 @@ public abstract class LinearFitStrategy
     {
         double x = 0.0, y = 0.0;
 
-        double[][] data = dataForFit.getAllValidPointsData(true);
-        double[] xData = data[DataDimension.X.getColumnIndex()];
-        double[] yData = data[DataDimension.Y.getColumnIndex()];
-        double[] xErrorData = data[DataDimension.X.getErrorColumnIndex()];
-        double[] yErrorData = data[DataDimension.Y.getErrorColumnIndex()];
+        Double[][] data = dataForFit.getAllValidPointsData(true);
+        Double[] xData = data[DataDimension.X.getColumnIndex()];
+        Double[] yData = data[DataDimension.Y.getColumnIndex()];
+        Double[] xErrorData = data[DataDimension.X.getErrorColumnIndex()];
+        Double[] yErrorData = data[DataDimension.Y.getErrorColumnIndex()];
 
         // if we have both fits then calculate the chi squared like this
         if (this.dataForFit.getFitType() == FitType.BOTH_ERRORS)
@@ -241,11 +242,11 @@ public abstract class LinearFitStrategy
         double x = 0, y = 0;
         double sumX = 0.0, sumY = 0.0, sumXX = 0.0, sumXY = 0.0, sumW = 0.0, weight = 0.0;
 
-        double[][] data = dataForFit.getAllValidPointsData(true);
-        double[] xData = data[DataDimension.X.getColumnIndex()];
-        double[] yData = data[DataDimension.Y.getColumnIndex()];
-        double[] xErrorData = data[DataDimension.X.getErrorColumnIndex()];
-        double[] yErrorData = data[DataDimension.Y.getErrorColumnIndex()];
+        Double[][] data = dataForFit.getAllValidPointsData(true);
+        Double[] xData = data[DataDimension.X.getColumnIndex()];
+        Double[] yData = data[DataDimension.Y.getColumnIndex()];
+        Double[] xErrorData = data[DataDimension.X.getErrorColumnIndex()];
+        Double[] yErrorData = data[DataDimension.Y.getErrorColumnIndex()];
 
         for (int i = 0; i < xData.length; i++)
         {

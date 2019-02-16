@@ -119,11 +119,11 @@ class PartialDerivativeMinimizationFactory extends LinearFitFactory
             double sumX = 0.0, sumXX = 0.0, sumW = 0.0;
 
             // get the data that are valid (have x and y data)
-            double[][] data = dataForFit.getAllValidPointsData(true);
-            double[] xData = data[DataDimension.X.getColumnIndex()];
-            double[] yData = data[DataDimension.Y.getColumnIndex()];
-            double[] xErrorData = data[DataDimension.X.getErrorColumnIndex()];
-            double[] yErrorData = data[DataDimension.Y.getErrorColumnIndex()];
+            Double[][] data = dataForFit.getAllValidPointsData(true);
+            Double[] xData = data[DataDimension.X.getColumnIndex()];
+            Double[] yData = data[DataDimension.Y.getColumnIndex()];
+            Double[] xErrorData = data[DataDimension.X.getErrorColumnIndex()];
+            Double[] yErrorData = data[DataDimension.Y.getErrorColumnIndex()];
 
             // This is the minimization equation that is being used
             // ////////////////////////////////////////////////////////////////
@@ -172,7 +172,7 @@ class PartialDerivativeMinimizationFactory extends LinearFitFactory
                 // now calculate the final intercept with our minimized error slope
                 for (int j = 0; j < xData.length; j++)
                 {
-                    if (xErrorData[j] != 0 && yErrorData[j] != 0)
+                    if (xErrorData[j] != null && yErrorData[j] != null)
                     {
                         sigmaSquared = Math.pow(yErrorData[j], 2) + (Math.pow(slope, 2) * Math.pow(xErrorData[j], 2));
                         ws += 1.0 / sigmaSquared;
@@ -187,7 +187,7 @@ class PartialDerivativeMinimizationFactory extends LinearFitFactory
             double x = 0.0, eY = 0.0, eX = 0.0;
             for (int i = 0; i < xData.length; i++)
             {
-                if (xErrorData[i] != 0 && yErrorData[i] != 0)
+                if (xErrorData[i] != null && yErrorData[i] != null)
                 {
                     x = xData[i];
                     eX = xErrorData[i];

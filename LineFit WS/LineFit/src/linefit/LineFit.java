@@ -231,7 +231,7 @@ public class LineFit extends JFrame implements HasOptionsToSave, HasDataToSave
         setSize(1000, 750);
 
         // Set up some of the update actions and the IO
-        onUpdateFitTypesAction = new updateFitTypesAction();
+        onUpdateFitTypesAction = new updateDataSetAction();
         onUpdateColorAction = new updateDataSetColorAction();
         ioHandler = new GeneralIO(this, graphingArea);
         this.setIconImage(ioHandler.getLineFitIcon());
@@ -539,8 +539,13 @@ public class LineFit extends JFrame implements HasOptionsToSave, HasDataToSave
         rightSideBar.add(fitDataPanel);
 
         current.setNumberOfDisplayedColumns(desiredColumns);
-
-        dataSetTableWidth = current.getNumberOfDisplayedColumns() * DATA_COLUMN_WIDTH;
+        
+        updateDataSetTableWidth();
+    }
+    
+    private void updateDataSetTableWidth()
+    {
+        dataSetTableWidth = ((DataSet)dataSetSelector.getSelectedItem()).getNumberOfDisplayedColumns() * DATA_COLUMN_WIDTH;
         updateLayout();
     }
 
@@ -900,14 +905,14 @@ public class LineFit extends JFrame implements HasOptionsToSave, HasDataToSave
      * @author Keith Rice
      * @version 1.0
      * @since 0.99.0 */
-    private class updateFitTypesAction implements Runnable
+    private class updateDataSetAction implements Runnable
     {
         /** The action that is performed when the fit types are updated for the displayed DataSet */
         @Override
         public void run()
         {
             updateFitTypes();
-            graphingArea.repaint();
+            updateDataSetTableWidth(); // Causes a repaint
         }
     }
 }

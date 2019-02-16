@@ -20,6 +20,7 @@ import java.awt.event.KeyEvent;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
@@ -28,6 +29,7 @@ import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
+import javax.xml.crypto.Data;
 
 import linefit.FitAlgorithms.FitType;
 import linefit.FitAlgorithms.FixedVariable;
@@ -93,7 +95,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
     private Shape dataSetShape;
 
 
-    private ArrayList<DataDimension> errorColumnsInFile;
+    private ArrayList<DataDimension> errorColumnsInFile = new ArrayList<DataDimension>();
 
     // TODO: Have a preferred fit type that was the last selected so that we can update it as the input data
 
@@ -596,17 +598,32 @@ public class DataSet extends JScrollPane implements HasDataToSave
                     }
                     break;
                 }
-                case "UnsavedErrorDims":
-                    errorColumnsInFile = new ArrayList<DataDimension>();
+                case "errordims":
+                    errorColumnsInFile.clear();
                     String[] splitDimValuesInput = valueForField.split(" ");
-                    for (int i = 0; i < splitDimValuesInput.length; i++)
+                    boolean foundDim;
+                    for (DataDimension dim : DataDimension.values())
                     {
-                        errorColumnsInFile.add(DataDimension.valueOf(splitDimValuesInput[i]));
+                    	foundDim = false;
+	                    for (int i = 0; i < splitDimValuesInput.length; i++)
+	                    {
+	                        if (DataDimension.parseDim(splitDimValuesInput[i]) == dim)
+	                        {
+	                        	foundDim = true;
+	                        }
+	                    }
+	                    
+	                    if (!foundDim)
+	                    {
+	                    	errorColumnsInFile.add(dim);
+	                    }
                     }
+
+					int numCols = 2 * DataDimension.getNumberOfDimensions() - errorColumnsInFile.size();			
+					setNumberOfDisplayedColumns(numCols);
                     break;
                 case "colname":
-                    break; // we don't use this anymore but we don't want to cause errors when reading old files int.
-                           // visibleDataColumns.get(colNum).setName(valueForField); break;
+                    break; // we don't use this anymore but we don't want to cause errors when reading old files in
                 case "coldesc":
                     break; // we don't use this anymore but we don't want to cause errors when reading old files in
                 case "p":
@@ -650,7 +667,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
                                         nextErrorIdx++;
                                     }
                                 }
-                                errorColumns[nextErrorIdx].writeData(row, value);
+                                errorColumns[nextErrorIdx++].writeData(row, value);
                             }
                             dataTableModel.setValueAt(value, row, column);
                         }
@@ -714,21 +731,21 @@ public class DataSet extends JScrollPane implements HasDataToSave
             variableNames.add("Color");
             variableValues.add(getColorString());
 
-            if (errorColumnsDisplayed < DataDimension.getNumberOfDimensions())
+            if (errorColumnsDisplayed > 0)
             {
-                variableNames.add("UnsavedErrorDims");
-                String skipDims = "";
-                for (int i = errorColumnsDisplayed; i < DataDimension.getNumberOfDimensions(); i++)
+                variableNames.add("ErrorDims");
+                String errorDims = "";
+                for (int i = 0; i < errorColumnsDisplayed; i++)
                 {
-                    skipDims += errorColumnsOrder[i].getDisplayString();
+                	errorDims += errorColumnsOrder[i].getDisplayString();
 
                     // If its not the last dim, add a space
                     if (i < DataDimension.getNumberOfDimensions() - 1)
                     {
-                        skipDims += " ";
+                    	errorDims += " ";
                     }
                 }
-                variableValues.add(skipDims);
+                variableValues.add(errorDims);
             }
 
             String datapoint;
@@ -1117,6 +1134,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
         return alignedData;
     }
 
+    // TODO: Update
     /** Gets all the data of all the valid points in the DataSet including the error values if specified. If getting all
      * the data including errors is specified, then any dimension whose errors are not displayed will have an empty
      * array at the respective index in the returned data.
@@ -1128,69 +1146,219 @@ public class DataSet extends JScrollPane implements HasDataToSave
      * 
      * @param withErrors True if the data should also contain the error/uncertainty values for the columns
      * @return A 2-D array containing the data for this dataset as specified in the description */
-    public double[][] getAllValidPointsData(boolean withErrors)
+    public Double[][] getAllValidPointsData(boolean withErrors)
     {
-        int columnsIndex = 0;
-        double[][] allData;
+        ArrayList<Integer> validPoints = getIndexesOfValidPoints();
+
+        Double[][] data = getValidPoints_Data(validPoints);
+
         if (withErrors)
         {
-            allData = new double[dataColumns.length + errorColumns.length][];
+            Double[][] allData = new Double[dataColumns.length + errorColumns.length][];
+            Double[][] errorData = getValidPoints_Errors(validPoints);
+
+            // Ensure the validity of the data
+            if (errorData[0].length != data[0].length)
+            {
+                // If there are fewer points in the errors, we need to re-get the data as well with the fewer points
+                data = getValidPoints_Data(validPoints);
+            }
+
+            // Add the data then the errors to the full data value
+            int colIdx = 0;
+            for (Double[] dataCol : data)
+            {
+                allData[colIdx++] = dataCol;
+            }
+
+            for (Double[] dataCol : errorData)
+            {
+                allData[colIdx++] = dataCol;
+            }
+            return allData;
         }
         else
         {
-            allData = new double[dataColumns.length][];
+            return data;
         }
+    }
 
-        // get the valid points (those with x and y points)
-        ArrayList<Integer> validPoints = getIndexesOfValidPoints();
+    private Double[][] getValidPoints_Data(ArrayList<Integer> validPoints)
+    {
+        Double[][] data = new Double[dataColumns.length][];
+        int columnIdx = 0;
+
         int numPoints = validPoints.size();
+        Iterator<Integer> pointsIter;
+        Integer pointIdx;
+        boolean failedToFindPoint = false;
 
         int validIndex = 0;
-        double[] validData;
+        Double[] validData;
 
-        // and the data columns
+        // add the data columns
         Double[] columnData;
         for (DataDimension dim : DataDimension.values())
         {
             validIndex = 0;
-            validData = new double[numPoints];
+            validData = new Double[numPoints];
             columnData = getData(dim);
 
-            for (Integer index : validPoints)
+            pointsIter = validPoints.iterator();
+            while (pointsIter.hasNext())
             {
-                if (index >= columnData.length)
+                pointIdx = pointsIter.next();
+                if (pointIdx >= columnData.length)
                 {
-                    break;
+                    // This should never occur!
+                    System.err.println(
+                            "Failed to retreive point information for a point that was returned as valid at row " +
+                                    pointIdx + ". Removing it from the returned data");
+                    pointsIter.remove();
+                    failedToFindPoint = true;
                 }
-                validData[validIndex] = columnData[index];
+                validData[validIndex] = columnData[pointIdx];
                 validIndex++;
             }
-            allData[columnsIndex++] = validData;
-        }
 
-        // and the error columns if they wanted it
-        if (withErrors)
-        {
-            for (DataDimension dim : DataDimension.values())
+            // If we found the point fine, add it to the list
+            if (!failedToFindPoint)
             {
-                validIndex = 0;
-                validData = new double[numPoints];
-                columnData = getErrorData(dim);
-
-                for (Integer index : validPoints)
-                {
-                    if (index >= columnData.length)
-                    {
-                        break;
-                    }
-                    validData[validIndex] = columnData[index];
-                    validIndex++;
-                }
-                allData[columnsIndex++] = validData;
+                data[columnIdx++] = validData;
+            }
+            else
+            {
+                break;
             }
         }
 
-        return allData;
+        // If we found all the points successfully, then return the data
+        if (!failedToFindPoint)
+        {
+            return data;
+        }
+        // If we failed call ourselves again with the trimmed down points list
+        else
+        {
+            return getValidPoints_Data(validPoints);
+        }
+    }
+
+    // TODO: Still doing weird things if you remove the error while its being used - probably due to order of things
+    // Occurring (i.e. plotting before updating the fit type)
+    private Double[][] getValidPoints_Errors(ArrayList<Integer> validPoints)
+    {
+        Double[][] data = new Double[dataColumns.length][];
+        int columnIdx = 0;
+
+        int numPoints = validPoints.size();
+        Iterator<Integer> pointsIter;
+        Integer pointIdx;
+        boolean failedToFindPoint = false;
+
+        int validIndex = 0;
+        Double[] validData;
+
+        // add the data columns
+        Double[] columnData;
+
+        // and the error columns
+        DataDimension[] requiredDims = FitType.getRequiredDimsForFitType(dataSetFitType);
+        boolean isRequired = false;
+
+        // Use values() to keep the order consistent regardless of how its
+        // being displayed currently
+        for (DataDimension dim : DataDimension.values())
+        {
+            isRequired = false;
+            // First determine if it is required for the fit type and if so ensure it is displayed
+            for (DataDimension requiredDim : requiredDims)
+            {
+                if (dim == requiredDim)
+                {
+                    // This should never occur - return an array of empty arrays
+                    if (!isErrorDataVisible(dim))
+                    {
+                        System.err.println("Required error data for fit type " + 1 + " is not visible!");
+                        for (int colIdx = 0; colIdx < data.length; colIdx++)
+                        {
+                            data[colIdx] = new Double[0];
+                        }
+                        validPoints.clear();
+                        return data;
+                    }
+                    isRequired = true;
+                    break;
+                }
+            }
+
+            validIndex = 0;
+            validData = new Double[numPoints];
+            columnData = getErrorData(dim);
+
+            // Now go through each of our valid point indexes
+            pointsIter = validPoints.iterator();
+            while (pointsIter.hasNext())
+            {
+                pointIdx = pointsIter.next();
+                // If its visible we attempt to add the value in the column
+                if (isErrorDataVisible(dim))
+                {
+                    if (pointIdx >= columnData.length || columnData[validIndex] == null)
+                    {
+                        // If we didn't find the value and it was required for the fit then we must remove it and
+                        // start over. This should never occur!
+                        if (isRequired)
+                        {
+                            System.err.println(
+                                    "Failed to retreive point's required error information for a point that was returned as valid at row " +
+                                            pointIdx + ". Removing it from the returned data");
+                            pointsIter.remove();
+                            failedToFindPoint = true;
+                        }
+                        // Otherwise just set it to null
+                        else
+                        {
+                            validData[validIndex] = null;
+                        }
+                    }
+                    // If we successfully retrieved the value then add it to the list
+                    else
+                    {
+                        validData[validIndex] = columnData[pointIdx];
+                    }
+                    validIndex++;
+                }
+                // If its not visible, return all nulls
+                // We already ensured if it was required it is visible
+                else
+                {
+                    validData[validIndex] = null;
+                }
+            }
+
+            // If we found the errors fine, add it to the list
+            if (!failedToFindPoint)
+            {
+                data[columnIdx++] = validData;
+            }
+            // otherwise bail out
+            else
+            {
+                break;
+            }
+        }
+
+        // If we found all the points fine, then return the data
+        if (!failedToFindPoint)
+        {
+            return data;
+        }
+        // If we failed call ourselves again with the trimmed down points list
+        else
+        {
+            return getValidPoints_Errors(validPoints);
+        }
     }
 
     /** Sets the Color to be used when drawing this DataSet to the given Color
@@ -1248,7 +1416,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
         boolean alreadyUpdatingTable = false;
         /** True if the listener is enabled, false otherwise. This allows us to change data internally without calling
          * the listener */
-        boolean enabled = false;
+        boolean enabled = true;
         /** The action to run when the allowable fit types are updated */
         Runnable onUpdateFitTypesAction;
 

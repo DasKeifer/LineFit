@@ -533,9 +533,9 @@ public class ExportIO implements HasOptionsToSave, HasOptionsToDisplay
         output.append("}\n");
 
         // export our datasets and fits
-        for (int k = 0; k < graphingArea.dataSetSelector.getItemCount(); k++)
+        for (int dataSetIdx = 0; dataSetIdx < graphingArea.dataSetSelector.getItemCount(); dataSetIdx++)
         {
-            DataSet current = graphingArea.dataSetSelector.getItemAt(k);
+            DataSet current = graphingArea.dataSetSelector.getItemAt(dataSetIdx);
             // if its not the empty set we save it
             if (!current.getName().equals("New DataSet"))
             {
@@ -585,18 +585,18 @@ public class ExportIO implements HasOptionsToSave, HasOptionsToDisplay
                     }
 
                     // get the data with valid points (X and Y)
-                    double[][] data = current.getAllValidPointsData(true);
-                    double[] xData = data[DataDimension.X.getColumnIndex()];
-                    double[] yData = data[DataDimension.Y.getColumnIndex()];
-                    double[] xErrorData = data[DataDimension.X.getErrorColumnIndex()];
-                    double[] yErrorData = data[DataDimension.Y.getErrorColumnIndex()];
+                    Double[][] data = current.getAllValidPointsData(true);
+                    Double[] xData = data[DataDimension.X.getColumnIndex()];
+                    Double[] yData = data[DataDimension.Y.getColumnIndex()];
+                    Double[] xErrorData = data[DataDimension.X.getErrorColumnIndex()];
+                    Double[] yErrorData = data[DataDimension.Y.getErrorColumnIndex()];
 
-                    for (int l = 0; l < xData.length; l++)
+                    for (int pointIdx = 0; pointIdx < xData.length; pointIdx++)
                     {
                         output.append("\t\\putpoint");
-                        if (xErrorData[l] != 0.0)
+                        if (xErrorData[pointIdx] != null)
                         {
-                            if (yErrorData[l] != 0.0)
+                            if (yErrorData[pointIdx] != null)
                             {
                                 output.append("xyerr");
                             }
@@ -605,32 +605,32 @@ public class ExportIO implements HasOptionsToSave, HasOptionsToDisplay
                                 output.append("xerr");
                             }
                         }
-                        else if (yErrorData[l] != 0.0)
+                        else if (yErrorData[pointIdx] != null)
                         {
                             output.append("yerr");
                         }
 
                         output.append(symbol);
                         output.append("{");
-                        output.append(ScientificNotation.WithNoErrorAndZeroPower((xData[l] - xAdjForSmall) / Math.pow(
-                                10, axesPowers.xAxisPower)));
+                        output.append(ScientificNotation.WithNoErrorAndZeroPower((xData[pointIdx] - xAdjForSmall) / Math
+                                .pow(10, axesPowers.xAxisPower)));
                         output.append("}{");
-                        output.append(ScientificNotation.WithNoErrorAndZeroPower((yData[l] - yAdjForSmall) / Math.pow(
-                                10, axesPowers.yAxisPower)));
+                        output.append(ScientificNotation.WithNoErrorAndZeroPower((yData[pointIdx] - yAdjForSmall) / Math
+                                .pow(10, axesPowers.yAxisPower)));
                         output.append("}");
 
-                        if (xErrorData[l] != 0.0)
+                        if (xErrorData[pointIdx] != null)
                         {
                             output.append("{");
-                            output.append(ScientificNotation.WithNoErrorAndZeroPower(xErrorData[l] / Math.pow(10,
+                            output.append(ScientificNotation.WithNoErrorAndZeroPower(xErrorData[pointIdx] / Math.pow(10,
                                     axesPowers.xAxisPower)));
                             output.append("}");
                         }
 
-                        if (yErrorData[l] != 0.0)
+                        if (yErrorData[pointIdx] != null)
                         {
                             output.append("{");
-                            output.append(ScientificNotation.WithNoErrorAndZeroPower(yErrorData[l] / Math.pow(10,
+                            output.append(ScientificNotation.WithNoErrorAndZeroPower(yErrorData[pointIdx] / Math.pow(10,
                                     axesPowers.yAxisPower)));
                             output.append("}");
                         }
@@ -706,7 +706,7 @@ public class ExportIO implements HasOptionsToSave, HasOptionsToDisplay
                             String kStr = "";
                             if (graphingArea.dataSetSelector.getItemCount() > 1)
                             {
-                                kStr = "$_{" + (k + 1) + "}$";
+                                kStr = "$_{" + (dataSetIdx + 1) + "}$";
                             }
 
                             double defaultResultsLength = currentFontMeasurements.stringWidth("m = 0.0000");

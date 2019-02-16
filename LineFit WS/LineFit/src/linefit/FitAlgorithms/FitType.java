@@ -85,4 +85,28 @@ public enum FitType
             allowedFits.add(Y_ERROR);
         }
     }
+
+    public static DataDimension[] getRequiredDimsForFitType(FitType fitType)
+    {
+        DataDimension[] retVal;
+        switch (fitType)
+        {
+            case X_ERROR:
+                retVal = new DataDimension[] { DataDimension.X };
+                break;
+
+            case Y_ERROR:
+                retVal = new DataDimension[] { DataDimension.Y };
+                break;
+
+            case BOTH_ERRORS:
+                retVal = new DataDimension[] { DataDimension.X, DataDimension.Y };
+                break;
+
+            default:
+                retVal = new DataDimension[0];
+                break;
+        }
+        return retVal;
+    }
 }

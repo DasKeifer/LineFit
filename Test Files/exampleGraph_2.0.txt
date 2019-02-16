@@ -1,0 +1,44 @@
+FileFormatVersion 2.0
+
+# GraphName New Graph
+# XAxisDescription New X-Axis Description
+# YaxisDescription New Y-Axis Description
+# UseCustomAxes false
+# XAxisMin 0.7
+# XAxisMax 2.3
+# YAxisMin 2.7
+# YAxisMax 4.3
+# UsePowersOnAxes true
+# CustomAxesPowers false
+# XAxisPower 0
+# YAxisPower 0
+# XAxisHasTickMarks true
+# XAxisHasTickLabels true
+# XAxisNumberOfTicks 10
+# YAxisHasTickMarks true
+# YAxisHasTickLabels true
+# YAxisNumberOfTicks 10
+# XAxisDecimals 2
+# YAxisDecimals 2
+# DisplayResultsOnGraph true
+# ResultsPositionX 5
+# ResultsPositionY 25
+# ResultsDecimals 4
+# ResultsUseScientificNotation true
+# XErrorsBeforeYErrors false
+# FitAlgorithm Partial Derivative Minimization
+
+# PDFPageWidth 8.5
+# PDFPageHeight 8.5
+# ExportFontSize 12.0
+
+# DataSet 1
+~ FitType X&Y Error Fit
+~ WhatIsFixed none
+~ FixedValue 0.0
+~ Visible true
+~ Shape rectangle
+~ Color black
+~ ErrorDims y x
+~ DataPoint 1.0 3.0 0.1 0.1
+~ DataPoint 2.0 4.0 0.1 0.1

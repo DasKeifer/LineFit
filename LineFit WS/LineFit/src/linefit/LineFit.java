@@ -620,6 +620,7 @@ public class LineFit extends JFrame implements HasOptionsToSave, HasDataToSave
     public void finishedReadingInData()
     {
         graphingArea.finishedReadingInData();
+        updateDataSetDisplayed();
     }
 
     /** Refreshes/redraws the graph. This should be called when a change is made that will impact what is shown on the

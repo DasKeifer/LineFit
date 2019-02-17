@@ -246,14 +246,16 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
      * @param toRegister The DataSet to add to the DataSet selector box */
     void registerDataSet(DataSet toRegister)
     {
-        // Ensure the error data is in the correct order
-        updateDataSetErrorOrder(toRegister);
-
         // We have to subtract one for the "new dataset" placeholder
         DataSet newDataSet = dataSetSelector.getItemAt(dataSetSelector.getItemCount() - 1);
         dataSetSelector.removeItem(newDataSet);
         dataSetSelector.addItem(toRegister);
         dataSetSelector.setSelectedItem(toRegister);
+
+        // Ensure the error data is in the correct order
+        updateDataSetErrorOrder(toRegister);
+
+        // Add the new dataset placeholder back in
         dataSetSelector.addItem(newDataSet);
     }
 

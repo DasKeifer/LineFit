@@ -504,7 +504,9 @@ public class DataSet extends JScrollPane implements HasDataToSave
                 case "colnum":
                 case "numberofcolumns":
                 {
-                    // No longer used
+                    // No longer used - required for old versions though
+                    int numCols = Integer.parseInt(valueForField);
+                    setNumberOfDisplayedColumns(numCols);
                     break;
                 }
                 case "fittype":
@@ -613,26 +615,27 @@ public class DataSet extends JScrollPane implements HasDataToSave
                 case "errordims":
                     errorColumnsInFile.clear();
                     String[] splitDimValuesInput = valueForField.split(" ");
+                    int columnCount = 0;
                     boolean foundDim;
-                    for (DataDimension dim : DataDimension.values())
+                    for (int i = 0; i < errorColumnsOrder.length; i++)
                     {
                         foundDim = false;
-                        for (int i = 0; i < splitDimValuesInput.length; i++)
+                        for (int j = 0; j < splitDimValuesInput.length; j++)
                         {
-                            if (DataDimension.parseDim(splitDimValuesInput[i]) == dim)
+                            if (DataDimension.parseDim(splitDimValuesInput[j]) == errorColumnsOrder[i])
                             {
                                 foundDim = true;
+                                columnCount = i;
                             }
                         }
 
                         if (!foundDim)
                         {
-                            errorColumnsInFile.add(dim);
+                            errorColumnsInFile.add(errorColumnsOrder[i]);
                         }
                     }
 
-                    int numCols = 2 * DataDimension.getNumberOfDimensions() - errorColumnsInFile.size();
-                    setNumberOfDisplayedColumns(numCols);
+                    setNumberOfDisplayedColumns(DataDimension.getNumberOfDimensions() + columnCount + 1);
                     break;
                 case "colname":
                     break; // we don't use this anymore but we don't want to cause errors when reading old files in
@@ -713,9 +716,12 @@ public class DataSet extends JScrollPane implements HasDataToSave
     /** Performs any processing needed after all the data has been read in */
     public void finishedReadingInData()
     {
-        // Clean up our temporary read in data
-        inProcessesOfReading = false;
-        errorColumnsInFile.clear();
+        if (inProcessesOfReading)
+        {
+            // Clean up our temporary read in data
+            inProcessesOfReading = false;
+            errorColumnsInFile.clear();
+        }
     }
 
     /** Retrieve all the data and options associated with the data in the passed in array lists
@@ -1457,6 +1463,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
             enabled = enable;
         }
 
+        /** Used to signal LineFit that the data has changed or has potentially changed */
         public void signalDataChanged()
         {
             refreshFitData();

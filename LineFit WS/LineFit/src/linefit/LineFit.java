@@ -266,7 +266,6 @@ public class LineFit extends JFrame implements HasOptionsToSave, HasDataToSave
             }
         });
 
-
         createNewDataSet();
 
         // So it pops up on the center of the screen
@@ -539,13 +538,14 @@ public class LineFit extends JFrame implements HasOptionsToSave, HasDataToSave
         rightSideBar.add(fitDataPanel);
 
         current.setNumberOfDisplayedColumns(desiredColumns);
-        
+
         updateDataSetTableWidth();
     }
-    
+
     private void updateDataSetTableWidth()
     {
-        dataSetTableWidth = ((DataSet)dataSetSelector.getSelectedItem()).getNumberOfDisplayedColumns() * DATA_COLUMN_WIDTH;
+        dataSetTableWidth = ((DataSet) dataSetSelector.getSelectedItem()).getNumberOfDisplayedColumns() *
+                DATA_COLUMN_WIDTH;
         updateLayout();
     }
 
@@ -614,6 +614,12 @@ public class LineFit extends JFrame implements HasOptionsToSave, HasDataToSave
             createNewDataSet();
         }
         return graphingArea.readInDataAndDataOptions(line, newDataSet);
+    }
+
+    /** Performs any processing needed after all the data has been read in */
+    public void finishedReadingInData()
+    {
+        graphingArea.finishedReadingInData();
     }
 
     /** Refreshes/redraws the graph. This should be called when a change is made that will impact what is shown on the

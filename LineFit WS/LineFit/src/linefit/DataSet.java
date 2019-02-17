@@ -29,7 +29,6 @@ import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
-import javax.xml.crypto.Data;
 
 import linefit.FitAlgorithms.FitType;
 import linefit.FitAlgorithms.FixedVariable;
@@ -95,6 +94,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
     private Shape dataSetShape;
 
 
+    private boolean inProcessesOfReading = false;
     private ArrayList<DataDimension> errorColumnsInFile = new ArrayList<DataDimension>();
 
     // TODO: Have a preferred fit type that was the last selected so that we can update it as the input data
@@ -114,6 +114,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
     {
         changeTracker = parentsChangeTracker;
 
+        // Set the default column order
         dataSetFitType = FitType.NONE;
         visibleGraph = true;
 
@@ -184,7 +185,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
         return placeHolder;
     }
 
-    /** Sets the error/uncertainty column order to the passed order. All dimensions must be present in the passed list
+    /** Sets the error/uncertainty column order to the passed order. All dimensions must be present in the passed array
      * or else the order will not be updated.
      * 
      * @param columnOrder The order to use for the error/uncertainty columns
@@ -200,9 +201,9 @@ public class DataSet extends JScrollPane implements HasDataToSave
         for (DataDimension dim : DataDimension.values())
         {
             boolean found = false;
-            for (int i = 0; i < DataDimension.getNumberOfDimensions(); i++)
+            for (DataDimension passedDim : columnOrder)
             {
-                if (columnOrder[i] == dim)
+                if (passedDim == dim)
                 {
                     found = true;
                     break;
@@ -218,6 +219,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
         }
 
         int numCurrentlyDisplayed = errorColumnsDisplayed;
+        dataTableListener.setListenerEnabled(false); // prevents some unnecessary recalculation
         while (errorColumnsDisplayed > 0)
         {
             hideLastErrorColumn();
@@ -228,6 +230,13 @@ public class DataSet extends JScrollPane implements HasDataToSave
         while (errorColumnsDisplayed < numCurrentlyDisplayed)
         {
             showNextErrorColumn();
+        }
+        dataTableListener.setListenerEnabled(true);
+
+        // Only update if we removed and readded some columns
+        if (numCurrentlyDisplayed > 0)
+        {
+            dataTableListener.signalDataChanged();
         }
 
         return true;
@@ -478,6 +487,9 @@ public class DataSet extends JScrollPane implements HasDataToSave
      * @return Returns true if the data or option for the data was read in from the line */
     public boolean readInDataAndDataOptions(String line, boolean unused)
     {
+        // Enusre we know that we are reading in the data
+        inProcessesOfReading = true;
+
         // now split the input into the two parts
         // we can't use split because it will mess up on names as well as points since they have multiple spaces
         int firstSpaceIndex = line.indexOf(' ');
@@ -604,23 +616,23 @@ public class DataSet extends JScrollPane implements HasDataToSave
                     boolean foundDim;
                     for (DataDimension dim : DataDimension.values())
                     {
-                    	foundDim = false;
-	                    for (int i = 0; i < splitDimValuesInput.length; i++)
-	                    {
-	                        if (DataDimension.parseDim(splitDimValuesInput[i]) == dim)
-	                        {
-	                        	foundDim = true;
-	                        }
-	                    }
-	                    
-	                    if (!foundDim)
-	                    {
-	                    	errorColumnsInFile.add(dim);
-	                    }
+                        foundDim = false;
+                        for (int i = 0; i < splitDimValuesInput.length; i++)
+                        {
+                            if (DataDimension.parseDim(splitDimValuesInput[i]) == dim)
+                            {
+                                foundDim = true;
+                            }
+                        }
+
+                        if (!foundDim)
+                        {
+                            errorColumnsInFile.add(dim);
+                        }
                     }
 
-					int numCols = 2 * DataDimension.getNumberOfDimensions() - errorColumnsInFile.size();			
-					setNumberOfDisplayedColumns(numCols);
+                    int numCols = 2 * DataDimension.getNumberOfDimensions() - errorColumnsInFile.size();
+                    setNumberOfDisplayedColumns(numCols);
                     break;
                 case "colname":
                     break; // we don't use this anymore but we don't want to cause errors when reading old files in
@@ -698,6 +710,14 @@ public class DataSet extends JScrollPane implements HasDataToSave
         return found;
     }
 
+    /** Performs any processing needed after all the data has been read in */
+    public void finishedReadingInData()
+    {
+        // Clean up our temporary read in data
+        inProcessesOfReading = false;
+        errorColumnsInFile.clear();
+    }
+
     /** Retrieve all the data and options associated with the data in the passed in array lists
      * 
      * @param variableNames The ArrayList of the names of the options
@@ -735,17 +755,18 @@ public class DataSet extends JScrollPane implements HasDataToSave
             {
                 variableNames.add("ErrorDims");
                 String errorDims = "";
-                for (int i = 0; i < errorColumnsDisplayed; i++)
+                for (DataDimension dim : DataDimension.values())
                 {
-                	errorDims += errorColumnsOrder[i].getDisplayString();
-
-                    // If its not the last dim, add a space
-                    if (i < DataDimension.getNumberOfDimensions() - 1)
+                    for (int i = 0; i < errorColumnsDisplayed; i++)
                     {
-                    	errorDims += " ";
+                        if (dim == errorColumnsOrder[i])
+                        {
+                            errorDims += dim.getDisplayString() + " ";
+                        }
                     }
                 }
                 variableValues.add(errorDims);
+
             }
 
             String datapoint;
@@ -1434,14 +1455,9 @@ public class DataSet extends JScrollPane implements HasDataToSave
         public void setListenerEnabled(boolean enable)
         {
             enabled = enable;
-
-            if (enabled)
-            {
-                runTableUpdatedOrEnabledActions();
-            }
         }
 
-        private void runTableUpdatedOrEnabledActions()
+        public void signalDataChanged()
         {
             refreshFitData();
             onUpdateFitTypesAction.run();
@@ -1539,7 +1555,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
 
                 }
 
-                runTableUpdatedOrEnabledActions();
+                signalDataChanged();
                 alreadyUpdatingTable = false;
             }
         }

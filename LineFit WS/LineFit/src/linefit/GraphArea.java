@@ -1018,103 +1018,128 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
             switch (field)
             {
                 case "graphname":
-                    if (applyOption) setGraphName(valueForField);
+                    if (applyOption)
+                        setGraphName(valueForField);
                     break;
                 case "xaxisdescription":
-                    if (applyOption) setXAxisDescription(valueForField);
+                    if (applyOption)
+                        setXAxisDescription(valueForField);
                     break;
                 case "yaxisdescription":
-                    if (applyOption) setYAxisDescription(valueForField);
+                    if (applyOption)
+                        setYAxisDescription(valueForField);
                     break;
                 case "customaxes":
                 case "usecustomaxes":
-                    if (applyOption) userDefinedAxes = Boolean.parseBoolean(valueForField);
+                    if (applyOption)
+                        userDefinedAxes = Boolean.parseBoolean(valueForField);
                     break;
                 case "xmin":
                 case "xaxismin":
-                    if (applyOption) xAxisMinimumValue = Double.parseDouble(valueForField);
+                    if (applyOption)
+                        xAxisMinimumValue = Double.parseDouble(valueForField);
                     break;
                 case "xmax":
                 case "xaxismax":
-                    if (applyOption) xAxisMaximumValue = Double.parseDouble(valueForField);
+                    if (applyOption)
+                        xAxisMaximumValue = Double.parseDouble(valueForField);
                     break;
                 case "ymin":
                 case "yaxismin":
-                    if (applyOption) yAxisMinimumValue = Double.parseDouble(valueForField);
+                    if (applyOption)
+                        yAxisMinimumValue = Double.parseDouble(valueForField);
                     break;
                 case "ymax":
                 case "yaxismax":
-                    if (applyOption) yAxisMaximumValue = Double.parseDouble(valueForField);
+                    if (applyOption)
+                        yAxisMaximumValue = Double.parseDouble(valueForField);
                     break;
                 case "poweronaxes":
                 case "usepowersonaxes":
-                    if (applyOption) useAxesPowers = Boolean.parseBoolean(valueForField);
+                    if (applyOption)
+                        useAxesPowers = Boolean.parseBoolean(valueForField);
                     break;
                 case "customaxespowers":
-                    if (applyOption) userDefinedAxesPowers = Boolean.parseBoolean(valueForField);
+                    if (applyOption)
+                        userDefinedAxesPowers = Boolean.parseBoolean(valueForField);
                     break;
                 case "xpower":
                 case "xaxispower":
-                    if (applyOption) xAxisPower = Integer.parseInt(valueForField);
+                    if (applyOption)
+                        xAxisPower = Integer.parseInt(valueForField);
                     break;
                 case "ypower":
                 case "yaxispower":
-                    if (applyOption) yAxisPower = Integer.parseInt(valueForField);
+                    if (applyOption)
+                        yAxisPower = Integer.parseInt(valueForField);
                     break;
                 case "hastickmarksx":
                 case "xaxishastickmarks":
-                    if (applyOption) xAxisHasTickMarks = Boolean.parseBoolean(valueForField);
+                    if (applyOption)
+                        xAxisHasTickMarks = Boolean.parseBoolean(valueForField);
                     break;
                 case "hasticklabelsx":
                 case "xaxishasticklabels":
-                    if (applyOption) xAxisHasTickMarkLabels = Boolean.parseBoolean(valueForField);
+                    if (applyOption)
+                        xAxisHasTickMarkLabels = Boolean.parseBoolean(valueForField);
                     break;
                 case "ticksx":
                 case "xaxisnumberofticks":
-                    if (applyOption) xAxisNumberOfTickMarks = Integer.parseInt(valueForField);
+                    if (applyOption)
+                        xAxisNumberOfTickMarks = Integer.parseInt(valueForField);
                     break;
                 case "hastickmarksy":
                 case "yaxishastickmarks":
-                    if (applyOption) yAxisHasTickMarks = Boolean.parseBoolean(valueForField);
+                    if (applyOption)
+                        yAxisHasTickMarks = Boolean.parseBoolean(valueForField);
                     break;
                 case "hasticklabelsy":
                 case "yaxishasticklabels":
-                    if (applyOption) yAxisHasTickMarkLabels = Boolean.parseBoolean(valueForField);
+                    if (applyOption)
+                        yAxisHasTickMarkLabels = Boolean.parseBoolean(valueForField);
                     break;
                 case "ticksy":
                 case "yaxisnumberofticks":
-                    if (applyOption) yAxisNumberOfTickMarks = Integer.parseInt(valueForField);
+                    if (applyOption)
+                        yAxisNumberOfTickMarks = Integer.parseInt(valueForField);
                     break;
                 case "xdecimals":
                 case "xaxisdecimals":
-                    if (applyOption) xAxisDecimalPlaces = Integer.parseInt(valueForField);
+                    if (applyOption)
+                        xAxisDecimalPlaces = Integer.parseInt(valueForField);
                     break;
                 case "ydecimals":
                 case "yaxisdecimals":
-                    if (applyOption) yAxisDecimalPlaces = Integer.parseInt(valueForField);
+                    if (applyOption)
+                        yAxisDecimalPlaces = Integer.parseInt(valueForField);
                     break;
                 case "resultsongraph":
                 case "displayresultsongraph":
-                    if (applyOption) resultsAreDisplayedOnGraph = Boolean.parseBoolean(valueForField);
+                    if (applyOption)
+                        resultsAreDisplayedOnGraph = Boolean.parseBoolean(valueForField);
                     break;
                 case "customresultpos":
                     System.err.println("discontinued setting detected (customresultpos). Ignoring and continuing...");
                     break;
                 case "resultposx":
                 case "resultspositionx":
-                    if (applyOption) resultsPositionX = Integer.parseInt(valueForField);
+                    if (applyOption)
+                        resultsPositionX = Integer.parseInt(valueForField);
                     break;
                 case "resultposy":
                 case "resultspositiony":
-                    if (applyOption) resultsPositionY = Integer.parseInt(valueForField);
+                    if (applyOption)
+                        resultsPositionY = Integer.parseInt(valueForField);
                     break;
                 case "resultdecimals":
                 case "resultsdecimals":
-                    if (applyOption) resultsDecimalPlaces = Integer.parseInt(valueForField);
+                    if (applyOption)
+                        resultsDecimalPlaces = Integer.parseInt(valueForField);
                     break;
                 case "resultsscinot":
                 case "resultsusescientificnotation":
-                    if (applyOption) resultsUseScientificNotation = Boolean.parseBoolean(valueForField);
+                    if (applyOption)
+                        resultsUseScientificNotation = Boolean.parseBoolean(valueForField);
                     break;
                 case "xerrors":
                 case "xerrorsbeforeyerrors":
@@ -1125,8 +1150,8 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
                     }
                     break;
                 case "fitalgorithm":
-                    if (applyOption) LineFit.currentFitAlgorithmFactory = LinearFitFactory.getAlgorithmWithName(
-                            valueForField);
+                    if (applyOption)
+                        LineFit.currentFitAlgorithmFactory = LinearFitFactory.getAlgorithmWithName(valueForField);
                     break;
                 default:
                     found = false;
@@ -1139,6 +1164,20 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
                     JOptionPane.ERROR_MESSAGE);
         }
         return found;
+    }
+
+    /** Performs any processing needed after all the data has been read in */
+    public void finishedReadingInData()
+    {
+        // -1 for the create new dataset placeholder
+        // TODO encapsulate this
+        DataSet currSet;
+        for (int i = 0; i < dataSetSelector.getItemCount() - 1; i++)
+        {
+            currSet = dataSetSelector.getItemAt(i);
+            currSet.finishedReadingInData();
+            updateDataSetErrorOrder(currSet); // This ensures the data is displayed in the correct column
+        }
     }
 
     /** Adds the names of the options as saved in the LineFit file and the values associated with them to the respective

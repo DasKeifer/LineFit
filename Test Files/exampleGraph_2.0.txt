@@ -1,13 +1,13 @@
 FileFormatVersion 2.0
 
-# GraphName New Graph
-# XAxisDescription New X-Axis Description
-# YaxisDescription New Y-Axis Description
+# GraphName new graph
+# XAxisDescription new x-axis description
+# YaxisDescription new y-axis description
 # UseCustomAxes false
-# XAxisMin 0.7
-# XAxisMax 2.3
-# YAxisMin 2.7
-# YAxisMax 4.3
+# XAxisMin 0.5
+# XAxisMax 3.3
+# YAxisMin -0.8
+# YAxisMax 7.7
 # UsePowersOnAxes true
 # CustomAxesPowers false
 # XAxisPower 0
@@ -33,12 +33,23 @@ FileFormatVersion 2.0
 # ExportFontSize 12.0
 
 # DataSet 1
-~ FitType X&Y Error Fit
+~ FitType Y Error Fit
 ~ WhatIsFixed none
 ~ FixedValue 0.0
 ~ Visible true
 ~ Shape rectangle
 ~ Color black
-~ ErrorDims y x
-~ DataPoint 1.0 3.0 0.1 0.1
-~ DataPoint 2.0 4.0 0.1 0.1
+~ ErrorDims x y 
+~ DataPoint 1.0 3.0 0.2 0.1
+~ DataPoint 2.0 4.0 0.2 0.1
+
+# DataSet 2
+~ FitType Y Error Fit
+~ WhatIsFixed none
+~ FixedValue 0.0
+~ Visible true
+~ Shape rectangle
+~ Color black
+~ ErrorDims y 
+~ DataPoint 1.0 1.0 1.0
+~ DataPoint 3.0 6.0 1.0

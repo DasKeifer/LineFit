@@ -270,6 +270,8 @@ public class LineFitFileIO
                         JOptionPane.ERROR_MESSAGE);
             }
 
+            lineFit.finishedReadingInData();
+
             System.out.println("Done Opening File");
         }
     }

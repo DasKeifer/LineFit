@@ -63,12 +63,30 @@ public abstract class LinearFitStrategy
      * @param fitTypeToUse The fit Type to use when fitting the line */
     protected abstract void calculateLinearFit(FitType fitTypeToUse);
 
-    /** Calculates the intercept of this fit given the passed slope value. If the intercept is fixed, it will return the
-     * fixed value
+    /** Calculates the intercept of this fit given the passed slope value with the data points retrieves from this
+     * dataset. If the intercept is fixed, it will return the fixed value.
+     * 
+     * If this function needs to be called often, then the alternate version of this function can be used as an
+     * optimization so that it is not constantly re-getting the data each time it is called.
      * 
      * @param inSlope The slope to calculate the intercept for
      * @return The Intercept of the fit line if the passed slope is used for calculating it */
     double calculateIntercept(double inSlope)
+    {
+        Double[][] data = dataForFit.getAllValidPointsData(true);
+        return calculateIntercept(inSlope, data);
+    }
+
+    /** Calculates the intercept of this fit given the passed slope value and the passed data. If the intercept is
+     * fixed, it will return the fixed value.
+     * 
+     * If this function needs to be called often, then this version of the function can be used as an optimization so
+     * that it is not constantly re-getting the data each time it is called
+     * 
+     * @param inSlope The slope to calculate the intercept for
+     * @param data The points data to calculate the intercept for
+     * @return The Intercept of the fit line if the passed slope is used for calculating it */
+    double calculateIntercept(double inSlope, Double[][] data)
     {
         // if we can't or don't have the intercept fixed, then we need to calculate it
         if (!canFixIntercept || whatIsFixed != FixedVariable.INTERCEPT)
@@ -76,7 +94,6 @@ public abstract class LinearFitStrategy
             double sigmaSquared = 0.0, xSum = 0.0, ySum = 0.0, wSum = 0.0;
             double eX = 0.0, eY = 0.0, x = 0.0, y = 0.0;
 
-            Double[][] data = dataForFit.getAllValidPointsData(true);
             Double[] xData = data[DataDimension.X.getColumnIndex()];
             Double[] yData = data[DataDimension.Y.getColumnIndex()];
             Double[] xErrorData = data[DataDimension.X.getErrorColumnIndex()];
@@ -152,17 +169,35 @@ public abstract class LinearFitStrategy
         return weight;
     }
 
-    /** Calculates the Chi Squared(^2) value for the inputed slope and intercept.The DataSet's Chi Squared measures the
-     * average distance of the points away from the fitted line
+    /** Calculates the Chi Squared(^2) value for the inputed slope and intercept with the data points retrieved from
+     * this dataset.The DataSet's Chi Squared measures the average distance of the points away from the fitted line
+     * 
+     * If this function needs to be called often, then the alternate version of this function can be used as an
+     * optimization so that it is not constantly re-getting the data each time it is called
      * 
      * @param inSlope The slope to calculate the Chi Squared value for
      * @param inIntercept The intercept to calculate the Chi Squared value for
      * @return The Chi Squared value of the fit using the passed slope and intercept */
     public double calculateChiSquared(double inSlope, double inIntercept)
     {
+        Double[][] data = dataForFit.getAllValidPointsData(true);
+        return calculateChiSquared(inSlope, inIntercept, data);
+    }
+
+    /** Calculates the Chi Squared(^2) value for the inputed slope and intercept.The DataSet's Chi Squared measures the
+     * average distance of the points away from the fitted line
+     * 
+     * If this function needs to be called often, then this version of the function can be used as an optimization so
+     * that it is not constantly re-getting the data each time it is called
+     * 
+     * @param inSlope The slope to calculate the Chi Squared value for
+     * @param inIntercept The intercept to calculate the Chi Squared value for
+     * @param data The points data to calculate the Chi Squared value for
+     * @return The Chi Squared value of the fit using the passed slope and intercept */
+    public double calculateChiSquared(double inSlope, double inIntercept, Double[][] data)
+    {
         double x = 0.0, y = 0.0;
 
-        Double[][] data = dataForFit.getAllValidPointsData(true);
         Double[] xData = data[DataDimension.X.getColumnIndex()];
         Double[] yData = data[DataDimension.Y.getColumnIndex()];
         Double[] xErrorData = data[DataDimension.X.getErrorColumnIndex()];

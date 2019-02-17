@@ -146,16 +146,16 @@ class PartialDerivativeMinimizationFactory extends LinearFitFactory
                     m3 = slope + scope;
 
                     // Get the c1 data from chi2
-                    double b1 = calculateIntercept(m1);
-                    chi1 = calculateChiSquared(m1, b1);
+                    double b1 = calculateIntercept(m1, data);
+                    chi1 = calculateChiSquared(m1, b1, data);
 
                     // Get the c2 data from chi2
-                    double b2 = calculateIntercept(m2);
-                    chi2 = calculateChiSquared(m2, b2);
+                    double b2 = calculateIntercept(m2, data);
+                    chi2 = calculateChiSquared(m2, b2, data);
 
                     // Get the c3 data from chi2
-                    double b3 = calculateIntercept(m3);
-                    chi3 = calculateChiSquared(m3, b3);
+                    double b3 = calculateIntercept(m3, data);
+                    chi3 = calculateChiSquared(m3, b3, data);
 
                     numerator = Math.pow(m2 - m1, 2) * (chi2 - chi3) - Math.pow(m2 - m3, 2) * (chi2 - chi1);
                     denominator = (m2 - m1) * (chi2 - chi3) - (m2 - m3) * (chi2 - chi1);

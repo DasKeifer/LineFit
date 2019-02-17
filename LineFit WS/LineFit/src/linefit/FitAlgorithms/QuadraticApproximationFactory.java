@@ -97,10 +97,7 @@ class QuadraticApproximationFactory extends LinearFitFactory
 
             // it will always already have an associated fit because we just set it
             // keep the fixed values if this DataSet already had fit data
-            // if(dataSet.linearFitStrategy != null)
-            // {
             this.setWhatIsFixed(dataSet.linearFitStrategy.getWhatIsFixed(), dataSet.linearFitStrategy.getFixedValue());
-            // }
 
             // set the dataSet's linearFit to us
             dataSet.linearFitStrategy = this;
@@ -126,8 +123,6 @@ class QuadraticApproximationFactory extends LinearFitFactory
         private void approximateQuadratically()
         {
             // calculate and get our starting point
-            // if we ever support fixing for this algorithm - startingPoint.setWhatIsFixed(this.getWhatIsFixed(),
-            // this.getFixedValue());
             startingPoint.setWhatIsFixed(FixedVariable.NONE, 0);
             startingPoint.calculateLinearFit(FitType.BOTH_ERRORS);
             double sigmaM = startingPoint.getSlopeError();
@@ -137,12 +132,13 @@ class QuadraticApproximationFactory extends LinearFitFactory
             int epsilon = 1; // TODO: figure this out
 
             // calculate the chiSquared for six points in the area so we can solve for the 6 unknowns
-            double chiSquared1 = calculateChiSquared(startingSlope, startingIntercept);
-            double chiSquared2 = calculateChiSquared(startingSlope - sigmaM, startingIntercept);
-            double chiSquared3 = calculateChiSquared(startingSlope + sigmaM, startingIntercept);
-            double chiSquared4 = calculateChiSquared(startingSlope, startingIntercept - sigmaB);
-            double chiSquared5 = calculateChiSquared(startingSlope, startingIntercept + sigmaB);
-            double chiSquared6 = calculateChiSquared(startingSlope + sigmaM, startingIntercept + (sigmaB * epsilon));
+        	Double[][] data = dataForFit.getAllValidPointsData(true);
+            double chiSquared1 = calculateChiSquared(startingSlope, startingIntercept, data);
+            double chiSquared2 = calculateChiSquared(startingSlope - sigmaM, startingIntercept, data);
+            double chiSquared3 = calculateChiSquared(startingSlope + sigmaM, startingIntercept, data);
+            double chiSquared4 = calculateChiSquared(startingSlope, startingIntercept - sigmaB, data);
+            double chiSquared5 = calculateChiSquared(startingSlope, startingIntercept + sigmaB, data);
+            double chiSquared6 = calculateChiSquared(startingSlope + sigmaM, startingIntercept + (sigmaB * epsilon), data);
 
             // find there difference from our starting ChiSquared
             double delta21 = chiSquared2 - chiSquared1;
@@ -162,7 +158,7 @@ class QuadraticApproximationFactory extends LinearFitFactory
             double D41MinusD51Over4Sb = (delta41 - delta51) / (4 * sigmaB);
             double D21MinusD31Over4Sm = (delta21 - delta31) / (4 * sigmaM);
 
-            // TODO: fo fixed slope and intercept?
+            // TODO: for fixed slope and intercept?
             // //check for divide by 0 and make them 0 instead of NaN
             // if(sigmaB == 0.0)
             // {

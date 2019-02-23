@@ -123,8 +123,8 @@ public abstract class LinearFitStrategy
     /** Gets the appropriate weight to use for Chi Squared based on the fit type
      * 
      * @param fitTypeToUse The fit type that is being used
-     * @param xError The x error value for the point
-     * @param yError The y error value for the point
+     * @param xError The x error value for the point or null if there is no x error
+     * @param yError The y error value for the point or null if there is no y error
      * @return The weight to use for calculating Chi Squared */
     public double getChiSquaredWeight(FitType fitTypeToUse, Double xError, Double yError)
     {

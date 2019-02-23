@@ -29,13 +29,10 @@ public interface HasOptionsToSave
     /** Reads in the options associated with exporting in from the LineFit data file
      * 
      * @param lineRead The line to attempt to read a setting from
-     * @param applyOption True if the option should be applied or false if the option should only be used for reading in
-     *        the data (for example something like reading and storing temporarily the option for determining if the
-     *        single error value is x error or y error)
      * 
      * @returns True if an export option was found in the passed line and False if the line did not contain an export
      *          option */
-    public boolean readInOption(String lineRead, boolean applyOption);
+    public boolean readInOption(String lineRead);
 
     /** Adds the names of the options as saved in the LineFit file and the values associated with them to the respective
      * passed ArrayLists

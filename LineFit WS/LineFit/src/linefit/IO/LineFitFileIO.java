@@ -195,21 +195,19 @@ public class LineFitFileIO
                             {
                                 readingDataSet = true;
                                 newDataSet = true;
-                                continue;
                             }
-                            // otherwise it is a "graph" setting so let linefit know it should not be applied but it
-                            // still may be applicable such as the case with determining whether the x or y data is
-                            // first in the file
-                            else
+                            // otherwise it is a "graph" setting and only import it if they selected to read in the
+                            // graph settings
+                            else if (importSettings)
                             {
                                 // first see if it is an export parameter and if it wasn't check
                                 // if it was a graph setting
-                                boolean found = generalIO.exportIO.readInOption(trimmedLine, importSettings);
+                                boolean found = generalIO.exportIO.readInOption(trimmedLine);
 
                                 // if it wasn't an export setting try loading it as a graph setting
                                 if (!found)
                                 {
-                                    found = lineFit.readInOption(trimmedLine, importSettings);
+                                    found = lineFit.readInOption(trimmedLine);
                                 }
 
                                 // if it wasn't either then print a warning and continue - it may
@@ -311,7 +309,7 @@ public class LineFitFileIO
                 }
                 else if (relationship.isOlderVersion())
                 {
-                    if (Version.isLineFitFileVersionBefore(versionString, "2.0"))
+                    if (Version.isLineFitFileVersionBefore(versionString, 2, 0))
                     {
                         JOptionPane.showMessageDialog(lineFit,
                                 "The file was created with an older LineFit file format that is not fully supported." +

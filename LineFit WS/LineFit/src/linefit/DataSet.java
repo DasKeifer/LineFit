@@ -93,8 +93,9 @@ public class DataSet extends JScrollPane implements HasDataToSave
     /** The shape of this DataSet when drawn to the GraphArea */
     private Shape dataSetShape;
 
-
+    /** Boolean to keep track of if the dataset is in the process of reading in data */
     private boolean inProcessesOfReading = false;
+    /** The error columns in the file being read */
     private ArrayList<DataDimension> errorColumnsInFile = new ArrayList<DataDimension>();
 
     // TODO: Have a preferred fit type that was the last selected so that we can update it as the input data
@@ -1161,10 +1162,9 @@ public class DataSet extends JScrollPane implements HasDataToSave
         return alignedData;
     }
 
-    // TODO: Update
     /** Gets all the data of all the valid points in the DataSet including the error values if specified. If getting all
-     * the data including errors is specified, then any dimension whose errors are not displayed will have an empty
-     * array at the respective index in the returned data.
+     * the data including errors is specified, then any dimension whose errors are not displayed or are not set will
+     * have the array at the respective index set to null in the returned data.
      * 
      * The returned data is a 2-D array of each of the dimensions' data followed by the error values of each of the
      * dimensions in the same order. For example:
@@ -1172,7 +1172,8 @@ public class DataSet extends JScrollPane implements HasDataToSave
      * [Dimesnion1Data, Dimension2Data, Dimension1Error, Dimension2Error]
      * 
      * @param withErrors True if the data should also contain the error/uncertainty values for the columns
-     * @return A 2-D array containing the data for this dataset as specified in the description */
+     * @return A 2-D array containing the data for this dataset as specified in the description. Any non-specified error
+     *         values are set to null */
     public Double[][] getAllValidPointsData(boolean withErrors)
     {
         ArrayList<Integer> validPoints = getIndexesOfValidPoints();
@@ -1210,6 +1211,13 @@ public class DataSet extends JScrollPane implements HasDataToSave
         }
     }
 
+    /** Gets all the data of all the valid points in the DataSet
+     * 
+     * The returned data is a 2-D array of each of the dimensions' data For example:
+     * 
+     * [Dimesnion1Data, Dimension2Data]
+     * 
+     * @return A 2-D array containing the data for this dataset as specified in the description */
     private Double[][] getValidPoints_Data(ArrayList<Integer> validPoints)
     {
         Double[][] data = new Double[dataColumns.length][];
@@ -1271,8 +1279,16 @@ public class DataSet extends JScrollPane implements HasDataToSave
         }
     }
 
-    // TODO: Still doing weird things if you remove the error while its being used - probably due to order of things
-    // Occurring (i.e. plotting before updating the fit type)
+    /** Gets all the error data of all the valid points in the DataSet including the error values if specified. Any
+     * dimension whose errors are not displayed or are not set will have the array at the respective index set to null
+     * in the returned data.
+     * 
+     * The returned data is a 2-D array of each of the dimensions' error data. For example:
+     * 
+     * [Dimension1Error, Dimension2Error]
+     * 
+     * @return A 2-D array containing the erro data for this dataset as specified in the description. Any non-specified
+     *         error values are set to null */
     private Double[][] getValidPoints_Errors(ArrayList<Integer> validPoints)
     {
         Double[][] data = new Double[dataColumns.length][];
@@ -1290,7 +1306,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
         Double[] columnData;
 
         // and the error columns
-        DataDimension[] requiredDims = FitType.getRequiredDimsForFitType(dataSetFitType);
+        DataDimension[] requiredDims = FitType.getRequiredErrorDimsForFitType(dataSetFitType);
         boolean isRequired = false;
 
         // Use values() to keep the order consistent regardless of how its

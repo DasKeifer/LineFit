@@ -12,6 +12,7 @@
 
 package linefit.FitAlgorithms;
 
+
 import linefit.DataSet;
 
 
@@ -54,7 +55,7 @@ class QuadraticApproximationFactory extends LinearFitFactory
      * 
      * @param dataSet The DataSet that the new FitStrategy will use for data and fit its line to
      * @return Returns a new LinearFitStrategy that is an instance of whatever the instance this is called on subclass
-     * Algorithm */
+     *         Algorithm */
     public LinearFitStrategy createNewLinearFitStartegy(DataSet dataSet)
     {
         return new QuadraticApproximationStrategy(dataSet);
@@ -132,13 +133,14 @@ class QuadraticApproximationFactory extends LinearFitFactory
             int epsilon = 1; // TODO: figure this out
 
             // calculate the chiSquared for six points in the area so we can solve for the 6 unknowns
-        	Double[][] data = dataForFit.getAllValidPointsData(true);
+            Double[][] data = dataForFit.getAllValidPointsData(true);
             double chiSquared1 = calculateChiSquared(startingSlope, startingIntercept, data);
             double chiSquared2 = calculateChiSquared(startingSlope - sigmaM, startingIntercept, data);
             double chiSquared3 = calculateChiSquared(startingSlope + sigmaM, startingIntercept, data);
             double chiSquared4 = calculateChiSquared(startingSlope, startingIntercept - sigmaB, data);
             double chiSquared5 = calculateChiSquared(startingSlope, startingIntercept + sigmaB, data);
-            double chiSquared6 = calculateChiSquared(startingSlope + sigmaM, startingIntercept + (sigmaB * epsilon), data);
+            double chiSquared6 = calculateChiSquared(startingSlope + sigmaM, startingIntercept + (sigmaB * epsilon),
+                    data);
 
             // find there difference from our starting ChiSquared
             double delta21 = chiSquared2 - chiSquared1;

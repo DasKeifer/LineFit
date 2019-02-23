@@ -999,13 +999,10 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
     /** Reads in the options associated with exporting in from the LineFit data file
      * 
      * @param lineRead The line to attempt to read a setting from
-     * @param applyOption True if the option should be applied or false if the option should only be used for reading in
-     *        the data (for example something like reading and storing temporarily the option for determining if the
-     *        single error value is x error or y error)
      * 
      * @returns True if an export option was found in the passed line and False if the line did not contain an export
      *          option */
-    public boolean readInOption(String lineRead, boolean applyOption)
+    public boolean readInOption(String lineRead)
     {
         // split the input into the two parts
         // we can't use split because it will mess up on names
@@ -1020,140 +1017,112 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
             switch (field)
             {
                 case "graphname":
-                    if (applyOption)
-                        setGraphName(valueForField);
+                    setGraphName(valueForField);
                     break;
                 case "xaxisdescription":
-                    if (applyOption)
-                        setXAxisDescription(valueForField);
+                    setXAxisDescription(valueForField);
                     break;
                 case "yaxisdescription":
-                    if (applyOption)
-                        setYAxisDescription(valueForField);
+                    setYAxisDescription(valueForField);
                     break;
                 case "customaxes":
                 case "usecustomaxes":
-                    if (applyOption)
-                        userDefinedAxes = Boolean.parseBoolean(valueForField);
+                    userDefinedAxes = Boolean.parseBoolean(valueForField);
                     break;
                 case "xmin":
                 case "xaxismin":
-                    if (applyOption)
-                        xAxisMinimumValue = Double.parseDouble(valueForField);
+                    xAxisMinimumValue = Double.parseDouble(valueForField);
                     break;
                 case "xmax":
                 case "xaxismax":
-                    if (applyOption)
-                        xAxisMaximumValue = Double.parseDouble(valueForField);
+                    xAxisMaximumValue = Double.parseDouble(valueForField);
                     break;
                 case "ymin":
                 case "yaxismin":
-                    if (applyOption)
-                        yAxisMinimumValue = Double.parseDouble(valueForField);
+                    yAxisMinimumValue = Double.parseDouble(valueForField);
                     break;
                 case "ymax":
                 case "yaxismax":
-                    if (applyOption)
-                        yAxisMaximumValue = Double.parseDouble(valueForField);
+                    yAxisMaximumValue = Double.parseDouble(valueForField);
                     break;
                 case "poweronaxes":
                 case "usepowersonaxes":
-                    if (applyOption)
-                        useAxesPowers = Boolean.parseBoolean(valueForField);
+                    useAxesPowers = Boolean.parseBoolean(valueForField);
                     break;
                 case "customaxespowers":
-                    if (applyOption)
-                        userDefinedAxesPowers = Boolean.parseBoolean(valueForField);
+                    userDefinedAxesPowers = Boolean.parseBoolean(valueForField);
                     break;
                 case "xpower":
                 case "xaxispower":
-                    if (applyOption)
-                        xAxisPower = Integer.parseInt(valueForField);
+                    xAxisPower = Integer.parseInt(valueForField);
                     break;
                 case "ypower":
                 case "yaxispower":
-                    if (applyOption)
-                        yAxisPower = Integer.parseInt(valueForField);
+                    yAxisPower = Integer.parseInt(valueForField);
                     break;
                 case "hastickmarksx":
                 case "xaxishastickmarks":
-                    if (applyOption)
-                        xAxisHasTickMarks = Boolean.parseBoolean(valueForField);
+                    xAxisHasTickMarks = Boolean.parseBoolean(valueForField);
                     break;
                 case "hasticklabelsx":
                 case "xaxishasticklabels":
-                    if (applyOption)
-                        xAxisHasTickMarkLabels = Boolean.parseBoolean(valueForField);
+                    xAxisHasTickMarkLabels = Boolean.parseBoolean(valueForField);
                     break;
                 case "ticksx":
                 case "xaxisnumberofticks":
-                    if (applyOption)
-                        xAxisNumberOfTickMarks = Integer.parseInt(valueForField);
+                    xAxisNumberOfTickMarks = Integer.parseInt(valueForField);
                     break;
                 case "hastickmarksy":
                 case "yaxishastickmarks":
-                    if (applyOption)
-                        yAxisHasTickMarks = Boolean.parseBoolean(valueForField);
+                    yAxisHasTickMarks = Boolean.parseBoolean(valueForField);
                     break;
                 case "hasticklabelsy":
                 case "yaxishasticklabels":
-                    if (applyOption)
-                        yAxisHasTickMarkLabels = Boolean.parseBoolean(valueForField);
+                    yAxisHasTickMarkLabels = Boolean.parseBoolean(valueForField);
                     break;
                 case "ticksy":
                 case "yaxisnumberofticks":
-                    if (applyOption)
-                        yAxisNumberOfTickMarks = Integer.parseInt(valueForField);
+                    yAxisNumberOfTickMarks = Integer.parseInt(valueForField);
                     break;
                 case "xdecimals":
                 case "xaxisdecimals":
-                    if (applyOption)
-                        xAxisDecimalPlaces = Integer.parseInt(valueForField);
+                    xAxisDecimalPlaces = Integer.parseInt(valueForField);
                     break;
                 case "ydecimals":
                 case "yaxisdecimals":
-                    if (applyOption)
-                        yAxisDecimalPlaces = Integer.parseInt(valueForField);
+                    yAxisDecimalPlaces = Integer.parseInt(valueForField);
                     break;
                 case "resultsongraph":
                 case "displayresultsongraph":
-                    if (applyOption)
-                        resultsAreDisplayedOnGraph = Boolean.parseBoolean(valueForField);
+                    resultsAreDisplayedOnGraph = Boolean.parseBoolean(valueForField);
                     break;
                 case "customresultpos":
-                    System.err.println("discontinued setting detected (customresultpos). Ignoring and continuing...");
+                    System.err.println(
+                            "Warning: Discontinued setting detected (customresultpos). Ignoring and continuing...");
                     break;
                 case "resultposx":
                 case "resultspositionx":
-                    if (applyOption)
-                        resultsPositionX = Integer.parseInt(valueForField);
+                    resultsPositionX = Integer.parseInt(valueForField);
                     break;
                 case "resultposy":
                 case "resultspositiony":
-                    if (applyOption)
-                        resultsPositionY = Integer.parseInt(valueForField);
+                    resultsPositionY = Integer.parseInt(valueForField);
                     break;
                 case "resultdecimals":
                 case "resultsdecimals":
-                    if (applyOption)
-                        resultsDecimalPlaces = Integer.parseInt(valueForField);
+                    resultsDecimalPlaces = Integer.parseInt(valueForField);
                     break;
                 case "resultsscinot":
                 case "resultsusescientificnotation":
-                    if (applyOption)
-                        resultsUseScientificNotation = Boolean.parseBoolean(valueForField);
+                    resultsUseScientificNotation = Boolean.parseBoolean(valueForField);
                     break;
                 case "xerrors":
                 case "xerrorsbeforeyerrors":
-                    if (applyOption)
-                    {
-                        xErrorsOnly = Boolean.parseBoolean(valueForField);
-                        setThirdColumn(xErrorsOnly);
-                    }
+                    xErrorsOnly = Boolean.parseBoolean(valueForField);
+                    setThirdColumn(xErrorsOnly);
                     break;
                 case "fitalgorithm":
-                    if (applyOption)
-                        LineFit.currentFitAlgorithmFactory = LinearFitFactory.getAlgorithmWithName(valueForField);
+                    LineFit.currentFitAlgorithmFactory = LinearFitFactory.getAlgorithmWithName(valueForField);
                     break;
                 default:
                     found = false;

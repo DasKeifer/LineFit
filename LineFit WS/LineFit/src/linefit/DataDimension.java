@@ -58,17 +58,22 @@ public enum DataDimension
     {
         return StaticFields.numDimensions;
     }
-    
+
+    /** Retrieves the DataDimension from its passed string representation
+     * 
+     * @param dimString The string representation of the data dimension
+     * @return The DataDimension that the string represents or null if the passed string was not a valid string
+     *         representation of a data dimension */
     public static DataDimension parseDim(String dimString)
     {
-    	for (DataDimension dim : DataDimension.values())
-    	{
-    		if (dimString.equals(dim.getDisplayString()))
-    		{
-    			return dim;
-    		}
-    	}
-    	return null;
+        for (DataDimension dim : DataDimension.values())
+        {
+            if (dimString.equals(dim.getDisplayString()))
+            {
+                return dim;
+            }
+        }
+        return null;
     }
 
     /** Gets the display string of this DatatDimension for display in the GUI

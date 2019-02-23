@@ -86,7 +86,11 @@ public enum FitType
         }
     }
 
-    public static DataDimension[] getRequiredDimsForFitType(FitType fitType)
+    /** Gets the error dimensions required for the given fit type
+     * 
+     * @param fitType The fit type to get the required errors of
+     * @return An array of the required data dimensions for the passed fit type */
+    public static DataDimension[] getRequiredErrorDimsForFitType(FitType fitType)
     {
         DataDimension[] retVal;
         switch (fitType)

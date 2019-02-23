@@ -213,16 +213,19 @@ public class Version
         }
     }
 
-    public static boolean isLineFitFileVersionBefore(String isBefore, String toCheckAgainst)
+    /** Checks if the passed LineFit file version string is before the version passed in
+     * 
+     * @param toCheck The version string to check against the passed values
+     * @param majorVersion The major portion of the version of the version to check if the passed value is before
+     * @param minorVersion The major portion of the version of the version to check if the passed value is before
+     * @return True if the version in the string is a earlier version than the one passed in. False if it is the same or
+     *         a newer version */
+    public static boolean isLineFitFileVersionBefore(String toCheck, int majorVersion, int minorVersion)
     {
-        String[] versionParts1 = isBefore.split("\\.");
-        int majorVersion1 = Integer.parseInt(versionParts1[0].trim());
-        int minorVersion1 = Integer.parseInt(versionParts1[1].trim());
+        String[] versionParts1 = toCheck.split("\\.");
+        int toCheckMajor = Integer.parseInt(versionParts1[0].trim());
+        int toCheckMinor = Integer.parseInt(versionParts1[1].trim());
 
-        String[] versionParts2 = toCheckAgainst.split("\\.");
-        int majorVersion2 = Integer.parseInt(versionParts2[0].trim());
-        int minorVersion2 = Integer.parseInt(versionParts2[1].trim());
-
-        return majorVersion1 < majorVersion2 || (majorVersion1 == majorVersion2 && minorVersion1 < minorVersion2);
+        return toCheckMajor < majorVersion || (toCheckMajor == majorVersion && toCheckMinor < minorVersion);
     }
 }

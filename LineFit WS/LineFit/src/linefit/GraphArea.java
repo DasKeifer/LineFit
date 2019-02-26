@@ -246,14 +246,16 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
      * @param toRegister The DataSet to add to the DataSet selector box */
     void registerDataSet(DataSet toRegister)
     {
-        // Ensure the error data is in the correct order
-        updateDataSetErrorOrder(toRegister);
-
         // We have to subtract one for the "new dataset" placeholder
         DataSet newDataSet = dataSetSelector.getItemAt(dataSetSelector.getItemCount() - 1);
         dataSetSelector.removeItem(newDataSet);
         dataSetSelector.addItem(toRegister);
         dataSetSelector.setSelectedItem(toRegister);
+
+        // Ensure the error data is in the correct order
+        updateDataSetErrorOrder(toRegister);
+
+        // Add the new dataset placeholder back in
         dataSetSelector.addItem(newDataSet);
     }
 
@@ -996,6 +998,8 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
 
     /** Reads in the options associated with exporting in from the LineFit data file
      * 
+     * @param lineRead The line to attempt to read a setting from
+     * 
      * @returns True if an export option was found in the passed line and False if the line did not contain an export
      *          option */
     public boolean readInOption(String lineRead)
@@ -1093,7 +1097,8 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
                     resultsAreDisplayedOnGraph = Boolean.parseBoolean(valueForField);
                     break;
                 case "customresultpos":
-                    System.err.println("discontinued setting detected (customresultpos). Ignoring and continuing...");
+                    System.err.println(
+                            "Warning: Discontinued setting detected (customresultpos). Ignoring and continuing...");
                     break;
                 case "resultposx":
                 case "resultspositionx":
@@ -1130,6 +1135,20 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
                     JOptionPane.ERROR_MESSAGE);
         }
         return found;
+    }
+
+    /** Performs any processing needed after all the data has been read in */
+    public void finishedReadingInData()
+    {
+        // -1 for the create new dataset placeholder
+        // TODO encapsulate this
+        DataSet currSet;
+        for (int i = 0; i < dataSetSelector.getItemCount() - 1; i++)
+        {
+            currSet = dataSetSelector.getItemAt(i);
+            currSet.finishedReadingInData();
+            updateDataSetErrorOrder(currSet); // This ensures the data is displayed in the correct column
+        }
     }
 
     /** Adds the names of the options as saved in the LineFit file and the values associated with them to the respective

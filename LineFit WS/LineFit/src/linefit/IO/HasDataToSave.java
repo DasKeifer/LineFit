@@ -12,6 +12,7 @@
 
 package linefit.IO;
 
+
 import java.util.ArrayList;
 
 
@@ -30,6 +31,9 @@ public interface HasDataToSave
      * @param newDataSet Signals that the line passed in is the beginning of a new data set
      * @return Returns true if the data or option for the data was read in from the line */
     public boolean readInDataAndDataOptions(String line, boolean newDataSet);
+
+    /** Performs any processing needed after all the data has been read in */
+    public void finishedReadingInData();
 
     /** Retrieve all the data and options associated with the data in the passed in array lists
      * 

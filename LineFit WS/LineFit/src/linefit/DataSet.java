@@ -20,6 +20,7 @@ import java.awt.event.KeyEvent;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
@@ -65,6 +66,8 @@ public class DataSet extends JScrollPane implements HasDataToSave
     private JTable tableContainingData;
     /** The model of the Table to use for inputting and storing data */
     DataSetTableModel dataTableModel;
+    /** The model of the Table to use for inputting and storing data */
+    DataSetTableListener dataTableListener;
     /** The name of this graph set to be displayed to the user */
     private String dataSetName;
     /** If the current GraphDataSet is visible and should be drawn to the GraphArea */
@@ -90,6 +93,13 @@ public class DataSet extends JScrollPane implements HasDataToSave
     /** The shape of this DataSet when drawn to the GraphArea */
     private Shape dataSetShape;
 
+    /** Boolean to keep track of if the dataset is in the process of reading in data */
+    private boolean inProcessesOfReading = false;
+    /** The error columns in the file being read */
+    private ArrayList<DataDimension> errorColumnsInFile = new ArrayList<DataDimension>();
+
+    // TODO: Have a preferred fit type that was the last selected so that we can update it as the input data
+
     /** The predefined colors that are used for DataSets */
     public static final Color[] predefinedColors = new Color[] { Color.BLACK, Color.YELLOW, Color.BLUE, Color.GREEN,
             Color.ORANGE, Color.RED };
@@ -105,6 +115,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
     {
         changeTracker = parentsChangeTracker;
 
+        // Set the default column order
         dataSetFitType = FitType.NONE;
         visibleGraph = true;
 
@@ -114,6 +125,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
         dataColumns = new DataColumn[DataDimension.getNumberOfDimensions()];
         errorColumns = new DataColumn[DataDimension.getNumberOfDimensions()];
         dataTableModel = new DataSetTableModel();
+        dataTableListener = new DataSetTableListener(onUpdateFitTypesAction);
         tableContainingData = new JTable(dataTableModel);
         tableContainingData.setGridColor(Color.gray);
 
@@ -143,7 +155,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
             dataTableModel.addColumn(dataColumns[i].getName());
         }
 
-        dataTableModel.addTableModelListener(new GraphSetListener(onUpdateFitTypesAction));
+        dataTableModel.addTableModelListener(dataTableListener);
 
         tableContainingData.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_R, 0, false), "MY_CUSTOM_ACTION");
         dataSetColor = Color.BLACK;
@@ -174,7 +186,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
         return placeHolder;
     }
 
-    /** Sets the error/uncertainty column order to the passed order. All dimensions must be present in the passed list
+    /** Sets the error/uncertainty column order to the passed order. All dimensions must be present in the passed array
      * or else the order will not be updated.
      * 
      * @param columnOrder The order to use for the error/uncertainty columns
@@ -190,9 +202,9 @@ public class DataSet extends JScrollPane implements HasDataToSave
         for (DataDimension dim : DataDimension.values())
         {
             boolean found = false;
-            for (int i = 0; i < DataDimension.getNumberOfDimensions(); i++)
+            for (DataDimension passedDim : columnOrder)
             {
-                if (columnOrder[i] == dim)
+                if (passedDim == dim)
                 {
                     found = true;
                     break;
@@ -208,6 +220,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
         }
 
         int numCurrentlyDisplayed = errorColumnsDisplayed;
+        dataTableListener.setListenerEnabled(false); // prevents some unnecessary recalculation
         while (errorColumnsDisplayed > 0)
         {
             hideLastErrorColumn();
@@ -218,6 +231,13 @@ public class DataSet extends JScrollPane implements HasDataToSave
         while (errorColumnsDisplayed < numCurrentlyDisplayed)
         {
             showNextErrorColumn();
+        }
+        dataTableListener.setListenerEnabled(true);
+
+        // Only update if we removed and readded some columns
+        if (numCurrentlyDisplayed > 0)
+        {
+            dataTableListener.signalDataChanged();
         }
 
         return true;
@@ -328,7 +348,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
         ArrayList<FitType> fits = new ArrayList<FitType>();
         fits.add(FitType.NONE);
 
-        ArrayList<Integer> validPoints = getIndexesOfValidPoints(); // TODO: Don't use valid points always?
+        ArrayList<Integer> validPoints = getIndexesOfValidPoints();
         if (validPoints.size() > 1)
         {
             fits.add(FitType.REGULAR);
@@ -468,6 +488,9 @@ public class DataSet extends JScrollPane implements HasDataToSave
      * @return Returns true if the data or option for the data was read in from the line */
     public boolean readInDataAndDataOptions(String line, boolean unused)
     {
+        // Enusre we know that we are reading in the data
+        inProcessesOfReading = true;
+
         // now split the input into the two parts
         // we can't use split because it will mess up on names as well as points since they have multiple spaces
         int firstSpaceIndex = line.indexOf(' ');
@@ -482,7 +505,9 @@ public class DataSet extends JScrollPane implements HasDataToSave
                 case "colnum":
                 case "numberofcolumns":
                 {
-                    // Not used anymore
+                    // No longer used - required for old versions though
+                    int numCols = Integer.parseInt(valueForField);
+                    setNumberOfDisplayedColumns(numCols);
                     break;
                 }
                 case "fittype":
@@ -502,6 +527,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
                     if (!foundFitType)
                     {
                         this.setFitType(FitType.NONE);
+                        System.err.println("Error reading fit type - Defaulting to None - Continuing: " + line);
                     }
                     break;
                 }
@@ -587,14 +613,41 @@ public class DataSet extends JScrollPane implements HasDataToSave
                     }
                     break;
                 }
+                case "errordims":
+                    errorColumnsInFile.clear();
+                    String[] splitDimValuesInput = valueForField.split(" ");
+                    int columnCount = 0;
+                    boolean foundDim;
+                    for (int i = 0; i < errorColumnsOrder.length; i++)
+                    {
+                        foundDim = false;
+                        for (int j = 0; j < splitDimValuesInput.length; j++)
+                        {
+                            if (DataDimension.parseDim(splitDimValuesInput[j]) == errorColumnsOrder[i])
+                            {
+                                foundDim = true;
+                                columnCount = i;
+                            }
+                        }
+
+                        if (!foundDim)
+                        {
+                            errorColumnsInFile.add(errorColumnsOrder[i]);
+                        }
+                    }
+
+                    setNumberOfDisplayedColumns(DataDimension.getNumberOfDimensions() + columnCount + 1);
+                    break;
                 case "colname":
-                    break; // we don't use this anymore but we don't want to cause errors when reading old files int.
-                           // visibleDataColumns.get(colNum).setName(valueForField); break;
+                    break; // we don't use this anymore but we don't want to cause errors when reading old files in
                 case "coldesc":
                     break; // we don't use this anymore but we don't want to cause errors when reading old files in
                 case "p":
                 case "datapoint":
                 {
+                    // Temporarily disable the dataset table listener to prevent it from updating prematurely
+                    dataTableListener.setListenerEnabled(false);
+
                     // split it up into the separate string parts
                     String[] splitPointValuesInput = valueForField.split(" ");
 
@@ -602,6 +655,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
                     // can just use the data size of the first column to determine
                     // the next row to add at.
                     int row = dataColumns[0].dataSize();
+                    int nextErrorIdx = 0;
                     for (int column = 0; column < splitPointValuesInput.length; column++)
                     {
                         String pointValueString = splitPointValuesInput[column];
@@ -614,17 +668,35 @@ public class DataSet extends JScrollPane implements HasDataToSave
                         }
                         try
                         {
-                            dataColumns[column].writeData(row, value);
+                            if (column < DataDimension.getNumberOfDimensions())
+                            {
+                                dataColumns[column].writeData(row, value);
+                            }
+                            else
+                            {
+                                // Check and get the next unskipped error
+                                // For each skipped error, check if the next column is this one
+                                for (int skip = 0; skip < errorColumnsInFile.size(); skip++)
+                                {
+                                    if (errorColumnsInFile.get(skip).getColumnIndex() == nextErrorIdx)
+                                    {
+                                        nextErrorIdx++;
+                                    }
+                                }
+                                errorColumns[nextErrorIdx++].writeData(row, value);
+                            }
                             dataTableModel.setValueAt(value, row, column);
                         }
                         catch (IndexOutOfBoundsException iobe)
                         {
                             System.err.println(
-                                    "Error reading in DataPoint - More values specified than columns - Continuing: " +
+                                    "Error reading in DataPoint - More values specified than columns in data model - Continuing: " +
                                             line);
                             break;
                         }
                     }
+                    // Don't forget to reenable the dataset table listener
+                    dataTableListener.setListenerEnabled(true);
                     break;
                 }
                 default:
@@ -640,6 +712,17 @@ public class DataSet extends JScrollPane implements HasDataToSave
         }
 
         return found;
+    }
+
+    /** Performs any processing needed after all the data has been read in */
+    public void finishedReadingInData()
+    {
+        if (inProcessesOfReading)
+        {
+            // Clean up our temporary read in data
+            inProcessesOfReading = false;
+            errorColumnsInFile.clear();
+        }
     }
 
     /** Retrieve all the data and options associated with the data in the passed in array lists
@@ -675,6 +758,24 @@ public class DataSet extends JScrollPane implements HasDataToSave
             variableNames.add("Color");
             variableValues.add(getColorString());
 
+            if (errorColumnsDisplayed > 0)
+            {
+                variableNames.add("ErrorDims");
+                String errorDims = "";
+                for (DataDimension dim : DataDimension.values())
+                {
+                    for (int i = 0; i < errorColumnsDisplayed; i++)
+                    {
+                        if (dim == errorColumnsOrder[i])
+                        {
+                            errorDims += dim.getDisplayString() + " ";
+                        }
+                    }
+                }
+                variableValues.add(errorDims);
+
+            }
+
             String datapoint;
             ArrayList<Integer> indexes = getIndexesOfValidPoints();
             for (Integer index : indexes)
@@ -690,9 +791,17 @@ public class DataSet extends JScrollPane implements HasDataToSave
                     datapoint += dataColumns[j].getDataAt(index);
                 }
 
-                for (int j = 0; j < errorColumnsDisplayed; j++)
+                // For each data dimension (in order)
+                for (int j = 0; j < DataDimension.getNumberOfDimensions(); j++)
                 {
-                    datapoint += " " + errorColumns[j].getDataAt(index);
+                    // If we find its index in the columns being displayed, then add it to the line
+                    for (int k = 0; k < errorColumnsDisplayed; k++)
+                    {
+                        if (errorColumnsOrder[k].getColumnIndex() == j)
+                        {
+                            datapoint += " " + errorColumns[j].getDataAt(index);
+                        }
+                    }
                 }
 
                 variableValues.add(datapoint);
@@ -1054,8 +1163,8 @@ public class DataSet extends JScrollPane implements HasDataToSave
     }
 
     /** Gets all the data of all the valid points in the DataSet including the error values if specified. If getting all
-     * the data including errors is specified, then any dimension whose errors are not displayed will have an empty
-     * array at the respective index in the returned data.
+     * the data including errors is specified, then any dimension whose errors are not displayed or are not set will
+     * have the array at the respective index set to null in the returned data.
      * 
      * The returned data is a 2-D array of each of the dimensions' data followed by the error values of each of the
      * dimensions in the same order. For example:
@@ -1063,70 +1172,236 @@ public class DataSet extends JScrollPane implements HasDataToSave
      * [Dimesnion1Data, Dimension2Data, Dimension1Error, Dimension2Error]
      * 
      * @param withErrors True if the data should also contain the error/uncertainty values for the columns
-     * @return A 2-D array containing the data for this dataset as specified in the description */
-    public double[][] getAllValidPointsData(boolean withErrors)
+     * @return A 2-D array containing the data for this dataset as specified in the description. Any non-specified error
+     *         values are set to null */
+    public Double[][] getAllValidPointsData(boolean withErrors)
     {
-        int columnsIndex = 0;
-        double[][] allData;
+        ArrayList<Integer> validPoints = getIndexesOfValidPoints();
+
+        Double[][] data = getValidPoints_Data(validPoints);
+
         if (withErrors)
         {
-            allData = new double[dataColumns.length + errorColumns.length][];
+            Double[][] allData = new Double[dataColumns.length + errorColumns.length][];
+            Double[][] errorData = getValidPoints_Errors(validPoints);
+
+            // Ensure the validity of the data
+            if (errorData[0].length != data[0].length)
+            {
+                // If there are fewer points in the errors, we need to re-get the data as well with the fewer points
+                data = getValidPoints_Data(validPoints);
+            }
+
+            // Add the data then the errors to the full data value
+            int colIdx = 0;
+            for (Double[] dataCol : data)
+            {
+                allData[colIdx++] = dataCol;
+            }
+
+            for (Double[] dataCol : errorData)
+            {
+                allData[colIdx++] = dataCol;
+            }
+            return allData;
         }
         else
         {
-            allData = new double[dataColumns.length][];
+            return data;
         }
+    }
 
-        // get the valid points (those with x and y points)
-        ArrayList<Integer> validPoints = getIndexesOfValidPoints();
+    /** Gets all the data of all the valid points in the DataSet
+     * 
+     * The returned data is a 2-D array of each of the dimensions' data For example:
+     * 
+     * [Dimesnion1Data, Dimension2Data]
+     * 
+     * @return A 2-D array containing the data for this dataset as specified in the description */
+    private Double[][] getValidPoints_Data(ArrayList<Integer> validPoints)
+    {
+        Double[][] data = new Double[dataColumns.length][];
+        int columnIdx = 0;
+
         int numPoints = validPoints.size();
+        Iterator<Integer> pointsIter;
+        Integer pointIdx;
+        boolean failedToFindPoint = false;
 
         int validIndex = 0;
-        double[] validData;
+        Double[] validData;
 
-        // and the data columns
+        // add the data columns
         Double[] columnData;
         for (DataDimension dim : DataDimension.values())
         {
             validIndex = 0;
-            validData = new double[numPoints];
+            validData = new Double[numPoints];
             columnData = getData(dim);
 
-            for (Integer index : validPoints)
+            pointsIter = validPoints.iterator();
+            while (pointsIter.hasNext())
             {
-                if (index >= columnData.length)
+                pointIdx = pointsIter.next();
+                if (pointIdx >= columnData.length)
                 {
-                    break;
+                    // This should never occur!
+                    System.err.println(
+                            "Failed to retreive point information for a point that was returned as valid at row " +
+                                    pointIdx + ". Removing it from the returned data");
+                    pointsIter.remove();
+                    failedToFindPoint = true;
                 }
-                validData[validIndex] = columnData[index];
+                validData[validIndex] = columnData[pointIdx];
                 validIndex++;
             }
-            allData[columnsIndex++] = validData;
-        }
 
-        // and the error columns if they wanted it
-        if (withErrors)
-        {
-            for (DataDimension dim : DataDimension.values())
+            // If we found the point fine, add it to the list
+            if (!failedToFindPoint)
             {
-                validIndex = 0;
-                validData = new double[numPoints];
-                columnData = getErrorData(dim);
-
-                for (Integer index : validPoints)
-                {
-                    if (index >= columnData.length)
-                    {
-                        break;
-                    }
-                    validData[validIndex] = columnData[index];
-                    validIndex++;
-                }
-                allData[columnsIndex++] = validData;
+                data[columnIdx++] = validData;
+            }
+            else
+            {
+                break;
             }
         }
 
-        return allData;
+        // If we found all the points successfully, then return the data
+        if (!failedToFindPoint)
+        {
+            return data;
+        }
+        // If we failed call ourselves again with the trimmed down points list
+        else
+        {
+            return getValidPoints_Data(validPoints);
+        }
+    }
+
+    /** Gets all the error data of all the valid points in the DataSet including the error values if specified. Any
+     * dimension whose errors are not displayed or are not set will have the array at the respective index set to null
+     * in the returned data.
+     * 
+     * The returned data is a 2-D array of each of the dimensions' error data. For example:
+     * 
+     * [Dimension1Error, Dimension2Error]
+     * 
+     * @return A 2-D array containing the erro data for this dataset as specified in the description. Any non-specified
+     *         error values are set to null */
+    private Double[][] getValidPoints_Errors(ArrayList<Integer> validPoints)
+    {
+        Double[][] data = new Double[dataColumns.length][];
+        int columnIdx = 0;
+
+        int numPoints = validPoints.size();
+        Iterator<Integer> pointsIter;
+        Integer pointIdx;
+        boolean failedToFindPoint = false;
+
+        int validIndex = 0;
+        Double[] validData;
+
+        // add the data columns
+        Double[] columnData;
+
+        // and the error columns
+        DataDimension[] requiredDims = FitType.getRequiredErrorDimsForFitType(dataSetFitType);
+        boolean isRequired = false;
+
+        // Use values() to keep the order consistent regardless of how its
+        // being displayed currently
+        for (DataDimension dim : DataDimension.values())
+        {
+            isRequired = false;
+            // First determine if it is required for the fit type and if so ensure it is displayed
+            for (DataDimension requiredDim : requiredDims)
+            {
+                if (dim == requiredDim)
+                {
+                    // This should never occur - return an array of empty arrays
+                    if (!isErrorDataVisible(dim))
+                    {
+                        System.err.println("Required error data for fit type " + 1 + " is not visible!");
+                        for (int colIdx = 0; colIdx < data.length; colIdx++)
+                        {
+                            data[colIdx] = new Double[0];
+                        }
+                        validPoints.clear();
+                        return data;
+                    }
+                    isRequired = true;
+                    break;
+                }
+            }
+
+            validIndex = 0;
+            validData = new Double[numPoints];
+            columnData = getErrorData(dim);
+
+            // Now go through each of our valid point indexes
+            pointsIter = validPoints.iterator();
+            while (pointsIter.hasNext())
+            {
+                pointIdx = pointsIter.next();
+                // If its visible we attempt to add the value in the column
+                if (isErrorDataVisible(dim))
+                {
+                    if (pointIdx >= columnData.length || columnData[validIndex] == null)
+                    {
+                        // If we didn't find the value and it was required for the fit then we must remove it and
+                        // start over. This should never occur!
+                        if (isRequired)
+                        {
+                            System.err.println(
+                                    "Failed to retreive point's required error information for a point that was returned as valid at row " +
+                                            pointIdx + ". Removing it from the returned data");
+                            pointsIter.remove();
+                            failedToFindPoint = true;
+                        }
+                        // Otherwise just set it to null
+                        else
+                        {
+                            validData[validIndex] = null;
+                        }
+                    }
+                    // If we successfully retrieved the value then add it to the list
+                    else
+                    {
+                        validData[validIndex] = columnData[pointIdx];
+                    }
+                    validIndex++;
+                }
+                // If its not visible, return all nulls
+                // We already ensured if it was required it is visible
+                else
+                {
+                    validData[validIndex] = null;
+                }
+            }
+
+            // If we found the errors fine, add it to the list
+            if (!failedToFindPoint)
+            {
+                data[columnIdx++] = validData;
+            }
+            // otherwise bail out
+            else
+            {
+                break;
+            }
+        }
+
+        // If we found all the points fine, then return the data
+        if (!failedToFindPoint)
+        {
+            return data;
+        }
+        // If we failed call ourselves again with the trimmed down points list
+        else
+        {
+            return getValidPoints_Errors(validPoints);
+        }
     }
 
     /** Sets the Color to be used when drawing this DataSet to the given Color
@@ -1177,20 +1452,38 @@ public class DataSet extends JScrollPane implements HasDataToSave
      * @author Keith Rice
      * @version 2.0
      * @since &lt;0.98.0 */
-    private class GraphSetListener implements TableModelListener
+    private class DataSetTableListener implements TableModelListener
     {
         /** True if we are in the process of updating the table so we can tell if we called ourself to prevent infinite
          * recursion */
         boolean alreadyUpdatingTable = false;
+        /** True if the listener is enabled, false otherwise. This allows us to change data internally without calling
+         * the listener */
+        boolean enabled = true;
         /** The action to run when the allowable fit types are updated */
         Runnable onUpdateFitTypesAction;
 
-        /** Constructor for the GraphSetListener
+        /** Constructor for the DataSetTableListener
          * 
          * @param inOnUpdateFitTypesAction The action to run when the fit types for this data are updated */
-        GraphSetListener(Runnable inOnUpdateFitTypesAction)
+        DataSetTableListener(Runnable inOnUpdateFitTypesAction)
         {
             onUpdateFitTypesAction = inOnUpdateFitTypesAction;
+        }
+
+        /** Enables or disables the listener to allow for data updates internally without triggering the listener
+         * 
+         * @param enable True to enable it, false to disable it */
+        public void setListenerEnabled(boolean enable)
+        {
+            enabled = enable;
+        }
+
+        /** Used to signal LineFit that the data has changed or has potentially changed */
+        public void signalDataChanged()
+        {
+            refreshFitData();
+            onUpdateFitTypesAction.run();
         }
 
         /** Validates and Updates the data in the column at the passed index as appropriate
@@ -1264,7 +1557,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
         {
             // if this event was fired while we were modifying the table, then ignore it because it was due to our
             // modifications.
-            if (!(alreadyUpdatingTable))
+            if (enabled && !alreadyUpdatingTable)
             {
                 alreadyUpdatingTable = true;
 
@@ -1285,8 +1578,7 @@ public class DataSet extends JScrollPane implements HasDataToSave
 
                 }
 
-                refreshFitData();
-                onUpdateFitTypesAction.run();
+                signalDataChanged();
                 alreadyUpdatingTable = false;
             }
         }

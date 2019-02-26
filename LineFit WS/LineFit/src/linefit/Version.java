@@ -39,10 +39,10 @@ public class Version
 
     /** The current LineFit file format's major version number that should only be updated when very significant changes
      * are made or backwards compatibility is broken &#46; It must be updated manually */
-    public static final int LINEFIT_FILE_FORMAT_MAJOR_VERSION = 1;
+    public static final int LINEFIT_FILE_FORMAT_MAJOR_VERSION = 2;
     /** The current LineFit file format's minor version number that should only be updated when new features are added
      * that do not break backwards compatibility&#46; It must be updated manually */
-    public static final int LINEFIT_FILE_FORMAT_MINOR_VERSION = 1;
+    public static final int LINEFIT_FILE_FORMAT_MINOR_VERSION = 0;
 
     /** The current LineFit file version */
     public static final String LINEFIT_FILE_FORMAT_VERSION = LINEFIT_FILE_FORMAT_MAJOR_VERSION + "." +
@@ -211,5 +211,21 @@ public class Version
         {
             return VersionComparisonResult.BAD_VERSION;
         }
+    }
+
+    /** Checks if the passed LineFit file version string is before the version passed in
+     * 
+     * @param toCheck The version string to check against the passed values
+     * @param majorVersion The major portion of the version of the version to check if the passed value is before
+     * @param minorVersion The major portion of the version of the version to check if the passed value is before
+     * @return True if the version in the string is a earlier version than the one passed in. False if it is the same or
+     *         a newer version */
+    public static boolean isLineFitFileVersionBefore(String toCheck, int majorVersion, int minorVersion)
+    {
+        String[] versionParts1 = toCheck.split("\\.");
+        int toCheckMajor = Integer.parseInt(versionParts1[0].trim());
+        int toCheckMinor = Integer.parseInt(versionParts1[1].trim());
+
+        return toCheckMajor < majorVersion || (toCheckMajor == majorVersion && toCheckMinor < minorVersion);
     }
 }

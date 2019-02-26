@@ -12,6 +12,7 @@
 
 package linefit.IO;
 
+
 import java.util.ArrayList;
 
 
@@ -27,8 +28,10 @@ public interface HasOptionsToSave
 {
     /** Reads in the options associated with exporting in from the LineFit data file
      * 
+     * @param lineRead The line to attempt to read a setting from
+     * 
      * @returns True if an export option was found in the passed line and False if the line did not contain an export
-     * option */
+     *          option */
     public boolean readInOption(String lineRead);
 
     /** Adds the names of the options as saved in the LineFit file and the values associated with them to the respective

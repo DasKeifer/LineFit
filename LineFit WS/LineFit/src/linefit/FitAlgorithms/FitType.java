@@ -85,4 +85,32 @@ public enum FitType
             allowedFits.add(Y_ERROR);
         }
     }
+
+    /** Gets the error dimensions required for the given fit type
+     * 
+     * @param fitType The fit type to get the required errors of
+     * @return An array of the required data dimensions for the passed fit type */
+    public static DataDimension[] getRequiredErrorDimsForFitType(FitType fitType)
+    {
+        DataDimension[] retVal;
+        switch (fitType)
+        {
+            case X_ERROR:
+                retVal = new DataDimension[] { DataDimension.X };
+                break;
+
+            case Y_ERROR:
+                retVal = new DataDimension[] { DataDimension.Y };
+                break;
+
+            case BOTH_ERRORS:
+                retVal = new DataDimension[] { DataDimension.X, DataDimension.Y };
+                break;
+
+            default:
+                retVal = new DataDimension[0];
+                break;
+        }
+        return retVal;
+    }
 }

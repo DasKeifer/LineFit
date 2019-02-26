@@ -119,11 +119,11 @@ class PartialDerivativeMinimizationFactory extends LinearFitFactory
             double sumX = 0.0, sumXX = 0.0, sumW = 0.0;
 
             // get the data that are valid (have x and y data)
-            double[][] data = dataForFit.getAllValidPointsData(true);
-            double[] xData = data[DataDimension.X.getColumnIndex()];
-            double[] yData = data[DataDimension.Y.getColumnIndex()];
-            double[] xErrorData = data[DataDimension.X.getErrorColumnIndex()];
-            double[] yErrorData = data[DataDimension.Y.getErrorColumnIndex()];
+            Double[][] data = dataForFit.getAllValidPointsData(true);
+            Double[] xData = data[DataDimension.X.getColumnIndex()];
+            Double[] yData = data[DataDimension.Y.getColumnIndex()];
+            Double[] xErrorData = data[DataDimension.X.getErrorColumnIndex()];
+            Double[] yErrorData = data[DataDimension.Y.getErrorColumnIndex()];
 
             // This is the minimization equation that is being used
             // ////////////////////////////////////////////////////////////////
@@ -146,16 +146,16 @@ class PartialDerivativeMinimizationFactory extends LinearFitFactory
                     m3 = slope + scope;
 
                     // Get the c1 data from chi2
-                    double b1 = calculateIntercept(m1);
-                    chi1 = calculateChiSquared(m1, b1);
+                    double b1 = calculateIntercept(m1, data);
+                    chi1 = calculateChiSquared(m1, b1, data);
 
                     // Get the c2 data from chi2
-                    double b2 = calculateIntercept(m2);
-                    chi2 = calculateChiSquared(m2, b2);
+                    double b2 = calculateIntercept(m2, data);
+                    chi2 = calculateChiSquared(m2, b2, data);
 
                     // Get the c3 data from chi2
-                    double b3 = calculateIntercept(m3);
-                    chi3 = calculateChiSquared(m3, b3);
+                    double b3 = calculateIntercept(m3, data);
+                    chi3 = calculateChiSquared(m3, b3, data);
 
                     numerator = Math.pow(m2 - m1, 2) * (chi2 - chi3) - Math.pow(m2 - m3, 2) * (chi2 - chi1);
                     denominator = (m2 - m1) * (chi2 - chi3) - (m2 - m3) * (chi2 - chi1);
@@ -172,7 +172,7 @@ class PartialDerivativeMinimizationFactory extends LinearFitFactory
                 // now calculate the final intercept with our minimized error slope
                 for (int j = 0; j < xData.length; j++)
                 {
-                    if (xErrorData[j] != 0 && yErrorData[j] != 0)
+                    if (xErrorData[j] != null && yErrorData[j] != null)
                     {
                         sigmaSquared = Math.pow(yErrorData[j], 2) + (Math.pow(slope, 2) * Math.pow(xErrorData[j], 2));
                         ws += 1.0 / sigmaSquared;
@@ -187,7 +187,7 @@ class PartialDerivativeMinimizationFactory extends LinearFitFactory
             double x = 0.0, eY = 0.0, eX = 0.0;
             for (int i = 0; i < xData.length; i++)
             {
-                if (xErrorData[i] != 0 && yErrorData[i] != 0)
+                if (xErrorData[i] != null && yErrorData[i] != null)
                 {
                     x = xData[i];
                     eX = xErrorData[i];

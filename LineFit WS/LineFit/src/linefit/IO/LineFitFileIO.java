@@ -195,10 +195,9 @@ public class LineFitFileIO
                             {
                                 readingDataSet = true;
                                 newDataSet = true;
-                                continue;
                             }
-                            // otherwise it is a "graph" setting and only import it if they
-                            // selected to read in the graph settings
+                            // otherwise it is a "graph" setting and only import it if they selected to read in the
+                            // graph settings
                             else if (importSettings)
                             {
                                 // first see if it is an export parameter and if it wasn't check
@@ -269,6 +268,8 @@ public class LineFitFileIO
                         JOptionPane.ERROR_MESSAGE);
             }
 
+            lineFit.finishedReadingInData();
+
             System.out.println("Done Opening File");
         }
     }
@@ -289,8 +290,9 @@ public class LineFitFileIO
             // if we found the version line then read it in
             if (versionLine.toLowerCase().startsWith("fileformatversion"))
             {
-                Version.VersionComparisonResult relationship = Version.checkLineFitFileFormatVersionString(versionLine
-                        .substring(versionLine.indexOf(' ') + 1));
+                String versionString = versionLine.substring(versionLine.indexOf(' ') + 1);
+                Version.VersionComparisonResult relationship = Version.checkLineFitFileFormatVersionString(
+                        versionString);
                 // if the version in the file is a newer version than LineFit
                 if (relationship.isNewerVersion())
                 {
@@ -307,6 +309,14 @@ public class LineFitFileIO
                 }
                 else if (relationship.isOlderVersion())
                 {
+                    if (Version.isLineFitFileVersionBefore(versionString, 2, 0))
+                    {
+                        JOptionPane.showMessageDialog(lineFit,
+                                "The file was created with an older LineFit file format that is not fully supported." +
+                                        " The error data columns may be loaded into the wrong columns",
+                                "Partially Supported File Version", JOptionPane.INFORMATION_MESSAGE);
+                    }
+
                     JOptionPane.showMessageDialog(lineFit, "The file was created with an older LineFit file format." +
                             " When the file is saved, the file format will be updated.", "Old File Version",
                             JOptionPane.INFORMATION_MESSAGE);

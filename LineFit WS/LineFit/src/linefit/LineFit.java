@@ -56,7 +56,7 @@ import linefit.IO.HasOptionsToSave;
  * the functions calls and methods of the program
  * 
  * @author Keith Rice
- * @version 2.0.0
+ * @version 2.0
  * @since &lt;0.98.0 */
 public class LineFit extends JFrame implements HasOptionsToSave, HasDataToSave
 {

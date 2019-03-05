@@ -12,6 +12,7 @@
 
 package linefit;
 
+
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 
@@ -35,7 +36,7 @@ public class OnlyAllowNumbersListener implements FocusListener
     /** Saves the current value of the field in another location so we can revert back to it if we want later
      * 
      * @param passedFocusEvent The Focus Event that is passed to this function by the system when the field is focused
-     * on */
+     *        on */
     public void focusGained(FocusEvent passedFocusEvent)
     {
         try
@@ -54,7 +55,7 @@ public class OnlyAllowNumbersListener implements FocusListener
      * back to the original String
      * 
      * @param passedFocusEvent The FocusEvent that is passed to this funtion by the system when the field loses the
-     * focus */
+     *        focus */
     public void focusLost(FocusEvent passedFocusEvent)
     {
         try
@@ -73,7 +74,7 @@ public class OnlyAllowNumbersListener implements FocusListener
     /** Checks the String value in the given field to see if it contains a valid double as a String
      * 
      * @param fieldToCheckForNumber The text field that will be checked to see whether or not it contains a double
-     * number as a String
+     *        number as a String
      * @return A boolean of whether or not the passed TextField has a valid double as a String in it */
     private boolean doesFieldContainValidDoubleString(JTextField fieldToCheckForNumber)
     {

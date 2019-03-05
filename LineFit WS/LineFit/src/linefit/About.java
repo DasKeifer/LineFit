@@ -12,6 +12,7 @@
 
 package linefit;
 
+
 /** This class creates the string that is used in the about window
  * 
  * @author Unknown

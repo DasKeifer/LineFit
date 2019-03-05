@@ -1,4 +1,4 @@
-/* Copyright (C) 2013 Covenant College Physics Department
+/* Copyright (C) 2018 Covenant College Physics Department
  * 
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
  * Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any
@@ -20,7 +20,7 @@ import java.util.ArrayList;
  * provides a set of standardized functions to read in data and/or options related to the data from a file line by line
  * and to retrieve all the data and the options related to the data and their settings as strings for saving them.
  * 
- * @author Das Keifer
+ * @author Keith Rice
  * @version 1.0
  * @since 0.99.0 */
 public interface HasDataToSave

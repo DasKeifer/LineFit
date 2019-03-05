@@ -1,4 +1,4 @@
-/* Copyright (C) 2013 Covenant College Physics Department
+/* Copyright (C) 2018 Covenant College Physics Department
  * 
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
  * Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any
@@ -11,6 +11,7 @@
  * http://www.gnu.org/licenses/. */
 
 package linefit;
+
 
 /** The enum class that contains the different dimensions that LineFit uses as well as some convenience functions for
  * displaying them and converting them to numbers

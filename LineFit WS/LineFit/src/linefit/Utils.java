@@ -1,4 +1,4 @@
-/* Copyright (C) 2013 Covenant College Physics Department
+/* Copyright (C) 2018 Covenant College Physics Department
  * 
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
  * Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any
@@ -11,6 +11,7 @@
  * http://www.gnu.org/licenses/. */
 
 package linefit;
+
 
 import java.awt.Component;
 import java.awt.event.ActionListener;
@@ -25,7 +26,7 @@ import javax.swing.SpringLayout;
 /** This class contains some functionality related to other LineFit classes that either are used in multiple classes or
  * potentially could be.
  * 
- * @author Das Keifer
+ * @author Keith Rice
  * @version 1.0
  * @since 0.99.0 */
 public class Utils

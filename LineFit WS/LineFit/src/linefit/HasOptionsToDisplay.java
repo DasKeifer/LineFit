@@ -1,4 +1,4 @@
-/* Copyright (C) 2013 Covenant College Physics Department
+/* Copyright (C) 2018 Covenant College Physics Department
  * 
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
  * Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any
@@ -12,6 +12,7 @@
 
 package linefit;
 
+
 import java.awt.Container;
 import java.awt.Insets;
 
@@ -20,7 +21,7 @@ import java.awt.Insets;
  * the user can change them. It provides a set of standardized functions to create, position, display, apply changes,
  * etc.
  * 
- * @author Das Keifer
+ * @author Keith Rice
  * @version 1.0
  * @since 0.99.0 */
 public interface HasOptionsToDisplay
@@ -35,9 +36,9 @@ public interface HasOptionsToDisplay
      * 
      * @param insets The Insets of the Container the GUI elements reside in
      * @param xOffset The x offset to apply to the GUI elements so that they fit with any other GUI elements being
-     * displayed by other classes
+     *        displayed by other classes
      * @param yOffset The y offset to apply to the GUI elements so that they fit with any other GUI elements being
-     * displayed by other classes */
+     *        displayed by other classes */
     public void positionOptionsGuiElements(Insets insets, int xOffset, int yOffset);
 
     /** Resets the GUI elements associated with the options of this class to the default values */

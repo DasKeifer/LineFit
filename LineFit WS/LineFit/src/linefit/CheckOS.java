@@ -12,6 +12,7 @@
 
 package linefit;
 
+
 /** This class checks to see if the user is running this program on a Mac so we can fix the copy and paste error from
  * tables as well as other things specific to a Mac such as line endings
  * 

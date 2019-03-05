@@ -12,6 +12,7 @@
 
 package linefit;
 
+
 /** This class serves as a Macro for the current version number of LineFit
  * 
  * @author Keith Rice

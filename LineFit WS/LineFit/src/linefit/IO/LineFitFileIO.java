@@ -1,4 +1,4 @@
-/* Copyright (C) 2013 Covenant College Physics Department
+/* Copyright (C) 2018 Covenant College Physics Department
  * 
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
  * Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any
@@ -32,7 +32,7 @@ import linefit.Version;
  * precise format of the data file. Each class that has data to save must provide functionality for retrieving and
  * setting the data.
  * 
- * @author Das Keifer
+ * @author Keith Rice
  * @version 1.0
  * @since 0.99.0 */
 public class LineFitFileIO

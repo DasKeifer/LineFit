@@ -12,6 +12,7 @@
 
 package linefit.FitAlgorithms;
 
+
 /** This enumeration is used to keep track of what variable is fixed in the LinearFitData we have for a given DataSet
  * 
  * <ul>

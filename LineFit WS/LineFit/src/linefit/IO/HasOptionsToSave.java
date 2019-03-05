@@ -1,4 +1,4 @@
-/* Copyright (C) 2013 Covenant College Physics Department
+/* Copyright (C) 2018 Covenant College Physics Department
  * 
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
  * Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any
@@ -21,7 +21,7 @@ import java.util.ArrayList;
  * directly or indirectly. It provides a set of standardized functions to read in an option from a file line by line and
  * to retrieve all the options and their settings as strings for saving them.
  * 
- * @author Das Keifer
+ * @author Keith Rice
  * @version 1.0
  * @since 0.99.0 */
 public interface HasOptionsToSave

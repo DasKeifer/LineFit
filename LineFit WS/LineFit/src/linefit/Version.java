@@ -168,7 +168,7 @@ public class Version
     /** Checks the passed LineFit FileFormat version number string against the current LineFit File Format version to
      * see if it is the same, newer, or older.
      * 
-     * @param version The string containing the File Format version number as text
+     * @param fileVersion The string containing the File Format version number as text
      * @return int representing the relationship with negative meaning it is an older version, positive meaning a newer
      *         version, and 0 meaning the same version. If the versions are not equal it will return the number that
      *         does not match up (i.e. 2 (or -2) if the minor versions do not match) */

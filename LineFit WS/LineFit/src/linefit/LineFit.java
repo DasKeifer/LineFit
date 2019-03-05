@@ -233,7 +233,7 @@ public class LineFit extends JFrame implements HasOptionsToSave, HasDataToSave
         // Set up some of the update actions and the IO
         onUpdateFitTypesAction = new updateDataSetAction();
         onUpdateColorAction = new updateDataSetColorAction();
-        ioHandler = new GeneralIO(this, graphingArea);
+        ioHandler = new GeneralIO(this);
         this.setIconImage(ioHandler.getLineFitIcon());
 
         // make the results area that looks like a label so it doesnt look out of place
@@ -590,10 +590,10 @@ public class LineFit extends JFrame implements HasOptionsToSave, HasDataToSave
 
     /** Reads in the options associated with exporting in from the LineFit data file
      * 
-     * @param lineRead The line to attempt to read a setting from
+     * @param line The line to attempt to read a setting from
      * 
-     * @returns True if an export option was found in the passed line and False if the line did not contain an export
-     *          option */
+     * @return True if an export option was found in the passed line and False if the line did not contain an export
+     *         option */
     public boolean readInOption(String line)
     {
         return graphingArea.readInOption(line);

@@ -12,6 +12,7 @@
 
 package linefit.IO;
 
+
 /** A class that keeps track of whether or not the file has been modified in such a way that the save file would be
  * different then when it was last saved (i.e. are there unsaved changes)
  * 

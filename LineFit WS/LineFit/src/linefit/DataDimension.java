@@ -12,6 +12,7 @@
 
 package linefit;
 
+
 /** The enum class that contains the different dimensions that LineFit uses as well as some convenience functions for
  * displaying them and converting them to numbers
  * 

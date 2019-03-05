@@ -44,7 +44,9 @@ public class DataColumn
         data = new ArrayList<Double>();
     }
 
-    /** Returns the number of data points with or without null entries */
+    /** Returns the number of data points with any null entries. For non-null values see getNonNullDataSize()
+     * 
+     * @return The size of the data in the column including any null rows */
     public int dataSize()
     {
         return data.size();

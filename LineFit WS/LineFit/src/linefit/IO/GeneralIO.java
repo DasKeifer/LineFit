@@ -77,8 +77,10 @@ public class GeneralIO
     private JFileChooser fileChooser;
 
     /** The constructor for LineFitFileIO that creates a new instance of ChangeTracker to track if the data has changed
-     * and that uses the passed LineFIT instance and Graph */
-    public GeneralIO(LineFit lineFitToAssociateWith, GraphArea graphToExport)
+     * and that uses the passed LineFIT instance and Graph
+     * 
+     * @param lineFitToAssociateWith The LineFit object this General IO helper is associated with/is to help */
+    public GeneralIO(LineFit lineFitToAssociateWith)
     {
         changeTracker = new ChangeTracker();
         lineFit = lineFitToAssociateWith;
@@ -185,6 +187,8 @@ public class GeneralIO
     /** Starts a new instance of LineFit and attempts to loads the data from the file path passed
      * 
      * Note: This will only work if it is running from a JAR file
+     * 
+     * @param pathToFile The path of the LineFit file to open in the new instance of LineFit
      * 
      * @throws NumberFormatException Throws this exception if it expected to find a number while parsing the file and
      *         found something else */

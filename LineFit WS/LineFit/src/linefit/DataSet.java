@@ -1067,9 +1067,9 @@ public class DataSet extends JScrollPane implements HasDataToSave
      * 
      * @param dim The dimension to get the length of the data of
      * @return The length of the data in the passed dimension */
-    public int getDataSize(DataDimension data)
+    public int getDataSize(DataDimension dim)
     {
-        return dataColumns[data.getColumnIndex()].getDataSize();
+        return dataColumns[dim.getColumnIndex()].getDataSize();
     }
 
     /** Gets an array of the error/uncertainty values for the passed dimension. This array may contain null values. If
@@ -1217,6 +1217,9 @@ public class DataSet extends JScrollPane implements HasDataToSave
      * 
      * [Dimesnion1Data, Dimension2Data]
      * 
+     * @param validPoints The list of thus far valid points to get the data for. Any point that was detected as invalid
+     *        by this function will be removed from the list
+     * 
      * @return A 2-D array containing the data for this dataset as specified in the description */
     private Double[][] getValidPoints_Data(ArrayList<Integer> validPoints)
     {
@@ -1286,6 +1289,9 @@ public class DataSet extends JScrollPane implements HasDataToSave
      * The returned data is a 2-D array of each of the dimensions' error data. For example:
      * 
      * [Dimension1Error, Dimension2Error]
+     * 
+     * @param validPoints The list of thus far valid points to get the error data for. Any point that was detected as
+     *        invalid by this function will be removed from the list
      * 
      * @return A 2-D array containing the erro data for this dataset as specified in the description. Any non-specified
      *         error values are set to null */

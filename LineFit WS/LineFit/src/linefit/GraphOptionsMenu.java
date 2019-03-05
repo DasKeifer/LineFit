@@ -257,7 +257,8 @@ public class GraphOptionsMenu extends JFrame
      * multiple GraphOptionFrames at once.
      * 
      * @param graphAreaToEditOptionsOf the GraphArea whose options and settings will be edited
-     * @param currentSetInGraphArea The currently selected GraphDataSet that is select in the given GraphArea */
+     * @param currentSetInGraphArea The currently selected GraphDataSet that is select in the given GraphArea
+     * @param parentIoHandler The GeneralIO object used for handling IO related functionality */
     GraphOptionsMenu(GraphArea graphAreaToEditOptionsOf, DataSet currentSetInGraphArea, GeneralIO parentIoHandler)
     {
         super("Graph Settings");

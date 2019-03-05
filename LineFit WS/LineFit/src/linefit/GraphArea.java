@@ -1000,8 +1000,8 @@ public class GraphArea extends JPanel implements HasOptionsToSave, HasDataToSave
      * 
      * @param lineRead The line to attempt to read a setting from
      * 
-     * @returns True if an export option was found in the passed line and False if the line did not contain an export
-     *          option */
+     * @return True if an export option was found in the passed line and False if the line did not contain an export
+     *         option */
     public boolean readInOption(String lineRead)
     {
         // split the input into the two parts
